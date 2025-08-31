@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { Showcase, Mineral } from '../types';
 import ShowcaseModal from './ShowcaseModal';
 import ShelfModal from './ShelfModal';
@@ -40,6 +40,43 @@ interface VitrinesPageProps {
   loadStats: () => void;
 }
 
+// Memoized VitrineCard component to prevent unnecessary re-renders
+const VitrineCard = React.memo(({ showcase, onClick }: { showcase: Showcase; onClick: (id: number) => void }) => (
+  <div 
+    className="vitrine-card"
+    onClick={() => onClick(showcase.id)}
+  >
+    <div className="vitrine-image">
+      {showcase.image_path ? (
+        <img 
+          src={`/uploads/${showcase.image_path}`} 
+          alt={showcase.name}
+          loading="lazy"
+        />
+      ) : (
+        <div className="placeholder">🏛</div>
+      )}
+    </div>
+    <div className="vitrine-info">
+      <h3>{showcase.name}</h3>
+      <p><strong>Code:</strong> {showcase.code}</p>
+      <p><strong>Standort:</strong> {showcase.location || 'Nicht angegeben'}</p>
+      <p><strong>Beschreibung:</strong> {showcase.description ? (showcase.description.substring(0, 80) + '...') : 'Keine Beschreibung'}</p>
+      
+      <div className="vitrine-stats">
+        <div className="vitrine-stat">
+          <span className="vitrine-stat-number">{showcase.shelf_count || 0}</span>
+          <span className="vitrine-stat-label">Regale</span>
+        </div>
+        <div className="vitrine-stat">
+          <span className="vitrine-stat-number">{showcase.mineral_count || 0}</span>
+          <span className="vitrine-stat-label">Mineralien</span>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
 export default function VitrinesPage({ 
   showcases,
   setShowcases,
@@ -74,23 +111,24 @@ export default function VitrinesPage({
   loadStats
 }: VitrinesPageProps) {
 
-  // Form data states
-  const [vitrineFormData, setVitrineFormData] = React.useState({
+  // Memoize form data to prevent unnecessary re-renders
+  const [vitrineFormData, setVitrineFormData] = React.useState(() => ({
     name: '',
     code: '',
     location: '',
     description: ''
-  });
+  }));
   const [vitrineImage, setVitrineImage] = React.useState<File | null>(null);
-  const [shelfFormData, setShelfFormData] = React.useState({
+  const [shelfFormData, setShelfFormData] = React.useState(() => ({
     name: '',
     code: '',
     description: '',
     position_order: 0
-  });
+  }));
   const [shelfImage, setShelfImage] = React.useState<File | null>(null);
 
-  const loadShowcases = async () => {
+  // Memoize API calls to prevent unnecessary network requests
+  const loadShowcases = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch('/api/showcases');
@@ -103,9 +141,9 @@ export default function VitrinesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [setShowcases, setLoading]);
 
-  const openShowcaseDetails = async (id: number) => {
+  const openShowcaseDetails = useCallback(async (id: number) => {
     try {
       const response = await fetch(`/api/showcases/${id}`);
       if (response.ok) {
@@ -116,17 +154,14 @@ export default function VitrinesPage({
     } catch (error) {
       console.error('Fehler beim Laden der Vitrine-Details:', error);
     }
-  };
+  }, [setSelectedShowcase, setShowShowcaseModal]);
 
-  const openShelfDetails = async (shelfId: number) => {
+  const openShelfDetails = useCallback(async (shelfId: number) => {
     try {
       setLoading(true);
-      console.log('Loading shelf details for ID:', shelfId);
       
       const response = await fetch(`/api/shelves/${shelfId}/minerals`);
       const responseData = await response.json();
-      
-      console.log('Shelf details response:', responseData);
       
       if (response.ok) {
         setSelectedShelf(responseData.shelfInfo);
@@ -142,9 +177,9 @@ export default function VitrinesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setSelectedShelf, setShelfMinerals, setShowShelfMineralsModal]);
 
-  const openMineralDetails = async (id: number) => {
+  const openMineralDetails = useCallback(async (id: number) => {
     try {
       const response = await fetch(`/api/minerals/${id}`);
       if (response.ok) {
@@ -155,9 +190,9 @@ export default function VitrinesPage({
     } catch (error) {
       console.error('Fehler beim Laden der Mineral-Details:', error);
     }
-  };
+  }, [setSelectedMineral, setShowMineralModal]);
 
-  const handleEditShowcase = (showcase: Showcase) => {
+  const handleEditShowcase = useCallback((showcase: Showcase) => {
     setEditFormData({
       id: showcase.id,
       name: showcase.name,
@@ -167,10 +202,9 @@ export default function VitrinesPage({
     });
     setEditMode('showcase');
     setEditImage(null);
-  };
+  }, [setEditFormData, setEditMode, setEditImage]);
 
-  const handleEditShelf = (shelf: any) => {
-    console.log('Edit shelf:', shelf);
+  const handleEditShelf = useCallback((shelf: any) => {
     setEditFormData({
       id: shelf.id,
       name: shelf.name || shelf.shelf_name,
@@ -181,9 +215,9 @@ export default function VitrinesPage({
     });
     setEditMode('shelf');
     setEditImage(null);
-  };
+  }, [setEditFormData, setEditMode, setEditImage, selectedShowcase]);
 
-  const handleEditMineral = (mineral: Mineral) => {
+  const handleEditMineral = useCallback((mineral: Mineral) => {
     setEditFormData({
       id: mineral.id,
       name: mineral.name,
@@ -197,9 +231,9 @@ export default function VitrinesPage({
     });
     setEditMode('mineral');
     setEditImage(null);
-  };
+  }, [setEditFormData, setEditMode, setEditImage]);
 
-  const handleVitrineSubmit = async (e: React.FormEvent) => {
+  const handleVitrineSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -241,9 +275,9 @@ export default function VitrinesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [vitrineFormData, vitrineImage, setLoading, setShowVitrineForm, loadShowcases, loadStats]);
 
-  const handleShelfSubmit = async (e: React.FormEvent) => {
+  const handleShelfSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -286,9 +320,9 @@ export default function VitrinesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [shelfFormData, shelfImage, selectedShowcase, setLoading, setShowShelfForm, openShowcaseDetails, loadStats]);
 
-  const handleDelete = async (type: 'mineral' | 'showcase' | 'shelf', id: number) => {
+  const handleDelete = useCallback(async (type: 'mineral' | 'showcase' | 'shelf', id: number) => {
     const confirmMessage = {
       mineral: 'Möchten Sie dieses Mineral wirklich löschen?',
       showcase: 'Möchten Sie diese Vitrine wirklich löschen? Alle zugehörigen Regale werden ebenfalls gelöscht!',
@@ -358,11 +392,24 @@ export default function VitrinesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setShowMineralModal, setSelectedMineral, setShowShowcaseModal, setSelectedShowcase, 
+      setShowShelfMineralsModal, setSelectedShelf, loadStats, loadShowcases, openShowcaseDetails, selectedShowcase]);
 
+  // Memoize the showcases list to prevent unnecessary re-renders
+  const showcasesList = useMemo(() => {
+    return showcases.map(showcase => (
+      <VitrineCard 
+        key={showcase.id} 
+        showcase={showcase} 
+        onClick={openShowcaseDetails}
+      />
+    ));
+  }, [showcases, openShowcaseDetails]);
+
+  // Only load showcases on mount
   useEffect(() => {
     loadShowcases();
-  }, []);
+  }, []); // Empty dependency array
 
   return (
     <>
@@ -389,42 +436,11 @@ export default function VitrinesPage({
               <div className="loading">Lade Vitrinen...</div>
             ) : showcases.length === 0 ? (
               <div className="no-showcases">
-                <h3>🛏 Noch keine Vitrinen vorhanden</h3>
+                <h3>🏛 Noch keine Vitrinen vorhanden</h3>
                 <p>Fügen Sie Ihre erste Vitrine hinzu, um Ihre Sammlung zu organisieren.</p>
               </div>
             ) : (
-              showcases.map(showcase => (
-                <div 
-                  key={showcase.id} 
-                  className="vitrine-card"
-                  onClick={() => openShowcaseDetails(showcase.id)}
-                >
-                  <div className="vitrine-image">
-                    {showcase.image_path ? (
-                      <img src={`/uploads/${showcase.image_path}`} alt={showcase.name} />
-                    ) : (
-                      <div className="placeholder">🛏</div>
-                    )}
-                  </div>
-                  <div className="vitrine-info">
-                    <h3>{showcase.name}</h3>
-                    <p><strong>Code:</strong> {showcase.code}</p>
-                    <p><strong>Standort:</strong> {showcase.location || 'Nicht angegeben'}</p>
-                    <p><strong>Beschreibung:</strong> {showcase.description ? (showcase.description.substring(0, 80) + '...') : 'Keine Beschreibung'}</p>
-                    
-                    <div className="vitrine-stats">
-                      <div className="vitrine-stat">
-                        <span className="vitrine-stat-number">{showcase.shelf_count || 0}</span>
-                        <span className="vitrine-stat-label">Regale</span>
-                      </div>
-                      <div className="vitrine-stat">
-                        <span className="vitrine-stat-number">{showcase.mineral_count || 0}</span>
-                        <span className="vitrine-stat-label">Mineralien</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
+              showcasesList
             )}
           </div>
         </div>
