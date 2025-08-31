@@ -104,7 +104,7 @@ export default function ShelfModal({
 
   return (
     <div className="modal" style={{ display: 'flex' }}>
-      <div className="modal-content shelf-minerals-modal-large">
+      <div className="modal-content-large">
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>Regal: {shelf.shelf_name}</h2>
         <p style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-6)' }}>

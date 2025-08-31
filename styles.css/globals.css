@@ -1213,6 +1213,19 @@ main {
     animation: modalSlideIn 0.3s ease-out;
 }
 
+.modal-content-large {
+    background: var(--white);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-xl);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
 @keyframes modalSlideIn {
     from {
     opacity: 0;
