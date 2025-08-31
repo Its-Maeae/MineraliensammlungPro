@@ -22,7 +22,7 @@ export default function ShowcaseModal({
 }: ShowcaseModalProps) {
   return (
     <div className="modal" style={{ display: 'flex' }}>
-      <div className="modal-content-large showcase-modal">
+      <div className="modal-content-mid showcase-modal">
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>{showcase.name}</h2>
         
