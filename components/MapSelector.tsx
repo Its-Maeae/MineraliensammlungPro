@@ -50,8 +50,11 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
   }, [mapLoaded]);
 
   useEffect(() => {
-    if (mapInstance.current && latitude && longitude) {
+    if (mapInstance.current && latitude && longitude && latitude !== 0 && longitude !== 0) {
       updateMarker(latitude, longitude);
+    } else if (mapInstance.current && (!latitude || !longitude || latitude === 0 || longitude === 0)) {
+      // Clear marker if coordinates are null, undefined, or 0
+      clearMarker();
     }
   }, [latitude, longitude]);
 
@@ -59,7 +62,7 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
     if (!mapRef.current || !window.L) return;
 
     const map = window.L.map(mapRef.current).setView(
-      latitude && longitude 
+      (latitude && longitude && latitude !== 0 && longitude !== 0) 
         ? [latitude, longitude]
         : [51.1657, 10.4515], // Deutschland Zentrum
       8
@@ -82,7 +85,7 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
     });
 
     // Initialen Marker setzen falls Koordinaten vorhanden
-    if (latitude && longitude) {
+    if (latitude && longitude && latitude !== 0 && longitude !== 0) {
       updateMarker(latitude, longitude);
     }
   };
@@ -130,12 +133,17 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
     mapInstance.current.setView([lat, lng], mapInstance.current.getZoom());
   };
 
-  const clearLocation = () => {
+  const clearMarker = () => {
     if (markerRef.current && mapInstance.current) {
       mapInstance.current.removeLayer(markerRef.current);
       markerRef.current = null;
     }
-    onLocationSelect(0, 0); // Signalisiert das Löschen der Koordinaten
+  };
+
+  const clearLocation = () => {
+    clearMarker();
+    // Signal that coordinates should be cleared (using 0 as the clear signal)
+    onLocationSelect(0, 0);
   };
 
   return (
@@ -171,7 +179,7 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
           color: '#666'
         }}>
           <span>💡 Tipp: Klicken Sie auf die Karte oder ziehen Sie den Marker</span>
-          {latitude && longitude && (
+          {latitude && longitude && latitude !== 0 && longitude !== 0 && (
             <button
               type="button"
               onClick={clearLocation}

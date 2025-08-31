@@ -113,10 +113,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         location,
         purchase_location,
         rock_type,
-        shelf_id
+        shelf_id,
+        latitude,
+        longitude
       } = (req as any).body;
 
       const image = (req as any).file;
+
+      console.log('Received coordinates:', { latitude, longitude }); // Debug log
 
       // Prüfen ob Steinnummer bereits von anderem Mineral verwendet wird
       const existingMineral = await database.get(
@@ -128,13 +132,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
       }
 
+      // Handle coordinates - convert empty strings to null, parse valid numbers
+      let parsedLatitude = null;
+      let parsedLongitude = null;
+
+      if (latitude !== '' && latitude !== undefined && latitude !== null) {
+        const lat = parseFloat(latitude);
+        if (!isNaN(lat)) {
+          parsedLatitude = lat;
+        }
+      }
+
+      if (longitude !== '' && longitude !== undefined && longitude !== null) {
+        const lng = parseFloat(longitude);
+        if (!isNaN(lng)) {
+          parsedLongitude = lng;
+        }
+      }
+
+      console.log('Parsed coordinates:', { parsedLatitude, parsedLongitude }); // Debug log
+
       // SQL für Update mit oder ohne neues Bild
       let sql = `UPDATE minerals SET 
                 name = ?, number = ?, color = ?, description = ?, location = ?,
-                purchase_location = ?, rock_type = ?, shelf_id = ?`;
+                purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?`;
       let params = [
         name, number, color, description, location,
-        purchase_location, rock_type, shelf_id || null
+        purchase_location, rock_type, shelf_id || null,
+        parsedLatitude, parsedLongitude
       ];
 
       if (image) {
@@ -145,7 +170,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sql += ` WHERE id = ?`;
       params.push(id);
 
-      await database.run(sql, params);
+      const result = await database.run(sql, params);
+      console.log('Update result:', result); // Debug log
 
       res.status(200).json({ message: 'Mineral erfolgreich aktualisiert' });
     } catch (error) {

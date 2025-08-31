@@ -52,9 +52,15 @@ export default function EditModal({
     try {
       const formDataToSend = new FormData();
       
+      // Handle all form fields including coordinates
       Object.keys(formData).forEach(key => {
-        if (key !== 'id' && formData[key] !== undefined && formData[key] !== null) {
-          formDataToSend.append(key, formData[key].toString());
+        if (key !== 'id' && formData[key] !== undefined) {
+          // Special handling for coordinates - convert 0 values to null for clearing
+          if ((key === 'latitude' || key === 'longitude') && formData[key] === 0) {
+            formDataToSend.append(key, ''); // Send empty string to indicate clearing
+          } else if (formData[key] !== null) {
+            formDataToSend.append(key, formData[key].toString());
+          }
         }
       });
       
@@ -226,13 +232,16 @@ export default function EditModal({
                 <MapSelector
                   latitude={formData.latitude}
                   longitude={formData.longitude}
-                  onLocationSelect={(lat, lng) => setFormData({
-                    ...formData, 
-                    latitude: lat, 
-                    longitude: lng
-                  })}
+                  onLocationSelect={(lat, lng) => {
+                    console.log('MapSelector coordinates changed:', lat, lng); // Debug log
+                    setFormData({
+                      ...formData, 
+                      latitude: lat, 
+                      longitude: lng
+                    });
+                  }}
                 />
-                {formData.latitude && formData.longitude && (
+                {formData.latitude && formData.longitude && formData.latitude !== 0 && formData.longitude !== 0 && (
                   <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
                     Koordinaten: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
                   </div>
