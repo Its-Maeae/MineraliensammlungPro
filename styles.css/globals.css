@@ -1796,3 +1796,277 @@ main {
     font-size: var(--font-size-2xl);
     }
 }
+
+/* Erweiterte Modal-Styles für ShelfModal */
+.shelf-minerals-modal-large .modal-content {
+    max-width: 1400px; /* Deutlich breiter */
+    width: 95vw; /* Responsive Breite */
+    max-height: 95vh;
+    padding: var(--space-8);
+}
+
+/* Einheitliche Filter-Container für ShelfModal und CollectionPage */
+.shelf-search-filter-container {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-8);
+}
+
+/* Search Section für ShelfModal */
+.shelf-search-filter-container .search-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.shelf-search-filter-container .search-section h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-4);
+}
+
+.shelf-search-filter-container .search-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-base);
+    transition: border-color var(--transition-fast);
+}
+
+.shelf-search-filter-container .search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+/* Filter Section für ShelfModal */
+.shelf-search-filter-container .filter-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-4);
+    align-items: end;
+}
+
+.shelf-search-filter-container .filter-section h3 {
+    grid-column: 1 / -1;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-2);
+}
+
+.shelf-search-filter-container .filter-select {
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    background: var(--white);
+    transition: border-color var(--transition-fast);
+}
+
+.shelf-search-filter-container .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Aktive Filter Info für ShelfModal */
+.shelf-filter-info {
+    background: rgba(30, 64, 175, 0.1);
+    border: 1px solid rgba(30, 64, 175, 0.2);
+    color: var(--primary-dark);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    display: none;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.shelf-filter-info.show {
+    display: flex;
+}
+
+.shelf-filter-info .filter-tag {
+    background: var(--primary-color);
+    color: var(--white);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+.shelf-filter-info .clear-filters {
+    background: var(--error-color);
+    color: var(--white);
+    border: none;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.shelf-filter-info .clear-filters:hover {
+    background: #dc2626;
+}
+
+/* Sort Section für ShelfModal */
+.shelf-sort-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    padding: var(--space-4);
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+}
+
+.shelf-sort-section label {
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.shelf-sort-section select {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--white);
+}
+
+/* Improved Minerals Grid für ShelfModal */
+.shelf-minerals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-6);
+    max-height: none; /* Entfernt die Höhenbegrenzung */
+    overflow-y: visible; /* Entfernt das Scrolling */
+    padding: 0;
+}
+
+/* Enhanced mineral cards für ShelfModal */
+.mineral-card-small {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+}
+
+.mineral-card-small:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.mineral-image-small {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--white);
+    margin-bottom: var(--space-4);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.mineral-image-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+}
+
+.mineral-card-small:hover .mineral-image-small img {
+    transform: scale(1.05);
+}
+
+.mineral-info-small {
+    text-align: left;
+}
+
+.mineral-info-small h4 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-3);
+    line-height: 1.3;
+}
+
+.mineral-info-small p {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-bottom: var(--space-2);
+    line-height: 1.4;
+}
+
+.mineral-info-small p:last-child {
+    margin-bottom: 0;
+}
+
+.mineral-info-small p strong {
+    color: var(--gray-800);
+    font-weight: 600;
+}
+
+/* Mobile Anpassungen */
+@media (max-width: 768px) {
+    .shelf-minerals-modal-large .modal-content {
+        width: 95vw;
+        margin: var(--space-2);
+        max-height: calc(100vh - 1rem);
+        padding: var(--space-4);
+    }
+    
+    .shelf-search-filter-container {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+        padding: var(--space-4);
+    }
+    
+    .shelf-search-filter-container .filter-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .shelf-minerals-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+    
+    .mineral-image-small {
+        height: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shelf-minerals-modal-large .modal-content {
+        padding: var(--space-3);
+    }
+    
+    .shelf-search-filter-container {
+        padding: var(--space-3);
+    }
+    
+    .mineral-card-small {
+        padding: var(--space-3);
+    }
+}
