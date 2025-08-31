@@ -45,7 +45,7 @@ export default function ShelfModal({
               Bearbeiten
             </button>
             <button 
-              className="btn btn-info"
+              className="btn btn-primary"
               onClick={() => setShowQRGenerator(!showQRGenerator)}
             >
               {showQRGenerator ? 'QR-Code ausblenden' : 'QR-Code generieren'}

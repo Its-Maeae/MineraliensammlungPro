@@ -9,29 +9,6 @@
   border-radius: 8px;
 }
 
-/* Info Button Style */
-.btn-info {
-  background: linear-gradient(135deg, #17a2b8, #138496);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-info:hover {
-  background: linear-gradient(135deg, #138496, #117a8b);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
-}
-
-.btn-info:active {
-  transform: translateY(0);
-}
-
 /* QR-Code Modal/Section Styles */
 .qr-section {
   background: #f8f9fa;
