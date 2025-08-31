@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { Mineral, Showcase, Stats } from '../types';
 import Header from '../components/Header';
 import MobileNav from '../components/MobileNav';
@@ -13,6 +14,7 @@ import EditModal from '../components/EditModal';
 import MapPage from '../components/MapPage';
 
 export default function Home() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState('home');
   const [minerals, setMinerals] = useState<Mineral[]>([]);
   const [showcases, setShowcases] = useState<Showcase[]>([]);
@@ -51,6 +53,54 @@ export default function Home() {
   const [editImage, setEditImage] = useState<File | null>(null);
   const [shelves, setShelves] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  // QR-Code Handling
+  useEffect(() => {
+    if (router.isReady) {
+      const { shelf } = router.query;
+      if (shelf) {
+        handleQRCodeScan(parseInt(shelf as string));
+      }
+    }
+  }, [router.isReady, router.query]);
+
+  const handleQRCodeScan = async (shelfId: number) => {
+    try {
+      console.log('QR-Code gescannt für Regal ID:', shelfId);
+      
+      // Zuerst zur Vitrinen-Seite wechseln
+      setCurrentPage('vitrines');
+      
+      // Showcases laden falls noch nicht geladen
+      if (showcases.length === 0) {
+        await loadShowcases();
+      }
+      
+      // Regal-Details laden und anzeigen
+      setLoading(true);
+      const response = await fetch(`/api/shelves/${shelfId}/minerals`);
+      const responseData = await response.json();
+      
+      if (response.ok) {
+        setSelectedShelf(responseData.shelfInfo);
+        setShelfMinerals(responseData.minerals);
+        setShowShelfMineralsModal(true);
+        
+        // URL-Parameter entfernen
+        router.replace('/', undefined, { shallow: true });
+      } else {
+        console.error('Fehler beim Laden des Regals:', responseData);
+        alert('Regal nicht gefunden oder Fehler beim Laden');
+        router.replace('/', undefined, { shallow: true });
+      }
+    } catch (error) {
+      console.error('Fehler beim QR-Code-Handling:', error);
+      alert('Fehler beim Öffnen des Regals');
+      router.replace('/', undefined, { shallow: true });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Define functions before useEffect hooks
   const loadStats = async () => {
@@ -95,12 +145,14 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setShowcases(data);
+        return data;
       }
     } catch (error) {
       console.error('Fehler beim Laden der Vitrinen:', error);
     } finally {
       setLoading(false);
     }
+    return [];
   };
 
   const loadFilterOptions = async () => {
@@ -186,6 +238,8 @@ export default function Home() {
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine des Samuel von Pufendorf Gymnasium." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        {/* QR-Code Library */}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
       </Head>
 
       <Header 

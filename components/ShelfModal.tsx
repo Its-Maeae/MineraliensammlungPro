@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mineral } from '../types';
+import QRCodeGenerator from './QRCodeGenerator';
 
 interface ShelfModalProps {
   shelf: any;
@@ -24,6 +25,8 @@ export default function ShelfModal({
   onOpenMineralDetails,
   setShowShelfMineralsModal 
 }: ShelfModalProps) {
+  const [showQRGenerator, setShowQRGenerator] = React.useState(false);
+
   return (
     <div className="modal" style={{ display: 'flex' }}>
       <div className="modal-content shelf-minerals-modal">
@@ -42,11 +45,35 @@ export default function ShelfModal({
               Bearbeiten
             </button>
             <button 
+              className="btn btn-info"
+              onClick={() => setShowQRGenerator(!showQRGenerator)}
+            >
+              {showQRGenerator ? 'QR-Code ausblenden' : 'QR-Code generieren'}
+            </button>
+            <button 
               className="btn error-btn"
               onClick={() => onDelete('shelf', shelf.id)}
             >
               Löschen
             </button>
+          </div>
+        )}
+
+        {/* QR-Code Generator Sektion */}
+        {isAuthenticated && showQRGenerator && (
+          <div style={{ 
+            marginBottom: 'var(--space-6)', 
+            padding: 'var(--space-4)', 
+            backgroundColor: 'var(--gray-50)',
+            borderRadius: 'var(--border-radius)',
+            border: '1px solid var(--gray-200)'
+          }}>
+            <h3 style={{ marginBottom: 'var(--space-4)' }}>QR-Code für direkten Zugriff</h3>
+            <QRCodeGenerator 
+              shelfId={shelf.id}
+              shelfName={shelf.shelf_name}
+              fullCode={shelf.full_code}
+            />
           </div>
         )}
         
@@ -64,7 +91,7 @@ export default function ShelfModal({
           <div className="loading">Lade Mineralien...</div>
         ) : minerals.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)' }}>
-            <p>🗳️ Dieses Regal ist noch leer</p>
+            <p>Dieses Regal ist noch leer</p>
             <p>Keine Mineralien zugeordnet</p>
           </div>
         ) : (
