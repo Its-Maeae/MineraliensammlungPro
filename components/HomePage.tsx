@@ -181,7 +181,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <div className="impressum-grid">
                 <div className="impressum-card">
                   <h3>👤 Kontaktperson</h3>
-                  <p><strong>Marius Schmieder (Digitalisierung)</strong></p>
+                  <p><strong>Marius Schmieder (Digitalisierung & Bestimmung)</strong></p>
                   <p>Schüler der 10c</p>
                   <p>📞 03726 123456</p>
                   <p>✉️ <a href="mailto:marius-schmieder@gymnasium-floeha.lernsax.de">
@@ -222,7 +222,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 
                 <div className="impressum-card">
                   <h3>👥 Mitwirkende</h3>
-                  <p>• Marius Schmieder (Digitalisierung)</p>
+                  <p>• Marius Schmieder (Digitalisierung & Bestimmung)</p>
                   <p>• Charlie Espig (Bestimmung)</p>
                   <p>• Manuela Barthel (Projektleitung)</p>
                 </div>
