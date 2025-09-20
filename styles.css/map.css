@@ -16,6 +16,19 @@
   max-width: 300px;
 }
 
+.map_info_popup{
+  position: fixed; 
+  top: 30%; 
+  left: 20px;
+  transform: translateY(-50%);
+  z-Index: 1000; 
+  background: white; 
+  padding: 15px; 
+  border-Radius: 8px; 
+  box-Shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-Width: 300px;
+}
+
 .map-overlay h2 {
   margin: 0 0 10px 0;
   font-size: 18px;
@@ -57,4 +70,11 @@
   .map-container {
     height: calc(100vh - 80px);
   }
+}
+
+@media screen and (max-width: 600px) {
+  .map_info_popup{
+    display: none;
+  }
+  
 }

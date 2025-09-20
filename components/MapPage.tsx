@@ -494,18 +494,7 @@ export default function MapPage({
     <>
       <section className="page active">
         <div className="container" style={{ height: '100vh', padding: 0, position: 'relative' }}>
-          <div style={{ 
-            position: 'fixed', 
-            top: '30%', 
-            left: '20px', 
-            transform: 'translateY(-50%)',
-            zIndex: 1000, 
-            background: 'white', 
-            padding: '15px', 
-            borderRadius: '8px', 
-            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            maxWidth: '300px'
-          }}>
+          <div className='map_info_popup'>
             <h2 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>Fundorte der Mineralien</h2>
             <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
               {minerals.length} Mineralien mit Koordinaten gefunden
