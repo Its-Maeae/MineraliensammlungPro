@@ -11,6 +11,7 @@ export default function MobileNav({ mobileMenuOpen, showPage }: MobileNavProps) 
       <a className="mobile-nav-link" onClick={() => showPage('home')}>Startseite</a>
       <a className="mobile-nav-link" onClick={() => showPage('vitrines')}>Vitrinen</a>
       <a className="mobile-nav-link" onClick={() => showPage('collection')}>Sammlung</a>
+      <a className="mobile-nav-link" onClick={() => showPage('map')}>Karte</a>
       <a className="mobile-nav-link" onClick={() => showPage('admin')}>Verwaltung</a>
     </div>
   );
