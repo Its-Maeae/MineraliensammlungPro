@@ -112,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Sortierung
       switch (sort) {
         case 'number':
-          sql += ` ORDER BY m.number`;
+          sql += ` ORDER BY CAST(m.number AS INTEGER)`;
           break;
         case 'color':
           sql += ` ORDER BY m.color`;
