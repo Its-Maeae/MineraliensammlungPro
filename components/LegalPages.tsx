@@ -64,9 +64,9 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
             <div className="sources-section">
               <h2>📚 Hauptliteratur</h2>
               <ul className="sources-list">
-                <li>Klein, C. & Dutrow, B. (2007). Manual of Mineral Science. 23rd Edition. John Wiley & Sons.</li>
-                <li>Deer, W.A., Howie, R.A. & Zussman, J. (2013). An Introduction to the Rock-Forming Minerals. 3rd Edition. Mineralogical Society.</li>
-                <li>Strunz, H. & Nickel, E.H. (2001). Strunz Mineralogical Tables. 9th Edition. E. Schweizerbart'sche Verlagsbuchhandlung.</li>
+                <li>Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner) </li>
+                <li>Minerale Arthia (Jaroslav Svenek und Ladislav Pros)</li>
+                <li>Fehlt noch!</li>
               </ul>
             </div>
             
@@ -82,19 +82,20 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
             <div className="sources-section">
               <h2>🔬 Technische Ausstattung</h2>
               <ul className="sources-list">
-                <li>Stereo-Mikroskop Leica EZ4 HD für Detailaufnahmen</li>
-                <li>Digitalkamera Nikon D7500 für Übersichtsbilder</li>
-                <li>Mineralbestimmung mit Mohshärte-Skala und Strichtafel</li>
+                <li>S25 Ultra für Kameraufnamhmen</li>
+                <li>Raspberry Pi mit Immich für Cloud Syncronisation</li>
+                <li>Raspberry Pi für Website hosting</li>
               </ul>
             </div>
             
             <div className="sources-section">
               <h2>🎓 Mitwirkende Personen</h2>
               <ul className="sources-list">
-                <li><strong>Dr. Schmidt</strong> - Projektleitung, geologische Expertise</li>
-                <li><strong>Sarah Müller</strong> - Digitalisierung und Fotografie</li>
-                <li><strong>Tom Weber</strong> - Webentwicklung und Datenbank</li>
-                <li><strong>Schüler der Klassen 9-12</strong> - Katalogisierung und Beschreibung</li>
+                <li><strong>Marius Schmieder</strong> - Webentwicklung und Datenbank, Verantwortlich für die Webseite, Bestimmung der Gesteine, Fotografie</li>
+                <li><strong>Charlie Espig</strong> - Bestimmung, Digitalisierung und Fotografie</li>
+                <li><strong>Herr Albrecht</strong> - Geologie, Bestimmung von Gesteinen</li>
+                <li><strong>Typ für Regal?????</strong> - Sponsor für Lagermöglichkeiten</li>
+                <li><strong>Frau Barthel</strong> - Betreuung und fachliche Unterstützung</li>
               </ul>
             </div>
           </div>
@@ -128,7 +129,6 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
                 <p><strong>Frau Barthel</strong><br/>
                   Fachbereich Geologie</p>
                 <p>📧 manuela-barthel@gymnasium-floeha.lernsax.de</p>
-                <p>🕒 Sprechzeiten: Mo-Fr 8:00-15:00</p>
               </div>
               
               <div className="contact-card">
@@ -154,20 +154,16 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
               <h2>ℹ️ Wichtige Informationen</h2>
               <div className="info-grid">
                 <div className="info-item">
-                  <h4>🔍 Besichtigungen</h4>
-                  <p>Besichtigungen der physischen Sammlung sind nach Voranmeldung möglich. Bitte kontaktieren Sie Dr. Schmidt mindestens eine Woche im Voraus.</p>
+                  <h4>🔍 Inhalt</h4>
+                  <p>Für inhaltliche Richtigkeit übernehmen wir keine Verantwortung. Diese Sammlung dient nur der Ausstellung der Mineraliensammlung.</p>
                 </div>
                 <div className="info-item">
                   <h4>📖 Bildungsnutzung</h4>
-                  <p>Diese Sammlung steht für Bildungszwecke zur Verfügung. Schulklassen und Interessierte sind herzlich willkommen.</p>
-                </div>
-                <div className="info-item">
-                  <h4>🤝 Kooperationen</h4>
-                  <p>Wir freuen uns über Kooperationen mit anderen Schulen, Universitäten und geologischen Vereinen.</p>
+                  <p>Diese Sammlung steht für Bildungszwecke zur Verfügung und für die Verwendung im Unterricht.</p>
                 </div>
                 <div className="info-item">
                   <h4>💝 Spenden</h4>
-                  <p>Mineralspenden zur Erweiterung der Sammlung werden gerne entgegengenommen. Bitte vorher Kontakt aufnehmen.</p>
+                  <p>Mineralspenden zur Erweiterung der Sammlung werden gerne entgegengenommen.</p>
                 </div>
               </div>
             </div>

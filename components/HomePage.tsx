@@ -49,8 +49,8 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <span className="hero-highlight"> Mineralien und Gesteine</span>
             </h1>
             <p className="hero-description">
-              Entdecken Sie die umfangreiche Sammlung seltener Mineralien und Gesteine 
-              des Samuel von Pufendorf Gymnasiums Flöha auf eine interaktive Art.
+              Dieses Projekt enstand im Rahmen eines Schülerprojekts an der Samuel von Pufendorf Schule in Flöha. Ziel war es, 
+              die umfangreiche Mineraliensammlung der Schule zu sortieren und zu organisieren, um die Zugänglichkeit zu verbessern.
             </p>
             <div className="hero-buttons">
               <button className="btn btn-primary" onClick={() => showPage('collection')}>
@@ -113,8 +113,8 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <div className="feature-icon">🔍</div>
               <h3 className="feature-title">Intelligente Suche</h3>
               <p className="feature-description">
-                Suchen Sie nach Namen, Steinnummer oder Eigenschaften. 
-                Das System erkennt automatisch Ihre Suchintention.
+                Hier können die Mineralien der Schule nach ihren Eigenschaften, 
+                Namen und den Steinnummern durchsuchtwerden.
               </p>
             </div>
             
@@ -122,17 +122,16 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <div className="feature-icon">🎯</div>
               <h3 className="feature-title">Präzise Filter</h3>
               <p className="feature-description">
-                Filtern Sie nach Farbe, Fundort, Gesteinsart oder Standort. 
-                Finden Sie genau das gesuchte Mineral.
+                Mithilfe von Filtern können die Mineralien nach Kategorien wie Farbe, Fundort
+                und weiteren Eigenschaften gefiltert werden.
               </p>
             </div>
             
             <div className="feature-card">
               <div className="feature-icon">📊</div>
-              <h3 className="feature-title">Detaillierte Dokumentation</h3>
+              <h3 className="feature-title">Kartenfunktion</h3>
               <p className="feature-description">
-                Jedes Mineral ist wissenschaftlich dokumentiert mit 
-                Herkunft, Eigenschaften und passenden Bildern.
+                Anhand einer Weltkarte können die Fundorte der Mineralien genau und leicht erkundet werden.
               </p>
             </div>
           </div>
@@ -150,21 +149,21 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 Sowohl Lehrer als auch andere Personen trugen zu dieser Sammlung bei.
               </p>
               <p className="about-description">
-                Von verschiedensten Gesteinen bis hin zu seltenen 
-                Mineralien sind in dieser Sammlung zu finden.
+                Über die Jahre hinweg wurde die Sammlung durch zahlreiche Steine erweitert. In 2025 war es das Ziel 
+                im Umfang einer Komplexen Leistung diese Sammlung aufzubereiten
               </p>
             </div>
             
             <div className="about-visual">
               <div className="about-card">
-                <div className="about-card-icon">🌍</div>
-                <h4>Weltweite Fundorte</h4>
-                <p>Mineralien aus verschiedensten Fundorten</p>
+                <div className="about-card-icon">🪜</div>
+                <h4>Genaue Lagerangaben</h4>
+                <p>Für jeden Stein ist das Regal und die Boxnummer angegeben.</p>
               </div>
               <div className="about-card">
-                <div className="about-card-icon">🔬</div>
-                <h4>Wissenschaftlich dokumentiert</h4>
-                <p>Präzise Katalogisierung von Schülern dieser Schule</p>
+                <div className="about-card-icon">🖼️</div>
+                <h4>Archiv mit Bildern</h4>
+                <p>Von jedem Gestein ist ein Eintrag mit einem Bild vorhanden.</p>
               </div>
             </div>
           </div>
@@ -181,9 +180,9 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <div className="impressum-grid">
                 <div className="impressum-card">
                   <h3>👤 Kontaktperson</h3>
-                  <p><strong>Marius Schmieder (Digitalisierung & Bestimmung)</strong></p>
+                  <p><strong>Marius Schmieder</strong></p>
                   <p>Schüler der 10c</p>
-                  <p>📞 03726 123456</p>
+                  <p>📞</p>
                   <p>✉️ <a href="mailto:marius-schmieder@gymnasium-floeha.lernsax.de">
                     marius-schmieder@gymnasium-floeha.lernsax.de
                   </a></p>
@@ -191,9 +190,9 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
 
                 <div className="impressum-card">
                   <h3>👤 Kontaktperson</h3>
-                  <p><strong>Charlie Espig (Bestimmung)</strong></p>
+                  <p><strong>Charlie Espig</strong></p>
                   <p>Schüler der 10c</p>
-                  <p>📞 03726 123456</p>
+                  <p>📞</p>
                   <p>✉️ <a href="mailto:charlie-espig@gymnasium-floeha.lernsax.de">
                     charlie-espig@gymnasium-floeha.lernsax.de
                   </a></p>
@@ -201,9 +200,9 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
 
                 <div className="impressum-card">
                   <h3>👤 Kontaktperson</h3>
-                  <p><strong>Manuela Barthel (Projektleitung)</strong></p>
+                  <p><strong>Manuela Barthel</strong></p>
                   <p>Fachbereich Geologie</p>
-                  <p>📞 03726 123456</p>
+                  <p>📞</p>
                   <p>✉️ <a href="mailto:manuela-bathel@gymnasium-floeha.lernsax.de">
                     manuela-barthel@gymnasium-floeha.lernsax.de
                   </a></p>
@@ -222,9 +221,9 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 
                 <div className="impressum-card">
                   <h3>👥 Mitwirkende</h3>
-                  <p>• Marius Schmieder (Digitalisierung & Bestimmung)</p>
-                  <p>• Charlie Espig (Bestimmung)</p>
-                  <p>• Manuela Barthel (Projektleitung)</p>
+                  <p>• Marius Schmieder</p>
+                  <p>• Charlie Espig</p>
+                  <p>• Manuela Barthel</p>
                 </div>
                 
                 <div className="impressum-card">
