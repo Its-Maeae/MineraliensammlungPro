@@ -114,7 +114,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <h3 className="feature-title">Intelligente Suche</h3>
               <p className="feature-description">
                 Hier können die Mineralien der Schule nach ihren Eigenschaften, 
-                Namen und den Steinnummern durchsuchtwerden.
+                Namen und den Steinnummern durchsucht werden.
               </p>
             </div>
             
@@ -224,6 +224,8 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                   <p>• Marius Schmieder</p>
                   <p>• Charlie Espig</p>
                   <p>• Manuela Barthel</p>
+                  <p>• Matthias Albrecht</p>
+                  <p>• Regaltyp</p>
                 </div>
                 
                 <div className="impressum-card">
