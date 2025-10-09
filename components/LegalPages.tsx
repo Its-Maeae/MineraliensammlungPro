@@ -91,7 +91,7 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
             <div className="sources-section">
               <h2>🎓 Mitwirkende Personen</h2>
               <ul className="sources-list">
-                <li><strong>Marius Schmieder</strong> - Webentwicklung und Datenbank, Verantwortlich für die Webseite, Bestimmung der Gesteine, Fotografie</li>
+                <li><strong>Marius Schmieder</strong> - Webentwicklung und Datenbank, Bestimmung der Gesteine, Fotografie</li>
                 <li><strong>Charlie Espig</strong> - Bestimmung, Digitalisierung und Fotografie</li>
                 <li><strong>Herr Albrecht</strong> - Geologie, Bestimmung von Gesteinen</li>
                 <li><strong>Typ für Regal?????</strong> - Sponsor für Lagermöglichkeiten</li>
