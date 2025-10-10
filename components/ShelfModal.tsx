@@ -107,7 +107,7 @@ export default function ShelfModal({
       <div className="modal-content-large">
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>Regal: {shelf.shelf_name}</h2>
-        <p style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-6)' }}>
+        <p style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-4)' }}>
           {shelf.showcase_name} - {shelf.full_code}
         </p>
 
@@ -137,13 +137,13 @@ export default function ShelfModal({
         {/* QR-Code Generator Sektion */}
         {isAuthenticated && showQRGenerator && (
           <div style={{ 
-            marginBottom: 'var(--space-6)', 
-            padding: 'var(--space-4)', 
+            marginBottom: 'var(--space-4)', 
+            padding: 'var(--space-3)', 
             backgroundColor: 'var(--gray-50)',
-            borderRadius: 'var(--border-radius)',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--gray-200)'
           }}>
-            <h3 style={{ marginBottom: 'var(--space-4)' }}>QR-Code für direkten Zugriff</h3>
+            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--font-size-lg)' }}>QR-Code für direkten Zugriff</h3>
             <QRCodeGenerator 
               shelfId={shelf.id}
               shelfName={shelf.shelf_name}
@@ -153,35 +153,22 @@ export default function ShelfModal({
         )}
         
         {shelf.image_path && (
-          <div className="detail-image" style={{ marginBottom: 'var(--space-6)' }}>
+          <div className="detail-image" style={{ marginBottom: 'var(--space-4)' }}>
             <img src={`/uploads/${shelf.image_path}`} alt={shelf.shelf_name} />
           </div>
         )}
 
-        <div style={{ marginBottom: 'var(--space-6)' }}>
-          <h3 style={{ marginBottom: 'var(--space-4)' }}>
+        <div style={{ marginBottom: 'var(--space-4)' }}>
+          <h3 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--font-size-lg)' }}>
             Mineralien in diesem Regal ({filteredMinerals.length} von {minerals.length})
           </h3>
 
           {minerals.length > 0 && (
             <>
-              {/* Search and Filter Section */}
-              <div className="shelf-search-filter-container" style={{
-                marginBottom: 'var(--space-4)',
-                padding: 'var(--space-4)',
-                backgroundColor: 'var(--gray-50)',
-                borderRadius: 'var(--border-radius)',
-                border: '1px solid var(--gray-200)'
-              }}>
+              {/* Kompakte Search and Filter Section */}
+              <div className="shelf-search-filter-compact">
                 {/* Search */}
-                <div style={{ marginBottom: 'var(--space-3)' }}>
-                  <label htmlFor="shelf-search" style={{ 
-                    display: 'block', 
-                    marginBottom: 'var(--space-2)',
-                    fontWeight: '500'
-                  }}>
-                    Suche
-                  </label>
+                <div className="shelf-search-input">
                   <input 
                     id="shelf-search"
                     type="text" 
@@ -189,217 +176,75 @@ export default function ShelfModal({
                     placeholder="Nach Name oder Steinnummer suchen..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: 'var(--space-2)',
-                      border: '1px solid var(--gray-300)',
-                      borderRadius: 'var(--border-radius)',
-                      fontSize: 'var(--font-size-sm)'
-                    }}
                   />
                 </div>
                 
-                {/* Filters */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                  gap: 'var(--space-3)'
-                }}>
-                  <div>
-                    <label htmlFor="shelf-color-filter" style={{ 
-                      display: 'block', 
-                      marginBottom: 'var(--space-1)',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: '500'
-                    }}>
-                      Farbe
-                    </label>
-                    <select 
-                      id="shelf-color-filter"
-                      className="filter-select" 
-                      value={colorFilter} 
-                      onChange={(e) => setColorFilter(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--space-2)',
-                        border: '1px solid var(--gray-300)',
-                        borderRadius: 'var(--border-radius)',
-                        fontSize: 'var(--font-size-sm)'
-                      }}
-                    >
-                      <option value="">Alle</option>
-                      {filterOptions.colors.map(color => (
-                        <option key={color} value={color}>{color}</option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Kompakte Filters in einer Zeile */}
+                <div className="shelf-filters-inline">
+                  <select 
+                    id="shelf-color-filter"
+                    className="filter-select" 
+                    value={colorFilter} 
+                    onChange={(e) => setColorFilter(e.target.value)}
+                  >
+                    <option value="">Alle Farben</option>
+                    {filterOptions.colors.map(color => (
+                      <option key={color} value={color}>{color}</option>
+                    ))}
+                  </select>
                   
-                  <div>
-                    <label htmlFor="shelf-location-filter" style={{ 
-                      display: 'block', 
-                      marginBottom: 'var(--space-1)',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: '500'
-                    }}>
-                      Fundort
-                    </label>
-                    <select 
-                      id="shelf-location-filter"
-                      className="filter-select" 
-                      value={locationFilter} 
-                      onChange={(e) => setLocationFilter(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--space-2)',
-                        border: '1px solid var(--gray-300)',
-                        borderRadius: 'var(--border-radius)',
-                        fontSize: 'var(--font-size-sm)'
-                      }}
-                    >
-                      <option value="">Alle</option>
-                      {filterOptions.locations.map(location => (
-                        <option key={location} value={location}>{location}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <select 
+                    id="shelf-location-filter"
+                    className="filter-select" 
+                    value={locationFilter} 
+                    onChange={(e) => setLocationFilter(e.target.value)}
+                  >
+                    <option value="">Alle Fundorte</option>
+                    {filterOptions.locations.map(location => (
+                      <option key={location} value={location}>{location}</option>
+                    ))}
+                  </select>
                   
-                  <div>
-                    <label htmlFor="shelf-rocktype-filter" style={{ 
-                      display: 'block', 
-                      marginBottom: 'var(--space-1)',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: '500'
-                    }}>
-                      Gesteinsart
-                    </label>
-                    <select 
-                      id="shelf-rocktype-filter"
-                      className="filter-select" 
-                      value={rockTypeFilter} 
-                      onChange={(e) => setRockTypeFilter(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--space-2)',
-                        border: '1px solid var(--gray-300)',
-                        borderRadius: 'var(--border-radius)',
-                        fontSize: 'var(--font-size-sm)'
-                      }}
-                    >
-                      <option value="">Alle</option>
-                      {filterOptions.rock_types.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <select 
+                    id="shelf-rocktype-filter"
+                    className="filter-select" 
+                    value={rockTypeFilter} 
+                    onChange={(e) => setRockTypeFilter(e.target.value)}
+                  >
+                    <option value="">Alle Gesteinsarten</option>
+                    {filterOptions.rock_types.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
                   
-                  <div>
-                    <label htmlFor="shelf-sort" style={{ 
-                      display: 'block', 
-                      marginBottom: 'var(--space-1)',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: '500'
-                    }}>
-                      Sortierung
-                    </label>
-                    <select 
-                      id="shelf-sort"
-                      value={sortBy} 
-                      onChange={(e) => setSortBy(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--space-2)',
-                        border: '1px solid var(--gray-300)',
-                        borderRadius: 'var(--border-radius)',
-                        fontSize: 'var(--font-size-sm)'
-                      }}
+                  <select 
+                    id="shelf-sort"
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="name">Nach Name</option>
+                    <option value="number">Nach Nummer</option>
+                    <option value="color">Nach Farbe</option>
+                  </select>
+
+                  {hasActiveFilters && (
+                    <button 
+                      onClick={clearFilters}
+                      className="clear-filters-compact"
+                      title="Filter zurücksetzen"
                     >
-                      <option value="name">Name</option>
-                      <option value="number">Steinnummer</option>
-                      <option value="color">Farbe</option>
-                    </select>
-                  </div>
+                      ✕
+                    </button>
+                  )}
                 </div>
                 
-                {/* Active Filters Info */}
+                {/* Kompakte Active Filters Info */}
                 {hasActiveFilters && (
-                  <div style={{ 
-                    marginTop: 'var(--space-3)', 
-                    padding: 'var(--space-3)',
-                    backgroundColor: 'white',
-                    borderRadius: 'var(--border-radius)',
-                    border: '1px solid var(--blue-200)'
-                  }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      gap: 'var(--space-2)'
-                    }}>
-                      <div>
-                        <strong style={{ fontSize: 'var(--font-size-sm)' }}>Aktive Filter:</strong>
-                        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-1)' }}>
-                          {searchTerm && (
-                            <span style={{
-                              fontSize: 'var(--font-size-xs)',
-                              padding: '2px 6px',
-                              backgroundColor: 'var(--blue-100)',
-                              color: 'var(--blue-800)',
-                              borderRadius: '3px'
-                            }}>
-                              Suche: {searchTerm}
-                            </span>
-                          )}
-                          {colorFilter && (
-                            <span style={{
-                              fontSize: 'var(--font-size-xs)',
-                              padding: '2px 6px',
-                              backgroundColor: 'var(--green-100)',
-                              color: 'var(--green-800)',
-                              borderRadius: '3px'
-                            }}>
-                              Farbe: {colorFilter}
-                            </span>
-                          )}
-                          {locationFilter && (
-                            <span style={{
-                              fontSize: 'var(--font-size-xs)',
-                              padding: '2px 6px',
-                              backgroundColor: 'var(--purple-100)',
-                              color: 'var(--purple-800)',
-                              borderRadius: '3px'
-                            }}>
-                              Fundort: {locationFilter}
-                            </span>
-                          )}
-                          {rockTypeFilter && (
-                            <span style={{
-                              fontSize: 'var(--font-size-xs)',
-                              padding: '2px 6px',
-                              backgroundColor: 'var(--orange-100)',
-                              color: 'var(--orange-800)',
-                              borderRadius: '3px'
-                            }}>
-                              Gesteinsart: {rockTypeFilter}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={clearFilters}
-                        style={{
-                          fontSize: 'var(--font-size-xs)',
-                          padding: '4px 8px',
-                          backgroundColor: 'var(--red-500)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Filter zurücksetzen
-                      </button>
-                    </div>
+                  <div className="active-filters-compact">
+                    {searchTerm && <span className="filter-tag-compact">🔍 {searchTerm}</span>}
+                    {colorFilter && <span className="filter-tag-compact">🎨 {colorFilter}</span>}
+                    {locationFilter && <span className="filter-tag-compact">📍 {locationFilter}</span>}
+                    {rockTypeFilter && <span className="filter-tag-compact">🪨 {rockTypeFilter}</span>}
                   </div>
                 )}
               </div>
@@ -422,10 +267,10 @@ export default function ShelfModal({
               style={{
                 marginTop: 'var(--space-2)',
                 padding: 'var(--space-2) var(--space-3)',
-                backgroundColor: 'var(--blue-500)',
+                backgroundColor: 'var(--primary-color)',
                 color: 'white',
                 border: 'none',
-                borderRadius: 'var(--border-radius)',
+                borderRadius: 'var(--radius-md)',
                 cursor: 'pointer'
               }}
             >
