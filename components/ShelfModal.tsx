@@ -80,6 +80,19 @@ export default function ShelfModal({
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'number':
+          // Numerische Sortierung für Nummern
+          const extractNumber = (str: string) => {
+            const match = str.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 0;
+          };
+          const numA = extractNumber(a.number);
+          const numB = extractNumber(b.number);
+          
+          // Wenn beide Nummern existieren, numerisch sortieren
+          if (numA !== numB) {
+            return numA - numB;
+          }
+          // Sonst alphabetisch als Fallback
           return a.number.localeCompare(b.number);
         case 'color':
           return (a.color || '').localeCompare(b.color || '');
