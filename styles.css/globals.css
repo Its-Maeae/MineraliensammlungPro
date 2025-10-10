@@ -994,17 +994,16 @@ main {
     background: var(--error-color);
     color: var(--white);
     border: none;
-    padding: var(--space-2);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-lg);
-    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
-    min-width: 36px;
-    height: 36px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
 }
 
 .clear-filters-compact:hover {
