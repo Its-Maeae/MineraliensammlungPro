@@ -1436,7 +1436,7 @@ main {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--space-4);
-    max-height: 60vh;
+    max-height: 50vh;
     overflow-y: auto;
     padding: var(--space-2);
 }
