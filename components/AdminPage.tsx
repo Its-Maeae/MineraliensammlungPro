@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Stats } from '../types';
-import MapSelector from './MapSelector'; // Import der separaten MapSelector-Komponente
+import MapSelector from './MapSelector';
 
 interface AdminPageProps {
   isAuthenticated: boolean;
@@ -26,6 +26,9 @@ interface ShelfOption {
   showcase_name: string;
   full_code: string;
 }
+
+const FORM_STORAGE_KEY = 'mineralFormData';
+const IMAGE_STORAGE_KEY = 'mineralFormImage';
 
 export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps) {
   if (!isAuthenticated) {
@@ -57,21 +60,35 @@ export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps
   );
 }
 
-// Mineral Form Component
 function MineralForm({ onSuccess }: { onSuccess: () => void }) {
-  const [formData, setFormData] = useState<MineralFormData>({
-    name: '',
-    number: '',
-    color: '',
-    description: '',
-    location: '',
-    purchase_location: '',
-    rock_type: '',
-    shelf_id: '',
-    latitude: null,
-    longitude: null
-  });
+  const getInitialFormData = (): MineralFormData => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem(FORM_STORAGE_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Fehler beim Laden der gespeicherten Formulardaten:', e);
+        }
+      }
+    }
+    return {
+      name: '',
+      number: '',
+      color: '',
+      description: '',
+      location: '',
+      purchase_location: '',
+      rock_type: '',
+      shelf_id: '',
+      latitude: null,
+      longitude: null
+    };
+  };
+
+  const [formData, setFormData] = useState<MineralFormData>(getInitialFormData);
   const [image, setImage] = useState<File | null>(null);
+  const [imageName, setImageName] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [shelves, setShelves] = useState<ShelfOption[]>([]);
   const [numberExists, setNumberExists] = useState(false);
@@ -80,7 +97,29 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
   useEffect(() => {
     loadShelves();
+    
+    // Gespeicherten Bildnamen laden
+    if (typeof window !== 'undefined') {
+      const savedImageName = sessionStorage.getItem(IMAGE_STORAGE_KEY);
+      if (savedImageName) {
+        setImageName(savedImageName);
+      }
+    }
   }, []);
+
+  // Formulardaten im SessionStorage speichern
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  // Bildnamen im SessionStorage speichern
+  useEffect(() => {
+    if (typeof window !== 'undefined' && imageName) {
+      sessionStorage.setItem(IMAGE_STORAGE_KEY, imageName);
+    }
+  }, [imageName]);
 
   const loadShelves = async () => {
     try {
@@ -94,7 +133,6 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
-  // Funktion zur Überprüfung der Steinnummer
   const checkMineralNumber = async (number: string) => {
     if (!number.trim()) {
       setNumberExists(false);
@@ -118,16 +156,13 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
-  // Debounced Nummer-Überprüfung
   const handleNumberChange = (value: string) => {
-    setFormData({...formData, number: value});
+    setFormData(prevData => ({ ...prevData, number: value }));
     
-    // Vorherigen Timeout löschen
     if (numberCheckTimeout) {
       clearTimeout(numberCheckTimeout);
     }
     
-    // Neuen Timeout setzen (500ms Verzögerung)
     const timeout = setTimeout(() => {
       checkMineralNumber(value);
     }, 500);
@@ -136,14 +171,13 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   const handleLocationSelect = (lat: number, lng: number) => {
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       latitude: lat,
       longitude: lng
-    });
+    }));
   };
 
-  // Cleanup beim Unmount
   useEffect(() => {
     return () => {
       if (numberCheckTimeout) {
@@ -151,6 +185,30 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       }
     };
   }, [numberCheckTimeout]);
+
+  const clearFormData = () => {
+    const emptyData: MineralFormData = {
+      name: '',
+      number: '',
+      color: '',
+      description: '',
+      location: '',
+      purchase_location: '',
+      rock_type: '',
+      shelf_id: '',
+      latitude: null,
+      longitude: null
+    };
+    setFormData(emptyData);
+    setImage(null);
+    setImageName('');
+    setNumberExists(false);
+    
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(FORM_STORAGE_KEY);
+      sessionStorage.removeItem(IMAGE_STORAGE_KEY);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,20 +242,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       });
 
       if (response.ok) {
-        setFormData({
-          name: '',
-          number: '',
-          color: '',
-          description: '',
-          location: '',
-          purchase_location: '',
-          rock_type: '',
-          shelf_id: '',
-          latitude: null,
-          longitude: null
-        });
-        setImage(null);
-        setNumberExists(false);
+        clearFormData();
         onSuccess();
         alert('Mineral erfolgreich hinzugefügt!');
       } else {
@@ -212,6 +257,12 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImage(file);
+    setImageName(file ? file.name : '');
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
@@ -220,7 +271,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           type="text"
           id="name"
           value={formData.name}
-          onChange={(e) => setFormData({...formData, name: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, name: e.target.value }))}
           placeholder="z.B. Quarz, Pyrit, Amethyst"
           required
         />
@@ -265,7 +316,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           type="text"
           id="color"
           value={formData.color}
-          onChange={(e) => setFormData({...formData, color: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, color: e.target.value }))}
           placeholder="Hauptfarbe des Minerals"
           required
         />
@@ -276,7 +327,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
         <textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData({...formData, description: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, description: e.target.value }))}
           placeholder="Detaillierte Beschreibung, Besonderheiten, chemische Formel..."
           required
         />
@@ -288,7 +339,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           type="text"
           id="location"
           value={formData.location}
-          onChange={(e) => setFormData({...formData, location: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, location: e.target.value }))}
           placeholder="Geographische Herkunft"
           required
         />
@@ -317,7 +368,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           type="text"
           id="purchase_location"
           value={formData.purchase_location}
-          onChange={(e) => setFormData({...formData, purchase_location: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, purchase_location: e.target.value }))}
           placeholder="Wo wurde es erworben?"
           required
         />
@@ -329,7 +380,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           type="text"
           id="rock_type"
           value={formData.rock_type}
-          onChange={(e) => setFormData({...formData, rock_type: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, rock_type: e.target.value }))}
           placeholder="z.B. magmatisch, sedimentär, metamorph"
           required
         />
@@ -340,7 +391,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
         <select
           id="shelf_id"
           value={formData.shelf_id}
-          onChange={(e) => setFormData({...formData, shelf_id: e.target.value})}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, shelf_id: e.target.value }))}
         >
           <option value="">Kein Regal zugeordnet</option>
           {shelves.map(shelf => (
@@ -357,17 +408,33 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           type="file"
           id="image"
           accept="image/*"
-          onChange={(e) => setImage(e.target.files?.[0] || null)}
+          onChange={handleImageChange}
         />
+        {imageName && (
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+            Ausgewähltes Bild: {imageName}
+          </div>
+        )}
       </div>
 
-      <button 
-        type="submit" 
-        disabled={loading || numberExists || checkingNumber || !formData.number.trim()} 
-        className="btn btn-primary btn-large"
-      >
-        {loading ? 'Wird hinzugefügt...' : 'Mineral hinzufügen'}
-      </button>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button 
+          type="submit" 
+          disabled={loading || numberExists || checkingNumber || !formData.number.trim()} 
+          className="btn btn-primary btn-large"
+        >
+          {loading ? 'Wird hinzugefügt...' : 'Mineral hinzufügen'}
+        </button>
+        
+        <button 
+          type="button"
+          onClick={clearFormData}
+          className="btn btn-secondary btn-large"
+          disabled={loading}
+        >
+          Formular leeren
+        </button>
+      </div>
     </form>
   );
 }
