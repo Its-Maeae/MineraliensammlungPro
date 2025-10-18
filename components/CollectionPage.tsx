@@ -125,21 +125,23 @@ export default function CollectionPage({
     }
   };
 
-  const handleEditMineral = (mineral: Mineral) => {
-    setEditFormData({
-      id: mineral.id,
-      name: mineral.name,
-      number: mineral.number,
-      color: mineral.color || '',
-      description: mineral.description || '',
-      location: mineral.location || '',
-      purchase_location: mineral.purchase_location || '',
-      rock_type: mineral.rock_type || '',
-      shelf_id: mineral.shelf_id || ''
-    });
-    setEditMode('mineral');
-    setEditImage(null);
-  };
+ const handleEditMineral = (mineral: Mineral) => {
+  setEditFormData({
+    id: mineral.id,
+    name: mineral.name,
+    number: mineral.number,
+    color: mineral.color || '',
+    description: mineral.description || '',
+    location: mineral.location || '',
+    purchase_location: mineral.purchase_location || '',
+    rock_type: mineral.rock_type || '',
+    shelf_id: mineral.shelf_id || '',
+    latitude: mineral.latitude || null,
+    longitude: mineral.longitude || null  
+  });
+  setEditMode('mineral');
+  setEditImage(null);
+};
 
   const handleDelete = async (type: 'mineral' | 'showcase' | 'shelf', id: number) => {
     const confirmMessage = {
