@@ -43,29 +43,37 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
     loadLeaflet();
   }, []);
 
+  // Initialisiere Karte wenn Leaflet geladen ist
   useEffect(() => {
     if (mapLoaded && mapRef.current && !mapInstance.current && window.L) {
       initializeMap();
     }
   }, [mapLoaded]);
 
+  // Aktualisiere Marker wenn sich Koordinaten ändern
   useEffect(() => {
-    if (mapInstance.current && latitude && longitude && latitude !== 0 && longitude !== 0) {
-      updateMarker(latitude, longitude);
-    } else if (mapInstance.current && (!latitude || !longitude || latitude === 0 || longitude === 0)) {
-      // Clear marker if coordinates are null, undefined, or 0
-      clearMarker();
+    // Nur wenn Karte bereits initialisiert ist
+    if (mapInstance.current && mapLoaded) {
+      if (latitude && longitude && latitude !== 0 && longitude !== 0) {
+        updateMarker(latitude, longitude);
+      } else if (latitude === 0 || longitude === 0 || !latitude || !longitude) {
+        // Marker entfernen wenn Koordinaten null, undefined oder 0 sind
+        clearMarker();
+      }
     }
-  }, [latitude, longitude]);
+  }, [latitude, longitude, mapLoaded]);
 
   const initializeMap = () => {
     if (!mapRef.current || !window.L) return;
 
+    // Bestimme initiale Ansicht basierend auf vorhandenen Koordinaten
+    const initialLat = (latitude && longitude && latitude !== 0 && longitude !== 0) ? latitude : 51.1657;
+    const initialLng = (latitude && longitude && latitude !== 0 && longitude !== 0) ? longitude : 10.4515;
+    const initialZoom = (latitude && longitude && latitude !== 0 && longitude !== 0) ? 12 : 6;
+
     const map = window.L.map(mapRef.current).setView(
-      (latitude && longitude && latitude !== 0 && longitude !== 0) 
-        ? [latitude, longitude]
-        : [51.1657, 10.4515], // Deutschland Zentrum
-      8
+      [initialLat, initialLng],
+      initialZoom
     );
 
     // OpenStreetMap Tiles hinzufügen
@@ -109,7 +117,7 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
         <strong>Fundort</strong><br>
         <small>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}</small>
       </div>
-    `);
+    `).openPopup();
 
     // Drag Event Listener für Marker
     marker.on('dragend', (event: any) => {
@@ -129,8 +137,11 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
 
     markerRef.current = marker;
 
-    // Karte auf Marker zentrieren
-    mapInstance.current.setView([lat, lng], mapInstance.current.getZoom());
+    // Karte auf Marker zentrieren mit sanfter Animation
+    mapInstance.current.setView([lat, lng], Math.max(mapInstance.current.getZoom(), 12), {
+      animate: true,
+      duration: 0.5
+    });
   };
 
   const clearMarker = () => {
