@@ -12,7 +12,7 @@ export default function QRCodeGenerator({
   shelfId, 
   shelfName, 
   fullCode, 
-  baseUrl = 'http://192.168.178.50:8085' 
+  baseUrl = 'https://mineraliensammlung.mooo.com' 
 }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
