@@ -347,10 +347,10 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
             className="btn btn-secondary"
             onClick={() => setFormData(prevData => ({ 
               ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros) S.176'
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros)'
             }))}
           >
-            Quelle: Minerale Arthia (Svenek/Pros) S.176
+            Quelle: Minerale Arthia (Svenek/Pros)
           </button>
         </div>
       </div>
