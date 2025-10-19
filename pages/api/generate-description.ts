@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-
 export default async function handler(req: any, res: any) {
   // Nur POST-Anfragen erlauben
   if (req.method !== 'POST') {
@@ -23,20 +22,13 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // Gemini AI initialisieren mit v1 API
+    // Gemini AI initialisieren
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Versuche verschiedene Modellnamen
-    let model;
-    try {
-      model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
-    } catch {
-      try {
-        model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' });
-      } catch {
-        model = genAI.getGenerativeModel({ model: 'models/gemini-pro' });
-      }
-    }
+    // Verwende das Standard-Modell (gemini-1.5-flash ist empfohlen)
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash'
+    });
 
     // Prompt für die Mineralbeschreibung
     const prompt = `Erstelle eine kurze, wissenschaftlich korrekte Beschreibung für das Mineral "${mineralName.trim()}".
@@ -67,18 +59,29 @@ Beispiel:
   } catch (error: any) {
     console.error('Fehler bei der Gemini API-Anfrage:', error);
     
+    // Detaillierte Fehlerinformationen loggen
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    
     // Spezifische Fehlerbehandlung
-    if (error.message?.includes('API key')) {
-      return res.status(500).json({ error: 'API-Schlüssel ungültig' });
+    if (error.message?.includes('API key') || error.message?.includes('API_KEY')) {
+      return res.status(500).json({ error: 'API-Schlüssel ungültig oder nicht konfiguriert' });
     }
     
-    if (error.message?.includes('quota')) {
+    if (error.message?.includes('quota') || error.status === 429) {
       return res.status(429).json({ error: 'API-Limit erreicht. Bitte später erneut versuchen.' });
+    }
+
+    if (error.message?.includes('model') || error.message?.includes('not found')) {
+      return res.status(500).json({ error: 'Modell nicht verfügbar. Bitte Administrator kontaktieren.' });
     }
     
     return res.status(500).json({ 
       error: 'Fehler bei der KI-Generierung',
-      details: error.message 
+      details: error.message || 'Unbekannter Fehler'
     });
   }
 }
