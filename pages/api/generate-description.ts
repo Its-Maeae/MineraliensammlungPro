@@ -27,7 +27,7 @@ export default async function handler(req: any, res: any) {
     
     // Verwende das Standard-Modell (gemini-1.5-flash ist empfohlen)
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash'
+      model: 'gemini-pro'
     });
 
     // Prompt für die Mineralbeschreibung
