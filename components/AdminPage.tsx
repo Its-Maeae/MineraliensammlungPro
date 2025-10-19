@@ -87,12 +87,8 @@ function RockTypeAutocomplete({
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<Array<{type: string, source: string}>>([]);
-  const inputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    console.log('Existing rock types:', existingRockTypes);
-    console.log('Current value:', value);
-    
     if (value.trim().length === 0) {
       setFilteredSuggestions([]);
       setShowSuggestions(false);
@@ -103,22 +99,26 @@ function RockTypeAutocomplete({
     const allSuggestions: Array<{type: string, source: string}> = [];
 
     // Existierende Gesteinsarten aus der Datenbank
-    existingRockTypes.forEach(type => {
-      if (type.toLowerCase().includes(searchTerm)) {
-        allSuggestions.push({ type, source: 'database' });
-        console.log('Added from database:', type);
-      }
-    });
+    if (existingRockTypes && existingRockTypes.length > 0) {
+      existingRockTypes.forEach(type => {
+        if (type && type.toLowerCase().includes(searchTerm)) {
+          allSuggestions.push({ type, source: 'database' });
+        }
+      });
+    }
 
     // Beispiel-Gesteinsarten
     EXAMPLE_ROCK_TYPES.forEach(type => {
-      if (type.toLowerCase().includes(searchTerm) && !existingRockTypes.includes(type)) {
-        allSuggestions.push({ type, source: 'example' });
-        console.log('Added from examples:', type);
+      if (type.toLowerCase().includes(searchTerm)) {
+        const alreadyInDatabase = existingRockTypes && existingRockTypes.some(
+          existing => existing && existing.toLowerCase() === type.toLowerCase()
+        );
+        if (!alreadyInDatabase) {
+          allSuggestions.push({ type, source: 'example' });
+        }
       }
     });
 
-    console.log('Filtered suggestions:', allSuggestions);
     setFilteredSuggestions(allSuggestions);
     setShowSuggestions(allSuggestions.length > 0);
   }, [value, existingRockTypes]);
@@ -129,27 +129,21 @@ function RockTypeAutocomplete({
   };
 
   const handleBlur = () => {
-    // Verzögerung, damit der Klick auf eine Suggestion noch registriert wird
     setTimeout(() => setShowSuggestions(false), 200);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-    if (e.target.value.trim().length > 0) {
-      setShowSuggestions(true);
-    }
   };
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       <input
-        ref={inputRef}
         type="text"
         id="rock_type"
         value={value}
-        onChange={handleInputChange}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setShowSuggestions(true);
+        }}
         onFocus={() => {
-          if (value.trim().length > 0 && filteredSuggestions.length > 0) {
+          if (value.trim().length > 0) {
             setShowSuggestions(true);
           }
         }}
@@ -165,7 +159,10 @@ function RockTypeAutocomplete({
             <div
               key={index}
               className="autocomplete-item"
-              onClick={() => handleSelect(suggestion.type)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleSelect(suggestion.type);
+              }}
             >
               <span className="autocomplete-value">{suggestion.type}</span>
               <span className={`autocomplete-source ${suggestion.source}`}>
