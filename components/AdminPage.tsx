@@ -296,6 +296,8 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   const [formData, setFormData] = useState<MineralFormData>(getInitialFormData);
   const [image, setImage] = useState<File | null>(null);
   const [imageName, setImageName] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shelves, setShelves] = useState<ShelfOption[]>([]);
   const [existingRockTypes, setExistingRockTypes] = useState<string[]>([]);
@@ -442,6 +444,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     setFormData(emptyData);
     setImage(null);
     setImageName('');
+    setImagePreview(null);
     setNumberExists(false);
     
     if (typeof window !== 'undefined') {
@@ -499,8 +502,51 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
+    processImageFile(file);
+  };
+
+  const processImageFile = (file: File | null) => {
     setImage(file);
     setImageName(file ? file.name : '');
+    
+    // Vorschau erstellen
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      processImageFile(file);
+    } else {
+      alert('Bitte nur Bilddateien hochladen');
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImageName('');
+    setImagePreview(null);
   };
 
   return (
@@ -663,17 +709,43 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label htmlFor="image">Bild hochladen</label>
+        <div 
+          className={`image-upload-area ${isDragging ? 'dragging' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => document.getElementById('image')?.click()}
+        >
+          {imagePreview ? (
+            <div className="image-preview-container">
+              <img src={imagePreview} alt="Vorschau" className="image-preview" />
+              <button 
+                type="button" 
+                className="remove-image-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeImage();
+                }}
+              >
+                ✕
+              </button>
+              <div className="image-name">{imageName}</div>
+            </div>
+          ) : (
+            <div className="upload-placeholder">
+              <div className="upload-icon">📁</div>
+              <p>Klicken oder Bild hierher ziehen</p>
+              <span className="upload-hint">JPG, PNG oder GIF</span>
+            </div>
+          )}
+        </div>
         <input
           type="file"
           id="image"
           accept="image/*"
           onChange={handleImageChange}
+          style={{ display: 'none' }}
         />
-        {imageName && (
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
-            Ausgewähltes Bild: {imageName}
-          </div>
-        )}
       </div>
 
       <div style={{ display: 'flex', gap: '10px' }}>
