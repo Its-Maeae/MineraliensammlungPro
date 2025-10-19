@@ -2042,18 +2042,46 @@ main {
         gap: var(--space-3);
     }
     
-    .admin-form-container .form-group:nth-child(1),
-    .admin-form-container .form-group:nth-child(2),
-    .admin-form-container .form-group:nth-child(3),
-    .admin-form-container .form-group:nth-child(4),
-    .admin-form-container .form-group:nth-child(5),
-    .admin-form-container .form-group:nth-child(6),
-    .admin-form-container .form-group:nth-child(7),
-    .admin-form-container .form-group:nth-child(8),
-    .admin-form-container .form-group:nth-child(9),
-    .admin-form-container .form-group:nth-child(10),
-    .admin-form-container .form-group:nth-child(11) {
+    /* Spezielle Grid-Platzierungen für Admin-Formular */
+    .admin-form-container .form-group:nth-child(1) {
         grid-column: 1;
+    }
+
+    .admin-form-container .form-group:nth-child(2) {
+        grid-column: 2;
+    }
+
+    .admin-form-container .form-group:nth-child(3) {
+        grid-column: 1;
+    }
+
+    .admin-form-container .form-group:nth-child(4) {
+        grid-column: 2;
+    }
+
+    .admin-form-container .form-group:nth-child(5) {
+        grid-column: 1;
+    }
+
+    .admin-form-container .form-group:nth-child(6) {
+        grid-column: 2;
+    }
+
+    .admin-form-container .form-group:nth-child(7) {
+        grid-column: 1;
+    }
+
+    .admin-form-container .form-group:nth-child(8) {
+        grid-column: 2;
+    }
+
+    /* Karte und Bild-Upload nebeneinander */
+    .admin-form-container .form-group:nth-child(9) {
+        grid-column: 1;
+    }
+
+    .admin-form-container .form-group:nth-child(10) {
+        grid-column: 2;
     }
     
     .admin-buttons {

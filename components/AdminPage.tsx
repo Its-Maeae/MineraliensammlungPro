@@ -621,22 +621,24 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           <button
             type="button"
             className="btn btn-secondary"
+            style={{ fontSize: '11px', padding: '4px 8px' }}
             onClick={() => setFormData(prevData => ({ 
               ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner)'
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Mineralien Bestimmen (Hochleitner)'
             }))}
           >
-            Quelle: Mineralien Bestimmen (Hochleitner)
+            Quelle: Hochleitner
           </button>
           <button
             type="button"
             className="btn btn-secondary"
+            style={{ fontSize: '11px', padding: '4px 8px' }}
             onClick={() => setFormData(prevData => ({ 
               ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros)'
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Minerale Arthia (Svenek/Pros)'
             }))}
           >
-            Quelle: Minerale Arthia (Svenek/Pros)
+            Quelle: Svenek/Pros
           </button>
         </div>
       </div>
