@@ -253,10 +253,13 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
   const loadExistingRockTypes = async () => {
     try {
-      const response = await fetch('/api/filters');
+      const response = await fetch('/api/filter-options');
       if (response.ok) {
         const data = await response.json();
+        console.log('Loaded filter options:', data);
         setExistingRockTypes(data.rock_types || []);
+      } else {
+        console.error('API response not ok:', response.status);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Gesteinsarten:', error);
