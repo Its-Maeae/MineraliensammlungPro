@@ -90,6 +90,9 @@ function RockTypeAutocomplete({
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    console.log('Existing rock types:', existingRockTypes);
+    console.log('Current value:', value);
+    
     if (value.trim().length === 0) {
       setFilteredSuggestions([]);
       setShowSuggestions(false);
@@ -103,6 +106,7 @@ function RockTypeAutocomplete({
     existingRockTypes.forEach(type => {
       if (type.toLowerCase().includes(searchTerm)) {
         allSuggestions.push({ type, source: 'database' });
+        console.log('Added from database:', type);
       }
     });
 
@@ -110,9 +114,11 @@ function RockTypeAutocomplete({
     EXAMPLE_ROCK_TYPES.forEach(type => {
       if (type.toLowerCase().includes(searchTerm) && !existingRockTypes.includes(type)) {
         allSuggestions.push({ type, source: 'example' });
+        console.log('Added from examples:', type);
       }
     });
 
+    console.log('Filtered suggestions:', allSuggestions);
     setFilteredSuggestions(allSuggestions);
     setShowSuggestions(allSuggestions.length > 0);
   }, [value, existingRockTypes]);
@@ -127,18 +133,30 @@ function RockTypeAutocomplete({
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+    if (e.target.value.trim().length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       <input
         ref={inputRef}
         type="text"
         id="rock_type"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => value.trim().length > 0 && filteredSuggestions.length > 0 && setShowSuggestions(true)}
+        onChange={handleInputChange}
+        onFocus={() => {
+          if (value.trim().length > 0 && filteredSuggestions.length > 0) {
+            setShowSuggestions(true);
+          }
+        }}
         onBlur={handleBlur}
         placeholder="z.B. magmatisch, sedimentär, metamorph"
         required
+        style={{ width: '100%' }}
       />
       
       {showSuggestions && filteredSuggestions.length > 0 && (
