@@ -653,23 +653,6 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="form-group">
-        <label>Fundort auf Karte markieren (optional)</label>
-        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-          Klicken Sie auf die Karte, um den genauen Fundort zu markieren
-        </p>
-        <MapSelector
-          latitude={formData.latitude}
-          longitude={formData.longitude}
-          onLocationSelect={handleLocationSelect}
-        />
-        {formData.latitude && formData.longitude && (
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
-            Koordinaten: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
-          </div>
-        )}
-      </div>
-
-      <div className="form-group">
         <label htmlFor="purchase_location">Kaufort</label>
         <input
           type="text"
@@ -705,6 +688,23 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="form-group">
+        <label>Fundort auf Karte markieren (optional)</label>
+        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
+          Klicken Sie auf die Karte, um den genauen Fundort zu markieren
+        </p>
+        <MapSelector
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onLocationSelect={handleLocationSelect}
+        />
+        {formData.latitude && formData.longitude && (
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+            Koordinaten: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+          </div>
+        )}
       </div>
 
       <div className="form-group">
