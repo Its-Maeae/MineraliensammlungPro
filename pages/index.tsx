@@ -237,7 +237,7 @@ export default function Home() {
         <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium Flöha</title>
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine des Samuel von Pufendorf Gymnasium." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="../assets/icon.png" />
         {/* QR-Code Library */}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
       </Head>
