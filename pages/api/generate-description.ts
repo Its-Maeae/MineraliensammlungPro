@@ -25,7 +25,8 @@ export default async function handler(req: any, res: any) {
   try {
     // Gemini AI initialisieren
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const models = await genAI.listModels();
+    console.log('Verfügbare Modelle:', models);
 
     // Prompt für die Mineralbeschreibung
     const prompt = `Erstelle eine kurze, wissenschaftlich korrekte Beschreibung für das Mineral "${mineralName.trim()}".
