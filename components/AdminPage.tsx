@@ -30,6 +30,22 @@ interface ShelfOption {
 const FORM_STORAGE_KEY = 'mineralFormData';
 const IMAGE_STORAGE_KEY = 'mineralFormImage';
 
+// Beispiel-Gesteinsarten
+const EXAMPLE_ROCK_TYPES = [
+  'Magmatisch',
+  'Sedimentär',
+  'Metamorph',
+  'Plutonit',
+  'Vulkanit',
+  'Klastisch',
+  'Chemisch',
+  'Organogen',
+  'Gneis',
+  'Schiefer',
+  'Marmor',
+  'Quarzit'
+];
+
 export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps) {
   if (!isAuthenticated) {
     return (
@@ -91,12 +107,14 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   const [imageName, setImageName] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [shelves, setShelves] = useState<ShelfOption[]>([]);
+  const [existingRockTypes, setExistingRockTypes] = useState<string[]>([]);
   const [numberExists, setNumberExists] = useState(false);
   const [checkingNumber, setCheckingNumber] = useState(false);
   const [numberCheckTimeout, setNumberCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadShelves();
+    loadExistingRockTypes();
     
     // Gespeicherten Bildnamen laden
     if (typeof window !== 'undefined') {
@@ -130,6 +148,18 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       }
     } catch (error) {
       console.error('Fehler beim Laden der Regale:', error);
+    }
+  };
+
+  const loadExistingRockTypes = async () => {
+    try {
+      const response = await fetch('/api/filters');
+      if (response.ok) {
+        const data = await response.json();
+        setExistingRockTypes(data.rock_types || []);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Gesteinsarten:', error);
     }
   };
 
@@ -398,13 +428,38 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label htmlFor="rock_type">Gesteinsart</label>
-        <input
-          type="text"
+        <select
           id="rock_type"
           value={formData.rock_type}
           onChange={(e) => setFormData(prevData => ({ ...prevData, rock_type: e.target.value }))}
-          placeholder="z.B. magmatisch, sedimentär, metamorph"
           required
+        >
+          <option value="">Bitte auswählen...</option>
+          
+          {existingRockTypes.length > 0 && (
+            <optgroup label="Bereits in der Datenbank">
+              {existingRockTypes.map((type, index) => (
+                <option key={`existing-${index}`} value={type}>
+                  {type}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          
+          <optgroup label="Beispiele">
+            {EXAMPLE_ROCK_TYPES.filter(type => !existingRockTypes.includes(type)).map((type, index) => (
+              <option key={`example-${index}`} value={type}>
+                {type}
+              </option>
+            ))}
+          </optgroup>
+        </select>
+        <input
+          type="text"
+          value={formData.rock_type}
+          onChange={(e) => setFormData(prevData => ({ ...prevData, rock_type: e.target.value }))}
+          placeholder="Oder eigene Gesteinsart eingeben..."
+          style={{ marginTop: '8px' }}
         />
       </div>
 
