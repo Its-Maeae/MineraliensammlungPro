@@ -23,10 +23,20 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // Gemini AI initialisieren
+    // Gemini AI initialisieren mit v1 API
     const genAI = new GoogleGenerativeAI(apiKey);
-    const models = await genAI.listModels();
-    console.log('Verfügbare Modelle:', models);
+    
+    // Versuche verschiedene Modellnamen
+    let model;
+    try {
+      model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    } catch {
+      try {
+        model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' });
+      } catch {
+        model = genAI.getGenerativeModel({ model: 'models/gemini-pro' });
+      }
+    }
 
     // Prompt für die Mineralbeschreibung
     const prompt = `Erstelle eine kurze, wissenschaftlich korrekte Beschreibung für das Mineral "${mineralName.trim()}".
