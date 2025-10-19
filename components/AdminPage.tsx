@@ -76,6 +76,91 @@ export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps
   );
 }
 
+function RockTypeAutocomplete({ 
+  value, 
+  onChange, 
+  existingRockTypes 
+}: { 
+  value: string; 
+  onChange: (value: string) => void; 
+  existingRockTypes: string[] 
+}) {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<Array<{type: string, source: string}>>([]);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (value.trim().length === 0) {
+      setFilteredSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const searchTerm = value.toLowerCase();
+    const allSuggestions: Array<{type: string, source: string}> = [];
+
+    // Existierende Gesteinsarten aus der Datenbank
+    existingRockTypes.forEach(type => {
+      if (type.toLowerCase().includes(searchTerm)) {
+        allSuggestions.push({ type, source: 'database' });
+      }
+    });
+
+    // Beispiel-Gesteinsarten
+    EXAMPLE_ROCK_TYPES.forEach(type => {
+      if (type.toLowerCase().includes(searchTerm) && !existingRockTypes.includes(type)) {
+        allSuggestions.push({ type, source: 'example' });
+      }
+    });
+
+    setFilteredSuggestions(allSuggestions);
+    setShowSuggestions(allSuggestions.length > 0);
+  }, [value, existingRockTypes]);
+
+  const handleSelect = (type: string) => {
+    onChange(type);
+    setShowSuggestions(false);
+  };
+
+  const handleBlur = () => {
+    // Verzögerung, damit der Klick auf eine Suggestion noch registriert wird
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        ref={inputRef}
+        type="text"
+        id="rock_type"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => value.trim().length > 0 && filteredSuggestions.length > 0 && setShowSuggestions(true)}
+        onBlur={handleBlur}
+        placeholder="z.B. magmatisch, sedimentär, metamorph"
+        required
+      />
+      
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <div className="autocomplete-dropdown">
+          {filteredSuggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="autocomplete-item"
+              onClick={() => handleSelect(suggestion.type)}
+            >
+              <span className="autocomplete-value">{suggestion.type}</span>
+              <span className={`autocomplete-source ${suggestion.source}`}>
+                {suggestion.source === 'database' ? 'Aus Datenbank' : 'Beispiel'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   const getInitialFormData = (): MineralFormData => {
     if (typeof window !== 'undefined') {
@@ -428,38 +513,10 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label htmlFor="rock_type">Gesteinsart</label>
-        <select
-          id="rock_type"
+        <RockTypeAutocomplete
           value={formData.rock_type}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, rock_type: e.target.value }))}
-          required
-        >
-          <option value="">Bitte auswählen...</option>
-          
-          {existingRockTypes.length > 0 && (
-            <optgroup label="Bereits in der Datenbank">
-              {existingRockTypes.map((type, index) => (
-                <option key={`existing-${index}`} value={type}>
-                  {type}
-                </option>
-              ))}
-            </optgroup>
-          )}
-          
-          <optgroup label="Beispiele">
-            {EXAMPLE_ROCK_TYPES.filter(type => !existingRockTypes.includes(type)).map((type, index) => (
-              <option key={`example-${index}`} value={type}>
-                {type}
-              </option>
-            ))}
-          </optgroup>
-        </select>
-        <input
-          type="text"
-          value={formData.rock_type}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, rock_type: e.target.value }))}
-          placeholder="Oder eigene Gesteinsart eingeben..."
-          style={{ marginTop: '8px' }}
+          onChange={(value) => setFormData(prevData => ({ ...prevData, rock_type: value }))}
+          existingRockTypes={existingRockTypes}
         />
       </div>
 
