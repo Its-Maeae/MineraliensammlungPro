@@ -528,6 +528,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
             placeholder="Eindeutige Identifikationsnummer"
             className={`number-input ${numberExists ? 'error' : formData.number.trim() && !checkingNumber && !numberExists ? 'success' : ''}`}
             required
+            autoComplete='off'
           />
           <div className="number-validation-indicator">
             {checkingNumber && (
