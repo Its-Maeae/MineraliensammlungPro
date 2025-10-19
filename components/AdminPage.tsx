@@ -694,9 +694,9 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label>Fundort auf Karte markieren (optional)</label>
-        <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
+        {/* <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
           Klicken Sie auf die Karte, um den genauen Fundort zu markieren
-        </p>
+        </p> */}
         <MapSelector
           latitude={formData.latitude}
           longitude={formData.longitude}
