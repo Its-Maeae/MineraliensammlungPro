@@ -76,6 +76,96 @@ export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps
   );
 }
 
+function SimpleAutocomplete({ 
+  value, 
+  onChange, 
+  existingValues,
+  id,
+  placeholder
+}: { 
+  value: string; 
+  onChange: (value: string) => void; 
+  existingValues: string[];
+  id: string;
+  placeholder: string;
+}) {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (value.trim().length === 0) {
+      setFilteredSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const searchTerm = value.toLowerCase();
+    const filtered: string[] = [];
+
+    // Nur Einträge aus der Datenbank
+    if (existingValues && existingValues.length > 0) {
+      existingValues.forEach(val => {
+        if (val && val.toLowerCase().includes(searchTerm)) {
+          filtered.push(val);
+        }
+      });
+    }
+
+    setFilteredSuggestions(filtered);
+    setShowSuggestions(filtered.length > 0);
+  }, [value, existingValues]);
+
+  const handleSelect = (val: string) => {
+    onChange(val);
+    setShowSuggestions(false);
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <input
+        type="text"
+        id={id}
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setShowSuggestions(true);
+        }}
+        onFocus={() => {
+          if (value.trim().length > 0) {
+            setShowSuggestions(true);
+          }
+        }}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        required
+        autoComplete="off"
+        style={{ width: '100%' }}
+      />
+      
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <div className="autocomplete-dropdown">
+          {filteredSuggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="autocomplete-item"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleSelect(suggestion);
+              }}
+            >
+              <span className="autocomplete-value">{suggestion}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RockTypeAutocomplete({ 
   value, 
   onChange, 
@@ -209,6 +299,8 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [shelves, setShelves] = useState<ShelfOption[]>([]);
   const [existingRockTypes, setExistingRockTypes] = useState<string[]>([]);
+  const [existingColors, setExistingColors] = useState<string[]>([]);
+  const [existingLocations, setExistingLocations] = useState<string[]>([]);
   const [numberExists, setNumberExists] = useState(false);
   const [checkingNumber, setCheckingNumber] = useState(false);
   const [numberCheckTimeout, setNumberCheckTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -216,6 +308,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   useEffect(() => {
     loadShelves();
     loadExistingRockTypes();
+    loadFilterOptions();
     
     // Gespeicherten Bildnamen laden
     if (typeof window !== 'undefined') {
@@ -264,6 +357,19 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       }
     } catch (error) {
       console.error('Fehler beim Laden der Gesteinsarten:', error);
+    }
+  };
+
+  const loadFilterOptions = async () => {
+    try {
+      const response = await fetch('/api/filter-options');
+      if (response.ok) {
+        const data = await response.json();
+        setExistingColors(data.colors || []);
+        setExistingLocations(data.locations || []);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Filteroptionen:', error);
     }
   };
 
@@ -446,13 +552,12 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label htmlFor="color">Farbe</label>
-        <input
-          type="text"
+        <SimpleAutocomplete
           id="color"
           value={formData.color}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, color: e.target.value }))}
+          onChange={(value) => setFormData(prevData => ({ ...prevData, color: value }))}
+          existingValues={existingColors}
           placeholder="Hauptfarbe des Minerals"
-          required
         />
       </div>
 
@@ -491,13 +596,12 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label htmlFor="location">Fundort (Text)</label>
-        <input
-          type="text"
+        <SimpleAutocomplete
           id="location"
           value={formData.location}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, location: e.target.value }))}
+          onChange={(value) => setFormData(prevData => ({ ...prevData, location: value }))}
+          existingValues={existingLocations}
           placeholder="Geographische Herkunft"
-          required
         />
       </div>
 
