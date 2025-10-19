@@ -632,6 +632,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setFormData(prevData => ({ ...prevData, purchase_location: e.target.value }))}
           placeholder="Wo wurde es erworben?"
           required
+          autoComplete='off'
         />
       </div>
 
