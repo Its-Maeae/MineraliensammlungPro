@@ -299,6 +299,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [shelves, setShelves] = useState<ShelfOption[]>([]);
   const [existingRockTypes, setExistingRockTypes] = useState<string[]>([]);
   const [existingColors, setExistingColors] = useState<string[]>([]);
@@ -418,6 +419,41 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       latitude: lat,
       longitude: lng
     }));
+  };
+
+  const generateAIDescription = async () => {
+    if (!formData.name.trim()) {
+      alert('Bitte geben Sie zuerst einen Mineralnamen ein.');
+      return;
+    }
+
+    setGeneratingAI(true);
+
+    try {
+      const response = await fetch('/api/generate-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mineralName: formData.name.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prevData => ({ 
+          ...prevData, 
+          description: data.description 
+        }));
+      } else {
+        const error = await response.text();
+        alert('Fehler bei der KI-Generierung: ' + error);
+      }
+    } catch (error) {
+      console.error('Fehler bei der KI-Generierung:', error);
+      alert('Fehler bei der KI-Generierung');
+    } finally {
+      setGeneratingAI(false);
+    }
   };
 
   useEffect(() => {
@@ -640,6 +676,15 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           >
             Quelle: Svenek/Pros
           </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ fontSize: '11px', padding: '4px 8px' }}
+            onClick={generateAIDescription}
+            disabled={!formData.name.trim() || generatingAI}
+          >
+            {generatingAI ? '🤖 Generiere...' : '🤖 KI-Beschreibung'}
+          </button>
         </div>
       </div>
 
@@ -694,9 +739,6 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="form-group">
         <label>Fundort auf Karte markieren (optional)</label>
-        {/* <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-          Klicken Sie auf die Karte, um den genauen Fundort zu markieren
-        </p> */}
         <MapSelector
           latitude={formData.latitude}
           longitude={formData.longitude}
@@ -735,7 +777,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
             </div>
           ) : (
             <div className="upload-placeholder">
-              <div className="upload-icon">📁</div>
+              <div className="upload-icon">📷</div>
               <p>Klicken oder Bild hierher ziehen</p>
               <span className="upload-hint">JPG, PNG oder GIF</span>
             </div>

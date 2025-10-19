@@ -29,11 +29,14 @@ Eine moderne Webanwendung zur Verwaltung einer privaten Mineraliensammlung, entw
 2. **Dependencies installieren**
    ```bash
    npm install
+   npm install @google/generative-ai
+   npm install qr code
    ```
 
 3. **Datenbank initialisieren**
    ```bash
    npm run init-db
+   npm run add-coordinates
    ```
 
 4. **Entwicklungsserver starten**
