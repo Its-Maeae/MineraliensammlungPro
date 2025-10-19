@@ -150,6 +150,7 @@ function RockTypeAutocomplete({
         onBlur={handleBlur}
         placeholder="z.B. magmatisch, sedimentär, metamorph"
         required
+        autoComplete="off"
         style={{ width: '100%' }}
       />
       
