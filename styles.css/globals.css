@@ -1400,10 +1400,6 @@ main {
 }
 
 .admin-form-container .form-group:nth-child(10) {
-    grid-column: 1;
-}
-
-.admin-form-container .form-group:nth-child(11) {
     grid-column: 2;
 }
 
