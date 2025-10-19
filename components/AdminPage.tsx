@@ -322,7 +322,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
         />
       </div>
 
-      <div className="form-group">
+     <div className="form-group">
         <label htmlFor="description">Beschreibung</label>
         <textarea
           id="description"
@@ -331,6 +331,28 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           placeholder="Detaillierte Beschreibung, Besonderheiten, chemische Formel..."
           required
         />
+        <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setFormData(prevData => ({ 
+              ...prevData, 
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner)'
+            }))}
+          >
+            Quelle: Mineralien Bestimmen (Hochleitner)
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setFormData(prevData => ({ 
+              ...prevData, 
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros) S.176'
+            }))}
+          >
+            Quelle: Minerale Arthia (Svenek/Pros) S.176
+          </button>
+        </div>
       </div>
 
       <div className="form-group">
