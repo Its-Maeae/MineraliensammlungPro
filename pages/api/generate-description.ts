@@ -35,15 +35,12 @@ export default async function handler(req: any, res: any) {
 
 Anforderungen:
 - Beginne direkt mit der chemischen Formel in Fettschrift (z.B. **SiO₂**)
-- Gib 2-3 Sätze zu den wichtigsten Eigenschaften (Farbe, Kristallsystem, Härte, Vorkommen)
+- Gib 1 Sätze zu den wichtigsten Eigenschaften (Farbe, Kristallsystem, Härte, Vorkommen)
 - Falls das Mineral giftig, radioaktiv oder anderweitig gefährlich ist, füge am Ende eine deutliche Warnung in einer neuen Zeile hinzu: "⚠️ WARNUNG: [Beschreibung der Gefahr]"
 - Verwende deutsche Sprache
 - Sei präzise und fachlich korrekt
-- Maximal 4 Sätze (ohne Warnung)
-- Keine Einleitung, keine Überschriften, nur die Beschreibung
-
-Beispiel:
-**SiO₂** - Quarz ist eines der häufigsten Minerale der Erdkruste und kristallisiert im trigonalen System. Es hat eine Mohshärte von 7 und tritt in zahlreichen Farbvarianten auf. Wichtige Fundorte sind weltweit verbreitet.`;
+- Maximal 2 Sätze (ohne Warnung)
+- Keine Einleitung, keine Überschriften, nur die Beschreibung`;
 
     // Generierung starten
     const result = await model.generateContent(prompt);
