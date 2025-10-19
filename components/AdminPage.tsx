@@ -624,7 +624,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
             style={{ fontSize: '11px', padding: '4px 8px' }}
             onClick={() => setFormData(prevData => ({ 
               ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Mineralien Bestimmen (Hochleitner)'
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner) '
             }))}
           >
             Quelle: Hochleitner
@@ -635,7 +635,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
             style={{ fontSize: '11px', padding: '4px 8px' }}
             onClick={() => setFormData(prevData => ({ 
               ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Minerale Arthia (Svenek/Pros)'
+              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros)'
             }))}
           >
             Quelle: Svenek/Pros
