@@ -75,7 +75,7 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
               <ul className="sources-list">
                 <li><a href="https://www.mindat.org" target="_blank" rel="noopener noreferrer">Mindat.org - Mineraldatenbank</a></li>
                 <li><a href="https://rruff.info" target="_blank" rel="noopener noreferrer">RRUFF Project - Mineraldatenbank</a></li>
-                <li><a href="https://webmineral.com" target="_blank" rel="noopener noreferrer">Webmineral - Mineralogische Datenbank</a></li>
+                <li><a href="https://www.mineralienatlas.de/" target="_blank" rel="noopener noreferrer">Mineralienatlas - Mineralogischer Atlas</a></li>
               </ul>
             </div>
             
@@ -91,10 +91,10 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
             <div className="sources-section">
               <h2>🎓 Mitwirkende Personen</h2>
               <ul className="sources-list">
-                <li><strong>Marius Schmieder</strong> - Webentwicklung und Datenbank, Bestimmung der Gesteine, Fotografie</li>
+                <li><strong>Marius Schmieder</strong> - Webentwicklung und Datenbank, Bestimmung, Fotografie, Digitalisierung</li>
                 <li><strong>Charlie Espig</strong> - Bestimmung, Digitalisierung und Fotografie</li>
-                <li><strong>Herr Albrecht</strong> - Geologie, Bestimmung von Gesteinen</li>
-                <li><strong>Typ für Regal?????</strong> - Sponsor für Lagermöglichkeiten</li>
+                <li><strong>Herr Matthias Albrecht</strong> - Geologie, Bestimmung von Gesteinen</li>
+                <li><strong>Lagertechnik.de</strong> - Sponsor für Lagermöglichkeiten</li>
                 <li><strong>Frau Barthel</strong> - Betreuung und fachliche Unterstützung</li>
               </ul>
             </div>
