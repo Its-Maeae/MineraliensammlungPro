@@ -148,7 +148,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 <div className="impressum-card">
                   <h3>👤 Kontaktperson</h3>
                   <p><strong>Manuela Barthel</strong></p>
-                  <p>Fachbereich Geologie</p>
+                  <p>Leherin Bereich Geografie</p>
                   <p>📞</p>
                   <p>✉️ <a href="mailto:manuela-bathel@gymnasium-floeha.lernsax.de">
                     manuela-barthel@gymnasium-floeha.lernsax.de
@@ -172,7 +172,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                   <p>• Charlie Espig</p>
                   <p>• Manuela Barthel</p>
                   <p>• Matthias Albrecht</p>
-                  <p>• Regaltyp</p>
+                  <p>• Lagertechnik.de</p>
                 </div>
                 
                 <div className="impressum-card">
