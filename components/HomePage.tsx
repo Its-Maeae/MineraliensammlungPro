@@ -98,46 +98,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="features-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Sammlungsfeatures</h2>
-            <p className="section-description">
-              Was kann dieses Archiv?
-            </p>
-          </div>
-          
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🔍</div>
-              <h3 className="feature-title">Intelligente Suche</h3>
-              <p className="feature-description">
-                Hier können die Mineralien der Schule nach ihren Eigenschaften, 
-                Namen und den Steinnummern durchsucht werden.
-              </p>
-            </div>
-            
-            <div className="feature-card">
-              <div className="feature-icon">🎯</div>
-              <h3 className="feature-title">Präzise Filter</h3>
-              <p className="feature-description">
-                Mithilfe von Filtern können die Mineralien nach Kategorien wie Farbe, Fundort
-                und weiteren Eigenschaften gefiltert werden.
-              </p>
-            </div>
-            
-            <div className="feature-card">
-              <div className="feature-icon">📊</div>
-              <h3 className="feature-title">Kartenfunktion</h3>
-              <p className="feature-description">
-                Anhand einer Weltkarte können die Fundorte der Mineralien genau und leicht erkundet werden.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* About Section */}
       <div className="about-section">
         <div className="container">
