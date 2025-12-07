@@ -113,19 +113,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 im Umfang einer Komplexen Leistung diese Sammlung aufzubereiten
               </p>
             </div>
-            
-            <div className="about-visual">
-              <div className="about-card">
-                <div className="about-card-icon">🪜</div>
-                <h4>Genaue Lagerangaben</h4>
-                <p>Für jeden Stein ist das Regal und die Boxnummer angegeben.</p>
-              </div>
-              <div className="about-card">
-                <div className="about-card-icon">🖼️</div>
-                <h4>Archiv mit Bildern</h4>
-                <p>Von jedem Gestein ist ein Eintrag mit einem Bild vorhanden.</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
