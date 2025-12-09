@@ -497,7 +497,7 @@ export default function MapPage({
           <div className='map_info_popup'>
             <h2 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>Fundorte der Mineralien</h2>
             <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-              {minerals.length} Mineralien mit Koordinaten gefunden
+              {minerals.length} Mineralien mit Koordinaten gefunden <br></br> (Ungenauigkeiten bei den Angaben möglich)
             </p>
             <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
               Powered by OpenStreetMap
