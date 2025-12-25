@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { parse } from 'cookie';
 import database from '../../../lib/database';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
-// Multer Konfiguration hinzufügen:
+// Multer Konfiguration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(process.cwd(), 'public/uploads');
@@ -43,32 +43,6 @@ function runMiddleware(req: any, res: any, fn: any) {
   });
 }
 
-// Authentifizierungsfunktion
-function checkAuthentication(req: NextApiRequest): boolean {
-  try {
-    const cookies = parse(req.headers.cookie || '');
-    const sessionToken = cookies.admin_session;
-
-    if (!sessionToken || !sessionToken.startsWith('authenticated-')) {
-      return false;
-    }
-
-    // Token-Validierung (gleiche Logik wie in checks.ts)
-    const tokenTimestamp = parseInt(sessionToken.split('-')[1]);
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
-
-    if (now - tokenTimestamp > maxAge) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Authentifizierungsfehler:', error);
-    return false;
-  }
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
@@ -97,106 +71,101 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ error: 'Fehler beim Laden des Minerals' });
     }
   } else if (req.method === 'PUT') {
-    try {
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
-      }
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Multer Middleware für Bildupload
+        await runMiddleware(req, res, upload.single('image'));
 
-      // Multer Middleware für Bildupload
-      await runMiddleware(req, res, upload.single('image'));
+        const {
+          name,
+          number,
+          color,
+          description,
+          location,
+          purchase_location,
+          rock_type,
+          shelf_id,
+          latitude,
+          longitude
+        } = (req as any).body;
 
-      const {
-        name,
-        number,
-        color,
-        description,
-        location,
-        purchase_location,
-        rock_type,
-        shelf_id,
-        latitude,
-        longitude
-      } = (req as any).body;
+        const image = (req as any).file;
 
-      const image = (req as any).file;
+        console.log('Received coordinates:', { latitude, longitude });
 
-      console.log('Received coordinates:', { latitude, longitude }); // Debug log
+        // Prüfen ob Steinnummer bereits von anderem Mineral verwendet wird
+        const existingMineral = await database.get(
+          'SELECT id FROM minerals WHERE number = ? AND id != ?',
+          [number, id]
+        );
 
-      // Prüfen ob Steinnummer bereits von anderem Mineral verwendet wird
-      const existingMineral = await database.get(
-        'SELECT id FROM minerals WHERE number = ? AND id != ?',
-        [number, id]
-      );
-
-      if (existingMineral) {
-        return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
-      }
-
-      // Handle coordinates - convert empty strings to null, parse valid numbers
-      let parsedLatitude = null;
-      let parsedLongitude = null;
-
-      if (latitude !== '' && latitude !== undefined && latitude !== null) {
-        const lat = parseFloat(latitude);
-        if (!isNaN(lat)) {
-          parsedLatitude = lat;
+        if (existingMineral) {
+          return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
         }
-      }
 
-      if (longitude !== '' && longitude !== undefined && longitude !== null) {
-        const lng = parseFloat(longitude);
-        if (!isNaN(lng)) {
-          parsedLongitude = lng;
+        // Handle coordinates - convert empty strings to null, parse valid numbers
+        let parsedLatitude = null;
+        let parsedLongitude = null;
+
+        if (latitude !== '' && latitude !== undefined && latitude !== null) {
+          const lat = parseFloat(latitude);
+          if (!isNaN(lat)) {
+            parsedLatitude = lat;
+          }
         }
+
+        if (longitude !== '' && longitude !== undefined && longitude !== null) {
+          const lng = parseFloat(longitude);
+          if (!isNaN(lng)) {
+            parsedLongitude = lng;
+          }
+        }
+
+        console.log('Parsed coordinates:', { parsedLatitude, parsedLongitude });
+
+        // SQL für Update mit oder ohne neues Bild
+        let sql = `UPDATE minerals SET 
+                  name = ?, number = ?, color = ?, description = ?, location = ?,
+                  purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?`;
+        let params = [
+          name, number, color, description, location,
+          purchase_location, rock_type, shelf_id || null,
+          parsedLatitude, parsedLongitude
+        ];
+
+        if (image) {
+          sql += `, image_path = ?`;
+          params.push(image.filename);
+        }
+
+        sql += ` WHERE id = ?`;
+        params.push(id);
+
+        const result = await database.run(sql, params);
+        console.log('Update result:', result);
+
+        res.status(200).json({ message: 'Mineral erfolgreich aktualisiert' });
+      } catch (error) {
+        console.error('Fehler beim Aktualisieren des Minerals:', error);
+        res.status(500).json({ error: 'Fehler beim Aktualisieren des Minerals' });
       }
-
-      console.log('Parsed coordinates:', { parsedLatitude, parsedLongitude }); // Debug log
-
-      // SQL für Update mit oder ohne neues Bild
-      let sql = `UPDATE minerals SET 
-                name = ?, number = ?, color = ?, description = ?, location = ?,
-                purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?`;
-      let params = [
-        name, number, color, description, location,
-        purchase_location, rock_type, shelf_id || null,
-        parsedLatitude, parsedLongitude
-      ];
-
-      if (image) {
-        sql += `, image_path = ?`;
-        params.push(image.filename);
-      }
-
-      sql += ` WHERE id = ?`;
-      params.push(id);
-
-      const result = await database.run(sql, params);
-      console.log('Update result:', result); // Debug log
-
-      res.status(200).json({ message: 'Mineral erfolgreich aktualisiert' });
-    } catch (error) {
-      console.error('Fehler beim Aktualisieren des Minerals:', error);
-      res.status(500).json({ error: 'Fehler beim Aktualisieren des Minerals' });
-    }
+    });
   } else if (req.method === 'DELETE') {
-    try {
-      // Direkte Authentifizierungsprüfung
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Mineral löschen
+        const result = await database.run('DELETE FROM minerals WHERE id = ?', [id]);
+
+        if (result.changes === 0) {
+          return res.status(404).json({ error: 'Mineral nicht gefunden' });
+        }
+
+        res.status(200).json({ message: 'Mineral erfolgreich gelöscht' });
+      } catch (error) {
+        console.error('Fehler beim Löschen des Minerals:', error);
+        res.status(500).json({ error: 'Fehler beim Löschen des Minerals' });
       }
-
-      // Mineral löschen
-      const result = await database.run('DELETE FROM minerals WHERE id = ?', [id]);
-
-      if (result.changes === 0) {
-        return res.status(404).json({ error: 'Mineral nicht gefunden' });
-      }
-
-      res.status(200).json({ message: 'Mineral erfolgreich gelöscht' });
-    } catch (error) {
-      console.error('Fehler beim Löschen des Minerals:', error);
-      res.status(500).json({ error: 'Fehler beim Löschen des Minerals' });
-    }
+    });
   } else {
     res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

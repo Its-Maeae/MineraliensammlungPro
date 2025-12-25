@@ -3,32 +3,7 @@ import database from '../../../lib/database';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { parse } from 'cookie';
-
-// Authentifizierungsfunktion
-function checkAuthentication(req: NextApiRequest): boolean {
-  try {
-    const cookies = parse(req.headers.cookie || '');
-    const sessionToken = cookies.admin_session;
-
-    if (!sessionToken || !sessionToken.startsWith('authenticated-')) {
-      return false;
-    }
-
-    const tokenTimestamp = parseInt(sessionToken.split('-')[1]);
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
-
-    if (now - tokenTimestamp > maxAge) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Authentifizierungsfehler:', error);
-    return false;
-  }
-}
+import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
 // Multer Konfiguration
 const storage = multer.diskStorage({
@@ -104,80 +79,76 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ error: 'Fehler beim Laden der Vitrine' });
     }
   } else if (req.method === 'PUT') {
-    try {
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Multer Middleware für Bildupload
+        await runMiddleware(req, res, upload.single('image'));
+
+        const { name, code, location, description } = (req as any).body;
+        const image = (req as any).file;
+
+        // Prüfen ob Code bereits von anderer Vitrine verwendet wird
+        const existingShowcase = await database.get(
+          'SELECT id FROM showcases WHERE code = ? AND id != ?',
+          [code, id]
+        );
+
+        if (existingShowcase) {
+          return res.status(400).json({ error: 'Vitrine-Code bereits vorhanden' });
+        }
+
+        // SQL für Update mit oder ohne neues Bild
+        let sql = `UPDATE showcases SET name = ?, code = ?, location = ?, description = ?`;
+        let params = [name, code, location || '', description || ''];
+
+        if (image) {
+          sql += `, image_path = ?`;
+          params.push(image.filename);
+        }
+
+        sql += ` WHERE id = ?`;
+        params.push(id);
+
+        const result = await database.run(sql, params);
+
+        if (result.changes === 0) {
+          return res.status(404).json({ error: 'Vitrine nicht gefunden' });
+        }
+
+        res.status(200).json({ message: 'Vitrine erfolgreich aktualisiert' });
+      } catch (error) {
+        console.error('Fehler beim Aktualisieren der Vitrine:', error);
+        res.status(500).json({ error: 'Fehler beim Aktualisieren der Vitrine' });
       }
-
-      // Multer Middleware für Bildupload
-      await runMiddleware(req, res, upload.single('image'));
-
-      const { name, code, location, description } = (req as any).body;
-      const image = (req as any).file;
-
-      // Prüfen ob Code bereits von anderer Vitrine verwendet wird
-      const existingShowcase = await database.get(
-        'SELECT id FROM showcases WHERE code = ? AND id != ?',
-        [code, id]
-      );
-
-      if (existingShowcase) {
-        return res.status(400).json({ error: 'Vitrine-Code bereits vorhanden' });
-      }
-
-      // SQL für Update mit oder ohne neues Bild
-      let sql = `UPDATE showcases SET name = ?, code = ?, location = ?, description = ?`;
-      let params = [name, code, location || '', description || ''];
-
-      if (image) {
-        sql += `, image_path = ?`;
-        params.push(image.filename);
-      }
-
-      sql += ` WHERE id = ?`;
-      params.push(id);
-
-      const result = await database.run(sql, params);
-
-      if (result.changes === 0) {
-        return res.status(404).json({ error: 'Vitrine nicht gefunden' });
-      }
-
-      res.status(200).json({ message: 'Vitrine erfolgreich aktualisiert' });
-    } catch (error) {
-      console.error('Fehler beim Aktualisieren der Vitrine:', error);
-      res.status(500).json({ error: 'Fehler beim Aktualisieren der Vitrine' });
-    }
+    });
   } else if (req.method === 'DELETE') {
-    try {
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Erst alle Mineralien von Regalen dieser Vitrine entfernen
+        await database.run(`
+          UPDATE minerals 
+          SET shelf_id = NULL 
+          WHERE shelf_id IN (
+            SELECT id FROM shelves WHERE showcase_id = ?
+          )
+        `, [id]);
+
+        // Dann alle Regale der Vitrine löschen
+        await database.run('DELETE FROM shelves WHERE showcase_id = ?', [id]);
+
+        // Schließlich die Vitrine löschen
+        const result = await database.run('DELETE FROM showcases WHERE id = ?', [id]);
+
+        if (result.changes === 0) {
+          return res.status(404).json({ error: 'Vitrine nicht gefunden' });
+        }
+
+        res.status(200).json({ message: 'Vitrine erfolgreich gelöscht' });
+      } catch (error) {
+        console.error('Fehler beim Löschen der Vitrine:', error);
+        res.status(500).json({ error: 'Fehler beim Löschen der Vitrine' });
       }
-
-      // Erst alle Mineralien von Regalen dieser Vitrine entfernen
-      await database.run(`
-        UPDATE minerals 
-        SET shelf_id = NULL 
-        WHERE shelf_id IN (
-          SELECT id FROM shelves WHERE showcase_id = ?
-        )
-      `, [id]);
-
-      // Dann alle Regale der Vitrine löschen
-      await database.run('DELETE FROM shelves WHERE showcase_id = ?', [id]);
-
-      // Schließlich die Vitrine löschen
-      const result = await database.run('DELETE FROM showcases WHERE id = ?', [id]);
-
-      if (result.changes === 0) {
-        return res.status(404).json({ error: 'Vitrine nicht gefunden' });
-      }
-
-      res.status(200).json({ message: 'Vitrine erfolgreich gelöscht' });
-    } catch (error) {
-      console.error('Fehler beim Löschen der Vitrine:', error);
-      res.status(500).json({ error: 'Fehler beim Löschen der Vitrine' });
-    }
+    });
   } else {
     res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

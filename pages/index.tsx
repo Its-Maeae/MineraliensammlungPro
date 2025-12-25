@@ -12,6 +12,7 @@ import LegalPages from '../components/LegalPages';
 import PasswordModal from '../components/PasswordModal';
 import EditModal from '../components/EditModal';
 import MapPage from '../components/MapPage';
+import SecurityDashboard from '../components/SecurityDashboard';
 
 export default function Home() {
   const router = useRouter();
@@ -220,22 +221,33 @@ export default function Home() {
     }
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
-  const showPage = (page: string) => {
-    if (page === 'admin') {
-      if (!isAuthenticated) {
-        setShowPasswordModal(true);
-        return;
-      }
+  useEffect(() => {
+  if (isAuthenticated) {
+    const pendingPage = sessionStorage.getItem('pendingPage');
+    if (pendingPage) {
+      setCurrentPage(pendingPage);
+      sessionStorage.removeItem('pendingPage');
     }
-    setCurrentPage(page);
-    setMobileMenuOpen(false);
-  };
+  }
+}, [isAuthenticated]);
+
+const showPage = (page: string) => {
+  if (page === 'admin' || page === 'security') {
+    if (!isAuthenticated) {
+      setShowPasswordModal(true);
+      sessionStorage.setItem('pendingPage', page);
+      return;
+    }
+  }
+  setCurrentPage(page);
+  setMobileMenuOpen(false);
+};
 
   return (
     <>
       <Head>
-        <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium Flöha</title>
-        <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine des Samuel von Pufendorf Gymnasium." />
+        <title>Mineraliensammlung - Marius Schmieder</title>
+        <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="..\public\picture\icon.png" />
         {/* QR-Code Library */}
@@ -362,7 +374,12 @@ export default function Home() {
             onSuccess={() => {
               loadStats();
             }}
+            showPage={showPage}
           />
+        )}
+
+        {currentPage === 'security' && isAuthenticated && (
+          <SecurityDashboard />
         )}
 
         {(currentPage === 'impressum' || currentPage === 'quellen' || currentPage === 'kontakt') && (

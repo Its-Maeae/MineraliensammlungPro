@@ -3,32 +3,7 @@ import database from '../../../lib/database';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { parse } from 'cookie';
-
-// Authentifizierungsfunktion hinzufügen
-function checkAuthentication(req: NextApiRequest): boolean {
-  try {
-    const cookies = parse(req.headers.cookie || '');
-    const sessionToken = cookies.admin_session;
-
-    if (!sessionToken || !sessionToken.startsWith('authenticated-')) {
-      return false;
-    }
-
-    const tokenTimestamp = parseInt(sessionToken.split('-')[1]);
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
-
-    if (now - tokenTimestamp > maxAge) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Authentifizierungsfehler:', error);
-    return false;
-  }
-}
+import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
 // Multer Konfiguration
 const storage = multer.diskStorage({
@@ -90,38 +65,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ error: 'Fehler beim Laden der Regale' });
     }
   } else if (req.method === 'POST') {
-    try {
-      // Direkte Authentifizierungsprüfung
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Multer Middleware ausführen
+        await runMiddleware(req, res, upload.single('image'));
+
+        const { name, code, showcase_id, description, position_order } = (req as any).body;
+        const image = (req as any).file;
+
+        // Prüfen ob Code bereits in dieser Vitrine existiert
+        const existingShelf = await database.get(
+          'SELECT id FROM shelves WHERE code = ? AND showcase_id = ?',
+          [code, showcase_id]
+        );
+
+        if (existingShelf) {
+          return res.status(400).json({ error: 'Regal-Code bereits in dieser Vitrine vorhanden' });
+        }
+
+        const result = await database.run(
+          'INSERT INTO shelves (name, code, showcase_id, description, position_order, image_path) VALUES (?, ?, ?, ?, ?, ?)',
+          [name, code, showcase_id, description, position_order || 0, image ? image.filename : null]
+        );
+
+        res.status(201).json({ id: result.id, message: 'Regal erfolgreich hinzugefügt' });
+      } catch (error) {
+        console.error('Fehler beim Hinzufügen des Regals:', error);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen des Regals' });
       }
-
-      // Multer Middleware ausführen
-      await runMiddleware(req, res, upload.single('image'));
-
-      const { name, code, showcase_id, description, position_order } = (req as any).body;
-      const image = (req as any).file;
-
-      // Prüfen ob Code bereits in dieser Vitrine existiert
-      const existingShelf = await database.get(
-        'SELECT id FROM shelves WHERE code = ? AND showcase_id = ?',
-        [code, showcase_id]
-      );
-
-      if (existingShelf) {
-        return res.status(400).json({ error: 'Regal-Code bereits in dieser Vitrine vorhanden' });
-      }
-
-      const result = await database.run(
-        'INSERT INTO shelves (name, code, showcase_id, description, position_order, image_path) VALUES (?, ?, ?, ?, ?, ?)',
-        [name, code, showcase_id, description, position_order || 0, image ? image.filename : null]
-      );
-
-      res.status(201).json({ id: result.id, message: 'Regal erfolgreich hinzugefügt' });
-    } catch (error) {
-      console.error('Fehler beim Hinzufügen des Regals:', error);
-      res.status(500).json({ error: 'Fehler beim Hinzufügen des Regals' });
-    }
+    });
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

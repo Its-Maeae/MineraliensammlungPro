@@ -1,35 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import database from '../../../lib/database';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { parse } from 'cookie';
-import database from '../../../lib/database';
-
-// Authentifizierungsfunktion
-function checkAuthentication(req: NextApiRequest): boolean {
-  try {
-    const cookies = parse(req.headers.cookie || '');
-    const sessionToken = cookies.admin_session;
-
-    if (!sessionToken || !sessionToken.startsWith('authenticated-')) {
-      return false;
-    }
-
-    // Token-Validierung (gleiche Logik wie in checks.ts)
-    const tokenTimestamp = parseInt(sessionToken.split('-')[1]);
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
-
-    if (now - tokenTimestamp > maxAge) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Authentifizierungsfehler:', error);
-    return false;
-  }
-}
+import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
 // Multer Konfiguration
 const storage = multer.diskStorage({
@@ -128,46 +102,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ error: 'Fehler beim Laden der Mineralien' });
     }
   } else if (req.method === 'POST') {
-    try {
-      // Direkte Authentifizierungsprüfung
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
-      }
-
-      // Multer Middleware ausführen
-      await runMiddleware(req, res, upload.single('image'));
-      
-      const {
-        name,
-        number,
-        color,
-        description,
-        location,
-        purchase_location,
-        rock_type,
-        shelf_id,
-        latitude,
-        longitude  // NEU
-      } = (req as any).body;
-      
-      const image = (req as any).file;
-      
-      // Prüfen ob Steinnummer bereits existiert
-      const existingMineral = await database.get(
-        'SELECT id FROM minerals WHERE number = ?',
-        [number]
-      );
-      
-      if (existingMineral) {
-        return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
-      }
-      
-      const result = await database.run(
-        `INSERT INTO minerals (
-          name, number, color, description, location, 
-          purchase_location, rock_type, shelf_id, image_path, latitude, longitude
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Multer Middleware ausführen
+        await runMiddleware(req, res, upload.single('image'));
+        
+        const {
           name,
           number,
           color,
@@ -175,18 +115,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           location,
           purchase_location,
           rock_type,
-          shelf_id || null,
-          image ? image.filename : null,
-          latitude ? parseFloat(latitude) : null,
-          longitude ? parseFloat(longitude) : null
-        ]
-      );
-      
-      res.status(201).json({ id: result.id, message: 'Mineral erfolgreich hinzugefügt' });
-    } catch (error) {
-      console.error('Fehler beim Hinzufügen des Minerals:', error);
-      res.status(500).json({ error: 'Fehler beim Hinzufügen des Minerals' });
-    }
+          shelf_id,
+          latitude,
+          longitude
+        } = (req as any).body;
+        
+        const image = (req as any).file;
+        
+        // Prüfen ob Steinnummer bereits existiert
+        const existingMineral = await database.get(
+          'SELECT id FROM minerals WHERE number = ?',
+          [number]
+        );
+        
+        if (existingMineral) {
+          return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
+        }
+        
+        const result = await database.run(
+          `INSERT INTO minerals (
+            name, number, color, description, location, 
+            purchase_location, rock_type, shelf_id, image_path, latitude, longitude
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            name,
+            number,
+            color,
+            description,
+            location,
+            purchase_location,
+            rock_type,
+            shelf_id || null,
+            image ? image.filename : null,
+            latitude ? parseFloat(latitude) : null,
+            longitude ? parseFloat(longitude) : null
+          ]
+        );
+        
+        res.status(201).json({ id: result.id, message: 'Mineral erfolgreich hinzugefügt' });
+      } catch (error) {
+        console.error('Fehler beim Hinzufügen des Minerals:', error);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen des Minerals' });
+      }
+    });
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

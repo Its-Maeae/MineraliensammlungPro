@@ -2,33 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { parse } from 'cookie';
 import database from '../../../lib/database';
-
-// Authentifizierungsfunktion
-function checkAuthentication(req: NextApiRequest): boolean {
-  try {
-    const cookies = parse(req.headers.cookie || '');
-    const sessionToken = cookies.admin_session;
-
-    if (!sessionToken || !sessionToken.startsWith('authenticated-')) {
-      return false;
-    }
-
-    const tokenTimestamp = parseInt(sessionToken.split('-')[1]);
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
-
-    if (now - tokenTimestamp > maxAge) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Authentifizierungsfehler:', error);
-    return false;
-  }
-}
+import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
 // Multer Konfiguration
 const storage = multer.diskStorage({
@@ -90,38 +65,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ error: 'Fehler beim Laden der Vitrinen' });
     }
   } else if (req.method === 'POST') {
-    try {
-      // Authentifizierung prüfen
-      if (!checkAuthentication(req)) {
-        return res.status(401).json({ error: 'Nicht authentifiziert' });
+    return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
+      try {
+        // Multer Middleware ausführen
+        await runMiddleware(req, res, upload.single('image'));
+
+        const { name, code, location, description } = (req as any).body;
+        const image = (req as any).file;
+
+        // Prüfen ob Code bereits existiert
+        const existingShowcase = await database.get(
+          'SELECT id FROM showcases WHERE code = ?',
+          [code]
+        );
+
+        if (existingShowcase) {
+          return res.status(400).json({ error: 'Vitrine-Code bereits vorhanden' });
+        }
+
+        const result = await database.run(
+          'INSERT INTO showcases (name, code, location, description, image_path) VALUES (?, ?, ?, ?, ?)',
+          [name, code, location, description, image ? image.filename : null]
+        );
+
+        res.status(201).json({ id: result.id, message: 'Vitrine erfolgreich hinzugefügt' });
+      } catch (error) {
+        console.error('Fehler beim Hinzufügen der Vitrine:', error);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen der Vitrine' });
       }
-
-      // Multer Middleware ausführen
-      await runMiddleware(req, res, upload.single('image'));
-
-      const { name, code, location, description } = (req as any).body;
-      const image = (req as any).file;
-
-      // Prüfen ob Code bereits existiert
-      const existingShowcase = await database.get(
-        'SELECT id FROM showcases WHERE code = ?',
-        [code]
-      );
-
-      if (existingShowcase) {
-        return res.status(400).json({ error: 'Vitrine-Code bereits vorhanden' });
-      }
-
-      const result = await database.run(
-        'INSERT INTO showcases (name, code, location, description, image_path) VALUES (?, ?, ?, ?, ?)',
-        [name, code, location, description, image ? image.filename : null]
-      );
-
-      res.status(201).json({ id: result.id, message: 'Vitrine erfolgreich hinzugefügt' });
-    } catch (error) {
-      console.error('Fehler beim Hinzufügen der Vitrine:', error);
-      res.status(500).json({ error: 'Fehler beim Hinzufügen der Vitrine' });
-    }
+    });
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -5,6 +5,7 @@ import MapSelector from './MapSelector';
 interface AdminPageProps {
   isAuthenticated: boolean;
   onSuccess: () => void;
+  showPage?: (page: string) => void;
 }
 
 interface MineralFormData {
@@ -30,7 +31,6 @@ interface ShelfOption {
 const FORM_STORAGE_KEY = 'mineralFormData';
 const IMAGE_STORAGE_KEY = 'mineralFormImage';
 
-// Beispiel-Gesteinsarten
 const EXAMPLE_ROCK_TYPES = [
   'Magmatisch',
   'Sedimentär',
@@ -46,7 +46,35 @@ const EXAMPLE_ROCK_TYPES = [
   'Quarzit'
 ];
 
-export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps) {
+export default function AdminPage({ isAuthenticated, onSuccess, showPage }: AdminPageProps) {
+  const [loggingOut, setLoggingOut] = useState(false);
+  
+  const handleLogout = async () => {
+    if (!confirm('Möchten Sie sich wirklich abmelden?')) {
+      return;
+    }
+
+    setLoggingOut(true);
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        alert('Erfolgreich abgemeldet');
+        window.location.reload();
+      } else {
+        alert('Fehler beim Abmelden');
+      }
+    } catch (error) {
+      console.error('Logout-Fehler:', error);
+      alert('Fehler beim Abmelden');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+  
   if (!isAuthenticated) {
     return (
       <section className="page active">
@@ -63,13 +91,23 @@ export default function AdminPage({ isAuthenticated, onSuccess }: AdminPageProps
   return (
     <section className="page active">
       <div className="container">
-        <div className="page-header">
-          <h1 className="page-title">Verwaltung</h1>
-          <p className="page-description">Neue Mineralien zur Sammlung hinzufügen</p>
+        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <h1 className="page-title">Verwaltung</h1>
+            <p className="page-description">Neue Mineralien zur Sammlung hinzufügen</p>
+          </div>
+          <button 
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="btn btn-secondary"
+            style={{ height: 'fit-content' }}
+          >
+            {loggingOut ? 'Wird abgemeldet...' : '🚪 Abmelden'}
+          </button>
         </div>
         
         <div className="admin-form-container">
-          <MineralForm onSuccess={onSuccess} />
+          <MineralForm onSuccess={onSuccess} showPage={showPage} />
         </div>
       </div>
     </section>
@@ -102,7 +140,6 @@ function SimpleAutocomplete({
     const searchTerm = value.toLowerCase();
     const filtered: string[] = [];
 
-    // Nur Einträge aus der Datenbank
     if (existingValues && existingValues.length > 0) {
       existingValues.forEach(val => {
         if (val && val.toLowerCase().includes(searchTerm)) {
@@ -188,7 +225,6 @@ function RockTypeAutocomplete({
     const searchTerm = value.toLowerCase();
     const allSuggestions: Array<{type: string, source: string}> = [];
 
-    // Existierende Gesteinsarten aus der Datenbank
     if (existingRockTypes && existingRockTypes.length > 0) {
       existingRockTypes.forEach(type => {
         if (type && type.toLowerCase().includes(searchTerm)) {
@@ -197,7 +233,6 @@ function RockTypeAutocomplete({
       });
     }
 
-    // Beispiel-Gesteinsarten
     EXAMPLE_ROCK_TYPES.forEach(type => {
       if (type.toLowerCase().includes(searchTerm)) {
         const alreadyInDatabase = existingRockTypes && existingRockTypes.some(
@@ -267,7 +302,7 @@ function RockTypeAutocomplete({
   );
 }
 
-function MineralForm({ onSuccess }: { onSuccess: () => void }) {
+function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?: (page: string) => void }) {
   const getInitialFormData = (): MineralFormData => {
     if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem(FORM_STORAGE_KEY);
@@ -313,7 +348,6 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     loadExistingRockTypes();
     loadFilterOptions();
     
-    // Gespeicherten Bildnamen laden
     if (typeof window !== 'undefined') {
       const savedImageName = sessionStorage.getItem(IMAGE_STORAGE_KEY);
       if (savedImageName) {
@@ -322,14 +356,12 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     }
   }, []);
 
-  // Formulardaten im SessionStorage speichern
   useEffect(() => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
     }
   }, [formData]);
 
-  // Bildnamen im SessionStorage speichern
   useEffect(() => {
     if (typeof window !== 'undefined' && imageName) {
       sessionStorage.setItem(IMAGE_STORAGE_KEY, imageName);
@@ -353,10 +385,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       const response = await fetch('/api/filter-options');
       if (response.ok) {
         const data = await response.json();
-        console.log('Loaded filter options:', data);
         setExistingRockTypes(data.rock_types || []);
-      } else {
-        console.error('API response not ok:', response.status);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Gesteinsarten:', error);
@@ -389,8 +418,6 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
       if (response.ok) {
         const data = await response.json();
         setNumberExists(data.exists);
-      } else {
-        console.error('Fehler beim Überprüfen der Nummer:', response.statusText);
       }
     } catch (error) {
       console.error('Fehler beim Überprüfen der Nummer:', error);
@@ -492,6 +519,34 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== SESSION DEBUG START ===');
+    
+    try {
+      const sessionCheck = await fetch('/api/auth/check', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      console.log('Session Check Status:', sessionCheck.status);
+      const sessionData = await sessionCheck.json();
+      console.log('Session Check Response:', sessionData);
+      
+      if (!sessionCheck.ok) {
+        alert('⚠️ Session ist nicht gültig! Bitte melden Sie sich erneut an.\n\nDetails: ' + JSON.stringify(sessionData));
+        return;
+      }
+    } catch (error) {
+      console.error('Session Check Error:', error);
+      alert('Fehler beim Prüfen der Session. Bitte neu anmelden.');
+      return;
+    }
+    
+    console.log('✅ Session ist gültig!');
+    console.log('Cookies:', document.cookie);
+    
     if (numberExists) {
       alert('Diese Steinnummer existiert bereits. Bitte wählen Sie eine andere Nummer.');
       return;
@@ -515,25 +570,45 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
         form.append('image', image);
       }
 
+      console.log('📤 Sende Request zu /api/minerals...');
+      console.log('📋 FormData Felder:', Array.from(form.keys()));
+
       const response = await fetch('/api/minerals', {
         method: 'POST',
-        body: form
+        body: form,
+        credentials: 'include',
       });
 
+      console.log('📥 Response Status:', response.status);
+      console.log('📥 Response Headers:', Object.fromEntries(response.headers.entries()));
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Erfolg:', result);
         clearFormData();
         onSuccess();
         alert('Mineral erfolgreich hinzugefügt!');
       } else {
-        const error = await response.text();
-        alert('Fehler: ' + error);
+        const errorText = await response.text();
+        console.error('❌ Fehler Response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        
+        alert('Fehler beim Hinzufügen:\n\n' + JSON.stringify(errorData, null, 2));
       }
     } catch (error) {
-      console.error('Fehler beim Hinzufügen des Minerals:', error);
-      alert('Fehler beim Hinzufügen des Minerals');
+      console.error('💥 Exception beim Hinzufügen des Minerals:', error);
+      alert('Fehler beim Hinzufügen des Minerals: ' + error);
     } finally {
       setLoading(false);
     }
+    
+    console.log('=== SESSION DEBUG END ===');
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -545,7 +620,6 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
     setImage(file);
     setImageName(file ? file.name : '');
     
-    // Vorschau erstellen
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -792,7 +866,7 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
         />
       </div>
 
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <button 
           type="submit" 
           disabled={loading || numberExists || checkingNumber || !formData.number.trim()} 
@@ -808,6 +882,21 @@ function MineralForm({ onSuccess }: { onSuccess: () => void }) {
           disabled={loading}
         >
           Formular leeren
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => {
+            console.log('Security Button clicked, showPage:', showPage);
+            if (showPage) {
+              showPage('security');
+            } else {
+              alert('showPage function nicht verfügbar!');
+            }
+          }}
+          className="btn btn-secondary btn-large"
+        >
+          🔒 Security-Logs
         </button>
       </div>
     </form>
