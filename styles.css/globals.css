@@ -1031,6 +1031,7 @@ main {
     font-size: var(--font-size-sm);
     background: var(--white);
     transition: border-color var(--transition-fast);
+    width: 100%;
 }
 
 .filter-select:focus {
