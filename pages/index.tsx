@@ -246,10 +246,10 @@ const showPage = (page: string) => {
   return (
     <>
       <Head>
-        <title>Mineraliensammlung - Marius Schmieder</title>
+        <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium Flöha</title>
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="..\public\picture\icon.png" />
+        <link rel="icon" href='../assets/icon.png' />
         {/* QR-Code Library */}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
       </Head>

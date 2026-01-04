@@ -126,31 +126,31 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               
               <div className="impressum-grid">
                 <div className="impressum-card">
-                  <h3>👤 Kontaktperson</h3>
+                  <h3>Kontaktperson</h3>
                   <p><strong>Marius Schmieder</strong></p>
                   <p>Schüler der 10c</p>
-                  <p>📞</p>
-                  <p>✉️ <a href="mailto:marius-schmieder@gymnasium-floeha.lernsax.de">
+                  {/* <p>📞</p> */}
+                  <p><a href="mailto:marius-schmieder@gymnasium-floeha.lernsax.de">
                     marius-schmieder@gymnasium-floeha.lernsax.de
                   </a></p>
                 </div>
 
                 <div className="impressum-card">
-                  <h3>👤 Kontaktperson</h3>
+                  <h3>Kontaktperson</h3>
                   <p><strong>Charlie Espig</strong></p>
                   <p>Schüler der 10c</p>
-                  <p>📞</p>
-                  <p>✉️ <a href="mailto:charlie-espig@gymnasium-floeha.lernsax.de">
+                  {/* <p>📞</p> */}
+                  <p><a href="mailto:charlie-espig@gymnasium-floeha.lernsax.de">
                     charlie-espig@gymnasium-floeha.lernsax.de
                   </a></p>
                 </div>
 
                 <div className="impressum-card">
-                  <h3>👤 Kontaktperson</h3>
+                  <h3>Kontaktperson</h3>
                   <p><strong>Manuela Barthel</strong></p>
                   <p>Leherin Bereich Geografie</p>
-                  <p>📞</p>
-                  <p>✉️ <a href="mailto:manuela-bathel@gymnasium-floeha.lernsax.de">
+                  {/* <p>📞</p> */}
+                  <p><a href="mailto:manuela-bathel@gymnasium-floeha.lernsax.de">
                     manuela-barthel@gymnasium-floeha.lernsax.de
                   </a></p>
                 </div>
@@ -160,14 +160,14 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                   <p><strong>Samuel von Pufendorf Gymnasium Flöha</strong></p>
                   <p>Turnerstraße 16</p>
                   <p>09557 Flöha, Deutschland</p>
-                  <p>🌐 <a href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
+                  <p><a href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
                       gymnasium-floeha.de
                     </a>
                   </p>
                 </div>
                 
                 <div className="impressum-card">
-                  <h3>👥 Mitwirkende</h3>
+                  <h3>Mitwirkende</h3>
                   <p>• Marius Schmieder</p>
                   <p>• Charlie Espig</p>
                   <p>• Manuela Barthel</p>

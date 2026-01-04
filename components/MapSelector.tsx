@@ -189,7 +189,7 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
           fontSize: '12px',
           color: '#666'
         }}>
-          <span>💡 Tipp: Klicken Sie auf die Karte oder ziehen Sie den Marker</span>
+          <span>Tipp: Klicken Sie auf die Karte oder ziehen Sie den Marker</span>
           {latitude && longitude && latitude !== 0 && longitude !== 0 && (
             <button
               type="button"
