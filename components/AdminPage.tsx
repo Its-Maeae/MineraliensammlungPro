@@ -102,7 +102,7 @@ export default function AdminPage({ isAuthenticated, onSuccess, showPage }: Admi
             className="btn btn-secondary"
             style={{ height: 'fit-content' }}
           >
-            {loggingOut ? 'Wird abgemeldet...' : '🚪 Abmelden'}
+            {loggingOut ? 'Wird abgemeldet...' : 'Abmelden'}
           </button>
         </div>
         
@@ -535,7 +535,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       console.log('Session Check Response:', sessionData);
       
       if (!sessionCheck.ok) {
-        alert('⚠️ Session ist nicht gültig! Bitte melden Sie sich erneut an.\n\nDetails: ' + JSON.stringify(sessionData));
+        alert('Session ist nicht gültig! Bitte melden Sie sich erneut an.\n\nDetails: ' + JSON.stringify(sessionData));
         return;
       }
     } catch (error) {
@@ -544,7 +544,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       return;
     }
     
-    console.log('✅ Session ist gültig!');
+    console.log('Session ist gültig!');
     console.log('Cookies:', document.cookie);
     
     if (numberExists) {
@@ -570,8 +570,8 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         form.append('image', image);
       }
 
-      console.log('📤 Sende Request zu /api/minerals...');
-      console.log('📋 FormData Felder:', Array.from(form.keys()));
+      console.log('Sende Request zu /api/minerals...');
+      console.log('FormData Felder:', Array.from(form.keys()));
 
       const response = await fetch('/api/minerals', {
         method: 'POST',
@@ -579,18 +579,18 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         credentials: 'include',
       });
 
-      console.log('📥 Response Status:', response.status);
-      console.log('📥 Response Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Response Status:', response.status);
+      console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Erfolg:', result);
+        console.log('Erfolg:', result);
         clearFormData();
         onSuccess();
         alert('Mineral erfolgreich hinzugefügt!');
       } else {
         const errorText = await response.text();
-        console.error('❌ Fehler Response:', errorText);
+        console.error('Fehler Response:', errorText);
         
         let errorData;
         try {
@@ -602,7 +602,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         alert('Fehler beim Hinzufügen:\n\n' + JSON.stringify(errorData, null, 2));
       }
     } catch (error) {
-      console.error('💥 Exception beim Hinzufügen des Minerals:', error);
+      console.error('Exception beim Hinzufügen des Minerals:', error);
       alert('Fehler beim Hinzufügen des Minerals: ' + error);
     } finally {
       setLoading(false);
@@ -896,7 +896,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
           }}
           className="btn btn-secondary btn-large"
         >
-          🔒 Security-Logs
+          Security-Logs
         </button>
       </div>
     </form>

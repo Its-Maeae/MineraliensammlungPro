@@ -1897,29 +1897,41 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-16);
-    cursor: zoom-out;
-    animation: fadeIn 0.3s ease-out;
+    padding: 80px 40px 120px;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Verhindere Scroll-Bounce auf iOS */
+.image-maximized-overlay,
+.image-maximized {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: auto;
 }
 
 /* Maximiertes Bild */
 .image-maximized {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: calc(100vw - 80px);
+    max-height: calc(100vh - 200px);
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: var(--radius-lg);
+    border-radius: 8px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    cursor: default;
-    animation: zoomIn 0.3s ease-out;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    transform-origin: center center;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 /* Schließen-Button für maximiertes Bild */
 .image-maximized-close {
     position: fixed;
-    top: var(--space-6);
-    right: var(--space-6);
+    top: 20px;
+    right: 20px;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -1930,10 +1942,10 @@ main {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: var(--font-size-2xl);
-    color: var(--white);
-    transition: all var(--transition-normal);
-    z-index: 10001;
+    font-size: 24px;
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 10003;
     font-weight: 300;
 }
 
@@ -1965,32 +1977,227 @@ main {
     }
 }
 
+/* Zoom Controls */
+.zoom-controls {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.zoom-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.zoom-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.zoom-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.zoom-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.zoom-indicator {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 50px;
+    text-align: center;
+    padding: 0 8px;
+}
+
+.zoom-hint {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+    animation: fadeInOut 3s ease-in-out;
+}
+
+/* Zoom-Hinweis im Detail-Bild */
+.detail-image {
+    text-align: center;
+    margin: var(--space-6) 0;
+    position: relative;
+}
+
+.detail-image > div {
+    position: relative;
+    display: inline-block;
+}
+
+.image-zoom-hint {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: black;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+    opacity: 1;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* Mobile Anpassung für Zoom-Hinweis */
+@media (max-width: 768px) {
+    .image-zoom-hint {
+        font-size: 12px;
+        padding: 6px 12px;
+        bottom: -30px;
+    }
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    10%, 90% { opacity: 1; }
+}
+
 /* Mobile Anpassungen */
 @media (max-width: 768px) {
     .image-maximized-overlay {
-        padding: var(--space-8);
+        padding: 80px 20px 150px;
+        backdrop-filter: none;
+    }
+
+    .image-maximized {
+        max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 230px);
     }
     
     .image-maximized-close {
-        top: var(--space-4);
-        right: var(--space-4);
-        width: 48px;
-        height: 48px;
-        font-size: var(--font-size-xl);
+        top: 15px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .zoom-controls {
+        bottom: 30px;
+        padding: 10px 16px;
+        gap: 6px;
+    }
+
+    .zoom-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .zoom-indicator {
+        font-size: 13px;
+        min-width: 45px;
+        padding: 0 6px;
+    }
+
+    .zoom-hint {
+        top: 70px;
+        font-size: 12px;
+        padding: 6px 12px;
     }
 }
 
 @media (max-width: 480px) {
     .image-maximized-overlay {
-        padding: var(--space-4);
+        padding: 70px 10px 140px;
+        background: rgb(0, 0, 0);
+    }
+
+    .image-maximized {
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 210px);
     }
     
     .image-maximized-close {
-        top: var(--space-2);
-        right: var(--space-2);
-        width: 40px;
-        height: 40px;
-        font-size: var(--font-size-lg);
+        top: 10px;
+        right: 10px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .zoom-controls {
+        bottom: 20px;
+        padding: 8px 12px;
+        gap: 4px;
+    }    
+
+    .zoom-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .zoom-indicator {
+        font-size: 12px;
+        min-width: 40px;
+        padding: 0 4px;
+    }
+
+    .zoom-hint {
+        top: 60px;
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}
+
+/* Verbesserte Touch-Interaktion */
+@media (hover: none) and (pointer: coarse) {
+    .zoom-btn {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .image-maximized-close {
+        width: 52px;
+        height: 52px;
     }
 }
 
