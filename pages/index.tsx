@@ -252,7 +252,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Mineraliensammlung - Marius Schmieder</title>
+        <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium</title>
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="..\public\picture\icon.png" />
