@@ -53,7 +53,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               die umfangreiche Mineraliensammlung der Schule zu sortieren und zu organisieren, um die Zugänglichkeit zu verbessern.
             </p>
             <div className="hero-buttons">
-              <button className="btn btn-primary" onClick={() => showPage('collection')}>
+              <button className="btn btn-secondary" onClick={() => showPage('collection')}>
                 Sammlung entdecken
               </button>
               <button className="btn btn-secondary" onClick={() => showPage('vitrines')}>
