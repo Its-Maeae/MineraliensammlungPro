@@ -14,6 +14,12 @@ import EditModal from '../components/EditModal';
 import MapPage from '../components/MapPage';
 import SecurityDashboard from '../components/SecurityDashboard';
 
+interface FilterOptions {
+  colors: string[];
+  locations: string[];
+  rock_types: string[];
+}
+
 export default function Home() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState('home');
@@ -31,7 +37,7 @@ export default function Home() {
   const [locationFilter, setLocationFilter] = useState('');
   const [rockTypeFilter, setRockTypeFilter] = useState('');
   const [sortBy, setSortBy] = useState('name');
-  const [filterOptions, setFilterOptions] = useState({
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     colors: [],
     locations: [],
     rock_types: []
@@ -196,8 +202,8 @@ export default function Home() {
     setRockTypeFilter('');
   };
 
-  // Calculate hasActiveFilters
-  const hasActiveFilters = searchTerm || colorFilter || locationFilter || rockTypeFilter;
+  // Calculate hasActiveFilters as boolean
+  const hasActiveFilters = Boolean(searchTerm || colorFilter || locationFilter || rockTypeFilter);
 
   // useEffect hooks
   useEffect(() => {
@@ -222,34 +228,34 @@ export default function Home() {
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
   useEffect(() => {
-  if (isAuthenticated) {
-    const pendingPage = sessionStorage.getItem('pendingPage');
-    if (pendingPage) {
-      setCurrentPage(pendingPage);
-      sessionStorage.removeItem('pendingPage');
+    if (isAuthenticated) {
+      const pendingPage = sessionStorage.getItem('pendingPage');
+      if (pendingPage) {
+        setCurrentPage(pendingPage);
+        sessionStorage.removeItem('pendingPage');
+      }
     }
-  }
-}, [isAuthenticated]);
+  }, [isAuthenticated]);
 
-const showPage = (page: string) => {
-  if (page === 'admin' || page === 'security') {
-    if (!isAuthenticated) {
-      setShowPasswordModal(true);
-      sessionStorage.setItem('pendingPage', page);
-      return;
+  const showPage = (page: string) => {
+    if (page === 'admin' || page === 'security') {
+      if (!isAuthenticated) {
+        setShowPasswordModal(true);
+        sessionStorage.setItem('pendingPage', page);
+        return;
+      }
     }
-  }
-  setCurrentPage(page);
-  setMobileMenuOpen(false);
-};
+    setCurrentPage(page);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
       <Head>
-        <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium Flöha</title>
+        <title>Mineraliensammlung - Marius Schmieder</title>
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href='../assets/icon.png' />
+        <link rel="icon" href="..\public\picture\icon.png" />
         {/* QR-Code Library */}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
       </Head>
@@ -421,6 +427,7 @@ const showPage = (page: string) => {
           setMinerals={setMinerals}
           setShowcases={setShowcases}
           loadStats={loadStats}
+          loadMinerals={loadMinerals}
         />
       )}
     </>

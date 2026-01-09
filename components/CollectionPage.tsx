@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Mineral } from '../types';
 import MineralModal from './MineralModal';
 import EditModal from './EditModal';
@@ -77,7 +77,7 @@ export default function CollectionPage({
   loadStats
 }: CollectionPageProps) {
 
-  const loadMinerals = async () => {
+  const loadMinerals = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -98,7 +98,7 @@ export default function CollectionPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, setLoading, setMinerals]);
 
   const loadFilterOptions = async () => {
     try {
@@ -125,23 +125,23 @@ export default function CollectionPage({
     }
   };
 
- const handleEditMineral = (mineral: Mineral) => {
-  setEditFormData({
-    id: mineral.id,
-    name: mineral.name,
-    number: mineral.number,
-    color: mineral.color || '',
-    description: mineral.description || '',
-    location: mineral.location || '',
-    purchase_location: mineral.purchase_location || '',
-    rock_type: mineral.rock_type || '',
-    shelf_id: mineral.shelf_id || '',
-    latitude: mineral.latitude || null,
-    longitude: mineral.longitude || null  
-  });
-  setEditMode('mineral');
-  setEditImage(null);
-};
+  const handleEditMineral = (mineral: Mineral) => {
+    setEditFormData({
+      id: mineral.id,
+      name: mineral.name,
+      number: mineral.number,
+      color: mineral.color || '',
+      description: mineral.description || '',
+      location: mineral.location || '',
+      purchase_location: mineral.purchase_location || '',
+      rock_type: mineral.rock_type || '',
+      shelf_id: mineral.shelf_id || '',
+      latitude: mineral.latitude || null,
+      longitude: mineral.longitude || null  
+    });
+    setEditMode('mineral');
+    setEditImage(null);
+  };
 
   const handleDelete = async (type: 'mineral' | 'showcase' | 'shelf', id: number) => {
     const confirmMessage = {
@@ -208,7 +208,7 @@ export default function CollectionPage({
 
   useEffect(() => {
     loadMinerals();
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
+  }, [loadMinerals]);
 
   return (
     <>
@@ -333,6 +333,35 @@ export default function CollectionPage({
           onClose={() => setShowMineralModal(false)}
           onEdit={handleEditMineral}
           onDelete={handleDelete}
+        />
+      )}
+
+      {editMode && (
+        <EditModal
+          editMode={editMode}
+          formData={editFormData}
+          setFormData={setEditFormData}
+          image={editImage}
+          setImage={setEditImage}
+          shelves={shelves}
+          loading={loading}
+          setLoading={setLoading}
+          onClose={() => {
+            setEditMode(null);
+            setEditFormData({});
+            setEditImage(null);
+          }}
+          setEditMode={setEditMode}
+          setSelectedMineral={setSelectedMineral}
+          setShowMineralModal={setShowMineralModal}
+          setSelectedShowcase={() => {}}
+          setShowShelfMineralsModal={() => {}}
+          setSelectedShelf={() => {}}
+          currentPage="collection"
+          setMinerals={setMinerals}
+          setShowcases={() => {}}
+          loadStats={loadStats}
+          loadMinerals={loadMinerals}
         />
       )}
     </>

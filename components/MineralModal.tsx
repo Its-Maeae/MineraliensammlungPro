@@ -21,28 +21,37 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
   // Verhindere Scrollen im Hintergrund, wenn Bild maximiert ist
   useEffect(() => {
     if (isImageMaximized) {
+      // Speichere aktuelle Scroll-Position
+      const scrollY = window.scrollY;
+      
+      // Deaktiviere smooth scrolling temporär
+      const htmlElement = document.documentElement;
+      const originalScrollBehavior = htmlElement.style.scrollBehavior;
+      htmlElement.style.scrollBehavior = 'auto';
+      
       // Verhindere Scroll auf body
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
-      document.body.style.height = '100%';
       
       // Reset zoom und position beim Öffnen
       setZoom(1);
       setPosition({ x: 0, y: 0 });
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
+      
+      // Cleanup-Funktion, die beim Schließen ausgeführt wird
+      return () => {
+        // Stelle Scroll-Position wieder her
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, scrollY);
+        
+        // Stelle ursprüngliches scroll-behavior wieder her
+        htmlElement.style.scrollBehavior = originalScrollBehavior;
+      };
     }
-    
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    };
   }, [isImageMaximized]);
 
   // Zoom mit Mausrad (Desktop)

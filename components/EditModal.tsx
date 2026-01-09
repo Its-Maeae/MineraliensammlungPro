@@ -21,6 +21,7 @@ interface EditModalProps {
   setMinerals: (minerals: any[]) => void;
   setShowcases: (showcases: any[]) => void;
   loadStats: () => void;
+  loadMinerals?: () => Promise<void>;
 }
 
 export default function EditModal({ 
@@ -42,7 +43,8 @@ export default function EditModal({
   currentPage,
   setMinerals,
   setShowcases,
-  loadStats
+  loadStats,
+  loadMinerals
 }: EditModalProps) {
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
@@ -99,19 +101,17 @@ export default function EditModal({
         
         if (editMode === 'mineral') {
           if (currentPage === 'collection') {
-            // Reload minerals for collection page
-            const loadMinerals = async () => {
-              try {
-                const response = await fetch('/api/minerals');
-                if (response.ok) {
-                  const data = await response.json();
-                  setMinerals(data);
-                }
-              } catch (error) {
-                console.error('Fehler beim Laden der Mineralien:', error);
+            // Verwende die übergebene loadMinerals Funktion mit aktuellen Filtern
+            if (loadMinerals) {
+              await loadMinerals();
+            } else {
+              // Fallback: Lade ohne Filter
+              const response = await fetch('/api/minerals');
+              if (response.ok) {
+                const data = await response.json();
+                setMinerals(data);
               }
-            };
-            await loadMinerals();
+            }
           }
           setShowMineralModal(false);
           setSelectedMineral(null);
@@ -233,7 +233,7 @@ export default function EditModal({
                   latitude={formData.latitude}
                   longitude={formData.longitude}
                   onLocationSelect={(lat, lng) => {
-                    console.log('MapSelector coordinates changed:', lat, lng); // Debug log
+                    console.log('MapSelector coordinates changed:', lat, lng);
                     setFormData({
                       ...formData, 
                       latitude: lat, 
