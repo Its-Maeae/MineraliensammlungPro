@@ -49,7 +49,19 @@ function runMiddleware(req: any, res: any, fn: any) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const { search = '', color = '', location = '', rock_type = '', sort = 'name' } = req.query;
+      const { 
+        search = '', 
+        color = '', 
+        location = '', 
+        rock_type = '', 
+        sort = 'name',
+        page = '1',
+        limit = '12'
+      } = req.query;
+      
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
       
       let sql = `
         SELECT m.*, 
@@ -94,6 +106,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         default:
           sql += ` ORDER BY m.name`;
       }
+      
+      // Pagination
+      sql += ` LIMIT ? OFFSET ?`;
+      params.push(limitNum, offset);
       
       const minerals = await database.query(sql, params);
       res.status(200).json(minerals);

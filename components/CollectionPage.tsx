@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { Mineral } from '../types';
 import MineralModal from './MineralModal';
 import EditModal from './EditModal';
@@ -77,28 +77,54 @@ export default function CollectionPage({
   loadStats
 }: CollectionPageProps) {
 
-  const loadMinerals = useCallback(async () => {
-    setLoading(true);
+  // Lazy Loading States
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
+  const ITEMS_PER_PAGE = 12;
+
+  const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const params = new URLSearchParams({
         search: searchTerm,
         color: colorFilter,
         location: locationFilter,
         rock_type: rockTypeFilter,
-        sort: sortBy
+        sort: sortBy,
+        page: pageNum.toString(),
+        limit: ITEMS_PER_PAGE.toString()
       });
       
       const response = await fetch(`/api/minerals?${params}`);
       if (response.ok) {
         const data = await response.json();
-        setMinerals(data);
+        
+        if (append) {
+          setMinerals([...minerals, ...data]);
+        } else {
+          setMinerals(data);
+        }
+        
+        // Prüfen ob es mehr Daten gibt
+        setHasMore(data.length === ITEMS_PER_PAGE);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Mineralien:', error);
     } finally {
-      setLoading(false);
+      if (append) {
+        setIsLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, setLoading, setMinerals]);
+  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, setLoading, setMinerals, minerals]);
 
   const loadFilterOptions = async () => {
     try {
@@ -181,7 +207,8 @@ export default function CollectionPage({
         }
 
         loadStats();
-        loadMinerals();
+        setPage(1);
+        loadMinerals(1, false);
 
         const entityNames = {
           mineral: 'Mineral',
@@ -202,13 +229,41 @@ export default function CollectionPage({
     }
   };
 
+  // Intersection Observer für Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          loadMinerals(nextPage, true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, isLoadingMore, loading, page, loadMinerals]);
+
   useEffect(() => {
     loadFilterOptions();
   }, []);
 
+  // Filter-Änderungen: Reset auf Seite 1
   useEffect(() => {
-    loadMinerals();
-  }, [loadMinerals]);
+    setPage(1);
+    setHasMore(true);
+    loadMinerals(1, false);
+  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
   return (
     <>
@@ -295,34 +350,58 @@ export default function CollectionPage({
           </div>
 
           <div className="minerals-grid">
-            {loading ? (
+            {loading && minerals.length === 0 ? (
               <div className="loading">Lade Mineralien...</div>
             ) : minerals.length === 0 ? (
               <div className="loading">Keine Mineralien gefunden</div>
             ) : (
-              minerals.map(mineral => (
-                <div 
-                  key={mineral.id} 
-                  className="mineral-card" 
-                  onClick={() => openMineralDetails(mineral.id)}
-                >
-                  <div className="mineral-image">
-                    {mineral.image_path ? (
-                      <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
-                    ) : (
-                      <div className="placeholder">📸</div>
-                    )}
+              <>
+                {minerals.map(mineral => (
+                  <div 
+                    key={mineral.id} 
+                    className="mineral-card" 
+                    onClick={() => openMineralDetails(mineral.id)}
+                  >
+                    <div className="mineral-image">
+                      {mineral.image_path ? (
+                        <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
+                      ) : (
+                        <div className="placeholder">📸</div>
+                      )}
+                    </div>
+                    <div className="mineral-info">
+                      <h3>{mineral.name}</h3>
+                      <p><strong>Nummer:</strong> {mineral.number}</p>
+                      <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
+                      <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : 'Nicht zugeordnet'}</p>
+                    </div>
                   </div>
-                  <div className="mineral-info">
-                    <h3>{mineral.name}</h3>
-                    <p><strong>Nummer:</strong> {mineral.number}</p>
-                    <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
-                    <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : 'Nicht zugeordnet'}</p>
-                  </div>
-                </div>
-              ))
+                ))}
+              </>
             )}
           </div>
+
+          {/* Infinite Scroll Trigger */}
+          {hasMore && (
+            <div ref={observerTarget} style={{ height: '20px', margin: '20px 0' }}>
+              {isLoadingMore && (
+                <div className="loading" style={{ gridColumn: '1 / -1' }}>
+                  Lade weitere Mineralien...
+                </div>
+              )}
+            </div>
+          )}
+
+          {!hasMore && minerals.length > 0 && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '20px', 
+              color: 'var(--gray-500)',
+              fontSize: 'var(--font-size-sm)'
+            }}>
+              Alle Mineralien geladen ({minerals.length} gesamt)
+            </div>
+          )}
         </div>
       </section>
 
@@ -361,7 +440,11 @@ export default function CollectionPage({
           setMinerals={setMinerals}
           setShowcases={() => {}}
           loadStats={loadStats}
-          loadMinerals={loadMinerals}
+          loadMinerals={async () => {
+            setPage(1);
+            setHasMore(true);
+            await loadMinerals(1, false);
+          }}
         />
       )}
     </>
