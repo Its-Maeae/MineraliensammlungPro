@@ -45,39 +45,42 @@ export default function MapPage({
   setMinerals,
   currentPage
 }: MapPageProps) {
-  const [minerals, setMineralsLocal] = useState<Mineral[]>([]);
+  // Lokaler State für die Karten-Mineralien (unabhängig von Collection-Page)
+  const [mapMinerals, setMapMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [mapInitialized, setMapInitialized] = useState(false); // New state for tracking initialization
+  const [mapInitialized, setMapInitialized] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const isMapVisible = currentPage === 'map';
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mineralien laden
-  useEffect(() => {
-    const loadMinerals = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/minerals');
-        if (response.ok) {
-          const data = await response.json();
-          const mineralsWithCoords = data.filter((mineral: Mineral) => 
-            mineral.latitude && mineral.longitude
-          );
-          setMineralsLocal(mineralsWithCoords);
-        }
-      } catch (error) {
-        console.error('Fehler beim Laden der Mineralien:', error);
-        setMapError('Fehler beim Laden der Mineralien');
-      } finally {
-        setLoading(false);
+  // Mineralien laden - ALLE Mineralien, nicht nur die ersten 12
+  const loadAllMinerals = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Ohne Pagination-Parameter, um ALLE Mineralien zu laden
+      const response = await fetch('/api/minerals?limit=999999');
+      if (response.ok) {
+        const data = await response.json();
+        const mineralsWithCoords = data.filter((mineral: Mineral) => 
+          mineral.latitude && mineral.longitude
+        );
+        setMapMinerals(mineralsWithCoords);
       }
-    };
-
-    loadMinerals();
+    } catch (error) {
+      console.error('Fehler beim Laden der Mineralien:', error);
+      setMapError('Fehler beim Laden der Mineralien');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Mineralien laden wenn Komponente mountet
+  useEffect(() => {
+    loadAllMinerals();
+  }, [loadAllMinerals]);
 
   // Leaflet laden und Map initialisieren wenn Page sichtbar wird
   useEffect(() => {
@@ -88,10 +91,10 @@ export default function MapPage({
 
   // Update markers when minerals change and map is ready
   useEffect(() => {
-    if (mapInitialized && mapInstance.current && minerals.length > 0) {
+    if (mapInitialized && mapInstance.current && mapMinerals.length > 0) {
       updateMarkers();
     }
-  }, [minerals, mapInitialized]);
+  }, [mapMinerals, mapInitialized]);
 
   // Cleanup wenn Page nicht mehr sichtbar
   useEffect(() => {
@@ -260,8 +263,7 @@ export default function MapPage({
         setTimeout(() => {
           if (mapInstance.current) {
             mapInstance.current.invalidateSize();
-            setMapInitialized(true); // Set initialization as complete
-            // Update markers will be called automatically via useEffect
+            setMapInitialized(true);
           }
         }, 100);
       });
@@ -270,7 +272,7 @@ export default function MapPage({
       console.error('Error creating map:', error);
       setMapError('Fehler beim Erstellen der Karte');
     }
-  }, []);
+  }, [cleanupMap]);
 
   const updateMarkers = useCallback(() => {
     if (!mapInstance.current || !window.L) {
@@ -289,10 +291,10 @@ export default function MapPage({
       });
       markersRef.current = [];
 
-      console.log('Adding markers for', minerals.length, 'minerals');
+      console.log('Adding markers for', mapMinerals.length, 'minerals');
 
       // Neue Marker erstellen
-      minerals.forEach(mineral => {
+      mapMinerals.forEach(mineral => {
         if (mineral.latitude && mineral.longitude) {
           try {
             const iconColor = getColorForMineral(mineral.color);
@@ -359,7 +361,7 @@ export default function MapPage({
     } catch (error) {
       console.error('Error updating markers:', error);
     }
-  }, [minerals, setSelectedMineral, setShowMineralModal]);
+  }, [mapMinerals, setSelectedMineral, setShowMineralModal]);
 
   const getColorForMineral = (color?: string) => {
     const colorMap: { [key: string]: string } = {
@@ -409,14 +411,13 @@ export default function MapPage({
         setShowMineralModal(false);
         setSelectedMineral(null);
         
-        // Mineralien neu laden
-        const mineralsResponse = await fetch('/api/minerals');
+        // Mineralien neu laden - ALLE Mineralien
+        await loadAllMinerals();
+        
+        // Auch die globale Mineralien-Liste aktualisieren
+        const mineralsResponse = await fetch('/api/minerals?limit=999999');
         if (mineralsResponse.ok) {
           const data = await mineralsResponse.json();
-          const mineralsWithCoords = data.filter((mineral: Mineral) => 
-            mineral.latitude && mineral.longitude
-          );
-          setMineralsLocal(mineralsWithCoords);
           setMinerals(data);
         }
         
@@ -497,7 +498,7 @@ export default function MapPage({
           <div className='map_info_popup'>
             <h2 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>Fundorte der Mineralien</h2>
             <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-              {minerals.length} Mineralien mit Koordinaten gefunden <br></br> (Ungenauigkeiten bei den Angaben möglich)
+              {mapMinerals.length} Mineralien mit Koordinaten gefunden
             </p>
             <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
               Powered by OpenStreetMap
