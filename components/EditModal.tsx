@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useRef } from 'react';
 import MapSelector from './MapSelector';
 
 interface EditModalProps {
@@ -46,6 +46,32 @@ export default function EditModal({
   loadStats,
   loadMinerals
 }: EditModalProps) {
+  
+  // Ref für das Modal-Overlay
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Click Outside Handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Prüfe ob direkt auf den modal-overlay geklickt wurde
+      if (modalOverlayRef.current && target === modalOverlayRef.current) {
+        onClose();
+      }
+    };
+
+    // Kurze Verzögerung um Konflikt mit öffnendem Click zu vermeiden
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    // Cleanup
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,8 +199,15 @@ export default function EditModal({
   };
 
   return (
-    <div className="modal" style={{ display: 'flex' }}>
-      <div className="modal-content">
+    <div 
+      ref={modalOverlayRef}
+      className="modal" 
+      style={{ display: 'flex' }}
+    >
+      <div 
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>
           {editMode === 'mineral' ? 'Mineral bearbeiten' : 

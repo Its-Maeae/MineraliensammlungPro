@@ -41,6 +41,7 @@ interface CollectionPageProps {
   setEditImage: (image: File | null) => void;
   shelves: any[];
   loadStats: () => void;
+  showPage?: (page: string) => void;
 }
 
 export default function CollectionPage({ 
@@ -74,7 +75,8 @@ export default function CollectionPage({
   editImage,
   setEditImage,
   shelves,
-  loadStats
+  loadStats,
+  showPage
 }: CollectionPageProps) {
 
   // Lazy Loading States
@@ -270,8 +272,31 @@ export default function CollectionPage({
       <section className="page active">
         <div className="container">
           <div className="page-header">
-            <h1 className="page-title">Mineraliensammlung</h1>
-            <p className="page-description">Durchsuchen und filtern Sie die komplette Sammlung</p>
+            <div className="page-header-content">
+              <div>
+                <h1 className="page-title">Mineraliensammlung</h1>
+                <p className="page-description">Durchsuchen und filtern Sie die komplette Sammlung</p>
+              </div>
+              {showPage ? (
+                <button 
+                  className="btn btn-secondary btn-large"
+                  onClick={() => showPage('statistics')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span></span>
+                  <span>Statistiken anzeigen</span>
+                </button>
+              ) : (
+                <button 
+                  className="btn btn-primary btn-large"
+                  onClick={() => window.location.href = '/?page=statistics'}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span></span>
+                  <span>Statistiken anzeigen</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="search-filter-container">

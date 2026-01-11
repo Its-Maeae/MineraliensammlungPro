@@ -1,5 +1,6 @@
 import React from 'react';
 import { Showcase } from '../types';
+import { useEffect, useRef } from 'react';
 
 interface ShowcaseModalProps {
   showcase: Showcase;
@@ -20,9 +21,30 @@ export default function ShowcaseModal({
   setShowShelfForm,
   onOpenShelfDetails 
 }: ShowcaseModalProps) {
+
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (modalOverlayRef.current && target === modalOverlayRef.current) {
+        onClose();
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
-    <div className="modal" style={{ display: 'flex' }}>
-      <div className="modal-content-large showcase-modal">
+    <div className="modal" style={{ display: 'flex' }} ref={modalOverlayRef}>
+      <div className="modal-content-large showcase-modal" onClick={(e) => e.stopPropagation()}>
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>{showcase.name}</h2>
         

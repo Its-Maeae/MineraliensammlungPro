@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ShelfFormData {
   name: string;
@@ -28,9 +29,30 @@ export default function ShelfFormModal({
   onSubmit, 
   onClose 
 }: ShelfFormModalProps) {
+
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (modalOverlayRef.current && target === modalOverlayRef.current) {
+        onClose();
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+  
   return (
-    <div className="modal" style={{ display: 'flex' }}>
-      <div className="modal-content">
+    <div className="modal" style={{ display: 'flex' }} ref={modalOverlayRef}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>Neues Regal für {showcase.name} hinzufügen</h2>
         

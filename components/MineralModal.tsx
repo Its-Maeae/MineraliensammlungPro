@@ -17,6 +17,25 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (modalOverlayRef.current && target === modalOverlayRef.current) {
+        onClose();
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
 
   // Verhindere Scrollen im Hintergrund, wenn Bild maximiert ist
   useEffect(() => {
@@ -166,8 +185,8 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
 
   return (
     <>
-      <div className="modal" style={{ display: 'flex' }}>
-        <div className="modal-content">
+      <div ref={modalOverlayRef} className="modal" style={{ display: 'flex' }}>
+        <div className="modal-content"  onClick={(e) => e.stopPropagation()}>
           <span className="close-button" onClick={onClose}>&times;</span>
           <h2>{mineral.name}</h2>
           

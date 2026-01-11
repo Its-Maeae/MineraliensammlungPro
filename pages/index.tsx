@@ -13,6 +13,8 @@ import PasswordModal from '../components/PasswordModal';
 import EditModal from '../components/EditModal';
 import MapPage from '../components/MapPage';
 import SecurityDashboard from '../components/SecurityDashboard';
+import KeyboardShortcuts from '../components/KeyboardShortcuts';
+import StatisticsPage from '../components/StatisticsPage';
 
 interface FilterOptions {
   colors: string[];
@@ -247,6 +249,70 @@ export default function Home() {
     }
     setCurrentPage(page);
     setMobileMenuOpen(false);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Keyboard Shortcut Handlers
+  const handleOpenSearch = () => {
+    if (currentPage === 'collection') {
+      const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    } else {
+      showPage('collection');
+      setTimeout(() => {
+        const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      }, 200);
+    }
+  };
+
+  const handleOpenFilters = () => {
+    if (currentPage !== 'collection') {
+      showPage('collection');
+    }
+    setTimeout(() => {
+      const firstFilter = document.querySelector('.filter-select') as HTMLSelectElement;
+      if (firstFilter) firstFilter.focus();
+    }, 100);
+  };
+
+  const handleClearFilters = () => {
+    if (currentPage === 'collection') {
+      clearFilters();
+    }
+  };
+
+  const handleEscape = () => {
+    // Priorisierte Reihenfolge: Wichtigste Modals zuerst
+    if (editMode) {
+      setEditMode(null);
+      setEditImage(null);
+    } else if (showMineralModal) {
+      setShowMineralModal(false);
+      setSelectedMineral(null);
+    } else if (showShelfMineralsModal) {
+      setShowShelfMineralsModal(false);
+      setSelectedShelf(null);
+    } else if (showShowcaseModal) {
+      setShowShowcaseModal(false);
+      setSelectedShowcase(null);
+    } else if (showVitrineForm) {
+      setShowVitrineForm(false);
+    } else if (showShelfForm) {
+      setShowShelfForm(false);
+    } else if (showPasswordModal) {
+      setShowPasswordModal(false);
+    } else if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
   };
 
   return (
@@ -255,7 +321,7 @@ export default function Home() {
         <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium</title>
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="..\public\picture\icon.png" />
+        <link rel="icon" href="../public/picture/icon.png" />
         {/* QR-Code Library */}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
       </Head>
@@ -270,6 +336,17 @@ export default function Home() {
       <MobileNav 
         mobileMenuOpen={mobileMenuOpen}
         showPage={showPage}
+      />
+
+      {/* Keyboard Shortcuts - IMMER aktiv */}
+      <KeyboardShortcuts
+        showPage={showPage}
+        currentPage={currentPage}
+        isAuthenticated={isAuthenticated}
+        onOpenSearch={handleOpenSearch}
+        onOpenFilters={handleOpenFilters}
+        onClearFilters={handleClearFilters}
+        onEscape={handleEscape}
       />
 
       <main>
@@ -315,6 +392,7 @@ export default function Home() {
             setEditImage={setEditImage}
             shelves={shelves}
             loadStats={loadStats}
+            showPage={showPage}
           />
         )}
 
@@ -374,6 +452,13 @@ export default function Home() {
           />
         )}
 
+        {currentPage === 'statistics' && (
+          <StatisticsPage 
+            currentPage={currentPage} 
+            showPage={showPage}
+          />
+        )}
+
         {currentPage === 'admin' && isAuthenticated && (
           <AdminPage 
             isAuthenticated={isAuthenticated}
@@ -385,7 +470,7 @@ export default function Home() {
         )}
 
         {currentPage === 'security' && isAuthenticated && (
-          <SecurityDashboard />
+          <SecurityDashboard showPage={showPage} />
         )}
 
         {(currentPage === 'impressum' || currentPage === 'quellen' || currentPage === 'kontakt') && (

@@ -757,7 +757,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
             onClick={generateAIDescription}
             disabled={!formData.name.trim() || generatingAI}
           >
-            {generatingAI ? '🤖 Generiere...' : '🤖 KI-Beschreibung'}
+            {generatingAI ? 'Generiere...' : 'KI-Beschreibung'}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 import { Showcase, Mineral } from '../types';
 import ShowcaseModal from './ShowcaseModal';
 import ShelfModal from './ShelfModal';
@@ -40,8 +40,13 @@ interface VitrinesPageProps {
   loadStats: () => void;
 }
 
-// Memoized VitrineCard component to prevent unnecessary re-renders
-const VitrineCard = React.memo(({ showcase, onClick }: { showcase: Showcase; onClick: (id: number) => void }) => (
+const VitrineCard = React.memo(({ 
+  showcase, 
+  onClick 
+}: { 
+  showcase: Showcase; 
+  onClick: (id: number) => void 
+}) => (
   <div 
     className="vitrine-card"
     onClick={() => onClick(showcase.id)}
@@ -54,7 +59,7 @@ const VitrineCard = React.memo(({ showcase, onClick }: { showcase: Showcase; onC
           loading="lazy"
         />
       ) : (
-        <div className="placeholder">🏛</div>
+        <div className="placeholder">🛠</div>
       )}
     </div>
     <div className="vitrine-info">
@@ -111,23 +116,28 @@ export default function VitrinesPage({
   loadStats
 }: VitrinesPageProps) {
 
-  // Memoize form data to prevent unnecessary re-renders
-  const [vitrineFormData, setVitrineFormData] = React.useState(() => ({
+  // Cache für bereits geladene Daten
+  const showcaseCache = useRef<Map<number, Showcase>>(new Map());
+  const shelfCache = useRef<Map<number, { shelfInfo: any; minerals: Mineral[] }>>(new Map());
+  const mineralCache = useRef<Map<number, Mineral>>(new Map());
+
+  const [vitrineFormData, setVitrineFormData] = useState({
     name: '',
     code: '',
     location: '',
     description: ''
-  }));
-  const [vitrineImage, setVitrineImage] = React.useState<File | null>(null);
-  const [shelfFormData, setShelfFormData] = React.useState(() => ({
+  });
+  const [vitrineImage, setVitrineImage] = useState<File | null>(null);
+  const [shelfFormData, setShelfFormData] = useState({
     name: '',
     code: '',
     description: '',
     position_order: 0
-  }));
-  const [shelfImage, setShelfImage] = React.useState<File | null>(null);
+  });
+  const [shelfImage, setShelfImage] = useState<File | null>(null);
+  const [shelfLoading, setShelfLoading] = useState(false);
+  const [showcaseLoading, setShowcaseLoading] = useState(false);
 
-  // Memoize API calls to prevent unnecessary network requests
   const loadShowcases = useCallback(async () => {
     setLoading(true);
     try {
@@ -135,6 +145,8 @@ export default function VitrinesPage({
       if (response.ok) {
         const data = await response.json();
         setShowcases(data);
+        // Cache leeren bei neuem Laden
+        showcaseCache.current.clear();
       }
     } catch (error) {
       console.error('Fehler beim Laden der Vitrinen:', error);
@@ -144,26 +156,53 @@ export default function VitrinesPage({
   }, [setShowcases, setLoading]);
 
   const openShowcaseDetails = useCallback(async (id: number) => {
+    // Prüfen ob bereits im Cache
+    if (showcaseCache.current.has(id)) {
+      const cached = showcaseCache.current.get(id)!;
+      setSelectedShowcase(cached);
+      setShowShowcaseModal(true);
+      return;
+    }
+
     try {
+      setShowcaseLoading(true);
       const response = await fetch(`/api/showcases/${id}`);
       if (response.ok) {
         const showcase = await response.json();
+        showcaseCache.current.set(id, showcase);
         setSelectedShowcase(showcase);
         setShowShowcaseModal(true);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Vitrine-Details:', error);
+    } finally {
+      setShowcaseLoading(false);
     }
   }, [setSelectedShowcase, setShowShowcaseModal]);
 
   const openShelfDetails = useCallback(async (shelfId: number) => {
+    // Prüfen ob bereits im Cache
+    if (shelfCache.current.has(shelfId)) {
+      const cached = shelfCache.current.get(shelfId)!;
+      setSelectedShelf(cached.shelfInfo);
+      setShelfMinerals(cached.minerals);
+      setShowShelfMineralsModal(true);
+      return;
+    }
+
+    setShelfLoading(true);
+    
     try {
-      setLoading(true);
-      
       const response = await fetch(`/api/shelves/${shelfId}/minerals`);
       const responseData = await response.json();
       
       if (response.ok) {
+        // In Cache speichern
+        shelfCache.current.set(shelfId, {
+          shelfInfo: responseData.shelfInfo,
+          minerals: responseData.minerals
+        });
+        
         setSelectedShelf(responseData.shelfInfo);
         setShelfMinerals(responseData.minerals);
         setShowShelfMineralsModal(true);
@@ -175,15 +214,24 @@ export default function VitrinesPage({
       console.error('Fehler beim Laden der Regal-Details:', error);
       alert('Fehler beim Laden der Regal-Details');
     } finally {
-      setLoading(false);
+      setShelfLoading(false);
     }
-  }, [setLoading, setSelectedShelf, setShelfMinerals, setShowShelfMineralsModal]);
+  }, [setSelectedShelf, setShelfMinerals, setShowShelfMineralsModal]);
 
   const openMineralDetails = useCallback(async (id: number) => {
+    // Prüfen ob bereits im Cache
+    if (mineralCache.current.has(id)) {
+      const cached = mineralCache.current.get(id)!;
+      setSelectedMineral(cached);
+      setShowMineralModal(true);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/minerals/${id}`);
       if (response.ok) {
         const mineral = await response.json();
+        mineralCache.current.set(id, mineral);
         setSelectedMineral(mineral);
         setShowMineralModal(true);
       }
@@ -262,6 +310,7 @@ export default function VitrinesPage({
         });
         setVitrineImage(null);
         setShowVitrineForm(false);
+        showcaseCache.current.clear();
         loadShowcases();
         loadStats();
         alert('Vitrine erfolgreich hinzugefügt!');
@@ -307,6 +356,9 @@ export default function VitrinesPage({
         });
         setShelfImage(null);
         setShowShelfForm(false);
+        // Cache invalidieren
+        showcaseCache.current.delete(selectedShowcase!.id);
+        shelfCache.current.clear();
         openShowcaseDetails(selectedShowcase!.id);
         loadStats();
         alert('Regal erfolgreich hinzugefügt!');
@@ -354,13 +406,20 @@ export default function VitrinesPage({
       });
 
       if (response.ok) {
+        // Cache invalidieren
         if (type === 'mineral') {
+          mineralCache.current.delete(id);
           setShowMineralModal(false);
           setSelectedMineral(null);
         } else if (type === 'showcase') {
+          showcaseCache.current.delete(id);
           setShowShowcaseModal(false);
           setSelectedShowcase(null);
         } else if (type === 'shelf') {
+          shelfCache.current.delete(id);
+          if (selectedShowcase) {
+            showcaseCache.current.delete(selectedShowcase.id);
+          }
           setShowShelfMineralsModal(false);
           setSelectedShelf(null);
         }
@@ -395,7 +454,6 @@ export default function VitrinesPage({
   }, [setLoading, setShowMineralModal, setSelectedMineral, setShowShowcaseModal, setSelectedShowcase, 
       setShowShelfMineralsModal, setSelectedShelf, loadStats, loadShowcases, openShowcaseDetails, selectedShowcase]);
 
-  // Memoize the showcases list to prevent unnecessary re-renders
   const showcasesList = useMemo(() => {
     return showcases.map(showcase => (
       <VitrineCard 
@@ -406,10 +464,9 @@ export default function VitrinesPage({
     ));
   }, [showcases, openShowcaseDetails]);
 
-  // Only load showcases on mount
   useEffect(() => {
     loadShowcases();
-  }, []); // Empty dependency array
+  }, []);
 
   return (
     <>
@@ -436,7 +493,7 @@ export default function VitrinesPage({
               <div className="loading">Lade Vitrinen...</div>
             ) : showcases.length === 0 ? (
               <div className="no-showcases">
-                <h3>🏛 Noch keine Vitrinen vorhanden</h3>
+                <h3>🛠 Noch keine Vitrinen vorhanden</h3>
                 <p>Fügen Sie Ihre erste Vitrine hinzu, um Ihre Sammlung zu organisieren.</p>
               </div>
             ) : (
@@ -447,22 +504,39 @@ export default function VitrinesPage({
       </section>
 
       {showShowcaseModal && selectedShowcase && (
-        <ShowcaseModal 
-          showcase={selectedShowcase}
-          isAuthenticated={isAuthenticated}
-          onClose={() => setShowShowcaseModal(false)}
-          onEdit={handleEditShowcase}
-          onDelete={handleDelete}
-          setShowShelfForm={setShowShelfForm}
-          onOpenShelfDetails={openShelfDetails}
-        />
+        <>
+          {showcaseLoading && (
+            <div style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 10000,
+              background: 'rgba(255,255,255,0.9)',
+              padding: '20px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+            }}>
+              <div className="loading">Lade Vitrine...</div>
+            </div>
+          )}
+          <ShowcaseModal 
+            showcase={selectedShowcase}
+            isAuthenticated={isAuthenticated}
+            onClose={() => setShowShowcaseModal(false)}
+            onEdit={handleEditShowcase}
+            onDelete={handleDelete}
+            setShowShelfForm={setShowShelfForm}
+            onOpenShelfDetails={openShelfDetails}
+          />
+        </>
       )}
 
       {showShelfMineralsModal && selectedShelf && (
         <ShelfModal 
           shelf={selectedShelf}
           minerals={shelfMinerals}
-          loading={loading}
+          loading={shelfLoading}
           isAuthenticated={isAuthenticated}
           onClose={() => setShowShelfMineralsModal(false)}
           onEdit={handleEditShelf}

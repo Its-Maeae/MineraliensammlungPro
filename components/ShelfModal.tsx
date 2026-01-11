@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Mineral } from '../types';
 import QRCodeGenerator from './QRCodeGenerator';
+import { useEffect, useRef } from 'react';
 
 interface ShelfModalProps {
   shelf: any;
@@ -25,16 +26,33 @@ export default function ShelfModal({
   onOpenMineralDetails,
   setShowShelfMineralsModal 
 }: ShelfModalProps) {
-  const [showQRGenerator, setShowQRGenerator] = React.useState(false);
-  
-  // Search and filter states
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [colorFilter, setColorFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [rockTypeFilter, setRockTypeFilter] = useState('');
   const [sortBy, setSortBy] = useState('name');
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
 
-  // Generate filter options from minerals in this shelf
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (modalOverlayRef.current && target === modalOverlayRef.current) {
+        onClose();
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
+  // Memoize filter options - wird nur bei minerals-Änderung neu berechnet
   const filterOptions = useMemo(() => {
     const colors = new Set<string>();
     const locations = new Set<string>();
@@ -53,71 +71,66 @@ export default function ShelfModal({
     };
   }, [minerals]);
 
-  // Filter and sort minerals
+  // Optimierte Filter- und Sortier-Funktion
   const filteredMinerals = useMemo(() => {
-    let filtered = minerals.filter(mineral => {
-      // Search filter
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const nameMatch = mineral.name.toLowerCase().includes(searchLower);
-        const numberMatch = mineral.number.toLowerCase().includes(searchLower);
-        if (!nameMatch && !numberMatch) return false;
-      }
-      
-      // Color filter
-      if (colorFilter && mineral.color !== colorFilter) return false;
-      
-      // Location filter
-      if (locationFilter && mineral.location !== locationFilter) return false;
-      
-      // Rock type filter
-      if (rockTypeFilter && mineral.rock_type !== rockTypeFilter) return false;
-      
-      return true;
-    });
+    let filtered = minerals;
 
-    // Sort minerals
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'number':
-          // Numerische Sortierung für Nummern
-          const extractNumber = (str: string) => {
-            const match = str.match(/\d+/);
-            return match ? parseInt(match[0], 10) : 0;
-          };
-          const numA = extractNumber(a.number);
-          const numB = extractNumber(b.number);
-          
-          // Wenn beide Nummern existieren, numerisch sortieren
-          if (numA !== numB) {
-            return numA - numB;
-          }
-          // Sonst alphabetisch als Fallback
-          return a.number.localeCompare(b.number);
-        case 'color':
-          return (a.color || '').localeCompare(b.color || '');
-        default:
-          return a.name.localeCompare(b.name);
-      }
-    });
+    // Früher Ausstieg wenn keine Filter aktiv
+    if (!searchTerm && !colorFilter && !locationFilter && !rockTypeFilter) {
+      filtered = minerals;
+    } else {
+      filtered = minerals.filter(mineral => {
+        if (searchTerm) {
+          const searchLower = searchTerm.toLowerCase();
+          const nameMatch = mineral.name.toLowerCase().includes(searchLower);
+          const numberMatch = mineral.number.toLowerCase().includes(searchLower);
+          if (!nameMatch && !numberMatch) return false;
+        }
+        
+        if (colorFilter && mineral.color !== colorFilter) return false;
+        if (locationFilter && mineral.location !== locationFilter) return false;
+        if (rockTypeFilter && mineral.rock_type !== rockTypeFilter) return false;
+        
+        return true;
+      });
+    }
+
+    // Sortierung nur wenn nötig
+    if (sortBy !== 'name' || searchTerm || colorFilter || locationFilter || rockTypeFilter) {
+      filtered = [...filtered].sort((a, b) => {
+        switch (sortBy) {
+          case 'number':
+            const numA = parseInt(a.number.match(/\d+/)?.[0] || '0', 10);
+            const numB = parseInt(b.number.match(/\d+/)?.[0] || '0', 10);
+            return numA !== numB ? numA - numB : a.number.localeCompare(b.number);
+          case 'color':
+            return (a.color || '').localeCompare(b.color || '');
+          default:
+            return a.name.localeCompare(b.name);
+        }
+      });
+    }
 
     return filtered;
   }, [minerals, searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
-  // Check if filters are active
   const hasActiveFilters = searchTerm || colorFilter || locationFilter || rockTypeFilter;
 
-  // Clear all filters
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSearchTerm('');
     setColorFilter('');
     setLocationFilter('');
     setRockTypeFilter('');
-  };
+  }, []);
+
+  const handleMineralClick = useCallback((id: number) => {
+    setShowShelfMineralsModal(false);
+    onOpenMineralDetails(id);
+  }, [setShowShelfMineralsModal, onOpenMineralDetails]);
 
   return (
-    <div className="modal" style={{ display: 'flex' }}>
-      <div className="modal-content-large">
+    <div className="modal" style={{ display: 'flex' }} ref={modalOverlayRef}>
+      <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>Regal: {shelf.shelf_name}</h2>
         <p style={{ color: 'var(--gray-600)', marginBottom: 'var(--space-4)' }}>
@@ -126,28 +139,18 @@ export default function ShelfModal({
 
         {isAuthenticated && (
           <div className="admin-buttons">
-            <button 
-              className="btn btn-secondary"
-              onClick={() => onEdit(shelf)}
-            >
+            <button className="btn btn-secondary" onClick={() => onEdit(shelf)}>
               Bearbeiten
             </button>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowQRGenerator(!showQRGenerator)}
-            >
+            <button className="btn btn-primary" onClick={() => setShowQRGenerator(!showQRGenerator)}>
               {showQRGenerator ? 'QR-Code ausblenden' : 'QR-Code generieren'}
             </button>
-            <button 
-              className="btn error-btn"
-              onClick={() => onDelete('shelf', shelf.id)}
-            >
+            <button className="btn error-btn" onClick={() => onDelete('shelf', shelf.id)}>
               Löschen
             </button>
           </div>
         )}
 
-        {/* QR-Code Generator Sektion */}
         {isAuthenticated && showQRGenerator && (
           <div style={{ 
             marginBottom: 'var(--space-4)', 
@@ -156,7 +159,9 @@ export default function ShelfModal({
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--gray-200)'
           }}>
-            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--font-size-lg)' }}>QR-Code für direkten Zugriff</h3>
+            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--font-size-lg)' }}>
+              QR-Code für direkten Zugriff
+            </h3>
             <QRCodeGenerator 
               shelfId={shelf.id}
               shelfName={shelf.shelf_name}
@@ -167,7 +172,7 @@ export default function ShelfModal({
         
         {shelf.image_path && (
           <div className="detail-image" style={{ marginBottom: 'var(--space-4)' }}>
-            <img src={`/uploads/${shelf.image_path}`} alt={shelf.shelf_name} />
+            <img src={`/uploads/${shelf.image_path}`} alt={shelf.shelf_name} loading="lazy" />
           </div>
         )}
 
@@ -178,9 +183,7 @@ export default function ShelfModal({
 
           {minerals.length > 0 && (
             <>
-              {/* Kompakte Search and Filter Section */}
               <div className="shelf-search-filter-compact">
-                {/* Search */}
                 <div className="shelf-search-input">
                   <input 
                     id="shelf-search"
@@ -192,7 +195,6 @@ export default function ShelfModal({
                   />
                 </div>
                 
-                {/* Kompakte Filters in einer Zeile */}
                 <div className="shelf-filters-inline">
                   <select 
                     id="shelf-color-filter"
@@ -251,7 +253,6 @@ export default function ShelfModal({
                   )}
                 </div>
                 
-                {/* Kompakte Active Filters Info */}
                 {hasActiveFilters && (
                   <div className="active-filters-compact">
                     {searchTerm && <span className="filter-tag-compact">🔍 {searchTerm}</span>}
@@ -296,14 +297,15 @@ export default function ShelfModal({
               <div 
                 key={mineral.id} 
                 className="mineral-card-small" 
-                onClick={() => {
-                  setShowShelfMineralsModal(false);
-                  onOpenMineralDetails(mineral.id);
-                }}
+                onClick={() => handleMineralClick(mineral.id)}
               >
                 <div className="mineral-image-small">
                   {mineral.image_path ? (
-                    <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
+                    <img 
+                      src={`/uploads/${mineral.image_path}`} 
+                      alt={mineral.name}
+                      loading="lazy"
+                    />
                   ) : (
                     <div className="placeholder">📸</div>
                   )}
