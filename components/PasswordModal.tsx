@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface PasswordModalProps {
   password: string;
@@ -21,6 +20,25 @@ export default function PasswordModal({
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
   
+  // Move useEffect to top level of component
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (modalOverlayRef.current && target === modalOverlayRef.current) {
+        onClose();
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -59,24 +77,6 @@ export default function PasswordModal({
     } finally {
       setIsLoading(false);
     }
-
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as HTMLElement;
-        if (modalOverlayRef.current && target === modalOverlayRef.current) {
-          onClose();
-        }
-      };
-
-      const timeoutId = setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 100);
-
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, [onClose]);
   };
 
   return (
