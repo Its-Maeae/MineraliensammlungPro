@@ -25,13 +25,16 @@ export interface Showcase {
   id: number;
   name: string;
   code: string;
+  location?: string;  // WICHTIG: Für Kompatibilität mit alten Components
   description?: string;
   image_path?: string;
   position_order: number;
   created_at: string;
   box_count?: number;  // Früher shelf_count
+  shelf_count?: number;  // Alias für Kompatibilität
   mineral_count?: number;
   boxes?: Box[];  // Früher shelves
+  shelves?: Shelf[];  // Alias für Kompatibilität mit alten Components
 }
 
 // NEU: MainShelf = Hauptregal (showcase_id IS NULL)
@@ -39,6 +42,7 @@ export interface MainShelf {
   id: number;
   name: string;
   code: string;
+  location?: string;  // Optional: Physischer Standort
   description?: string;
   image_path?: string;
   position_order: number;
