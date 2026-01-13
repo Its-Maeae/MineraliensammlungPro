@@ -1499,6 +1499,83 @@ main {
     width: 100%;
 }
 
+.shelf-card.clickable {
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.shelf-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.shelf-image {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, var(--gray-400), var(--gray-500));
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: var(--space-3);
+}
+
+.shelf-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+}
+
+.shelf-card.clickable:hover .shelf-image img {
+    transform: scale(1.05);
+}
+
+.shelf-minerals-modal .modal-content {
+    max-width: 1000px;
+    max-height: 90vh;
+}
+
+.shelf-minerals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: var(--space-2);
+}
+
+.mineral-card-small {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3);
+}
+
+.mineral-card-small:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
+}
+
+.mineral-image-small {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--white);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
 .number-input-container {
     position: relative;
 }

@@ -63,27 +63,21 @@ export default function Home() {
   const [shelves, setShelves] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  // QR-Code Handling für Boxen
+  // QR-Code Handling
   useEffect(() => {
     if (router.isReady) {
-      const { shelf, box } = router.query;
-      
-      // Wenn box Parameter vorhanden, öffne Box direkt
-      if (box) {
-        handleQRCodeScan(parseInt(box as string), 'box');
-      } 
-      // Wenn nur shelf Parameter, öffne Regal
-      else if (shelf) {
-        handleQRCodeScan(parseInt(shelf as string), 'shelf');
+      const { shelf } = router.query;
+      if (shelf) {
+        handleQRCodeScan(parseInt(shelf as string));
       }
     }
   }, [router.isReady, router.query]);
 
-  const handleQRCodeScan = async (id: number, type: 'shelf' | 'box') => {
+  const handleQRCodeScan = async (shelfId: number) => {
     try {
-      console.log(`QR-Code gescannt für ${type} ID:`, id);
+      console.log('QR-Code gescannt für Regal ID:', shelfId);
       
-      // Zur Regale-Seite wechseln
+      // Zuerst zur Vitrinen-Seite wechseln
       setCurrentPage('vitrines');
       
       // Showcases laden falls noch nicht geladen
@@ -91,41 +85,26 @@ export default function Home() {
         await loadShowcases();
       }
       
+      // Regal-Details laden und anzeigen
       setLoading(true);
-
-      if (type === 'box') {
-        // Box-Details laden
-        const response = await fetch(`/api/boxes/${id}/minerals`);
-        const responseData = await response.json();
+      const response = await fetch(`/api/shelves/${shelfId}/minerals`);
+      const responseData = await response.json();
+      
+      if (response.ok) {
+        setSelectedShelf(responseData.shelfInfo);
+        setShelfMinerals(responseData.minerals);
+        setShowShelfMineralsModal(true);
         
-        if (response.ok) {
-          setSelectedShelf(responseData.boxInfo);
-          setShelfMinerals(responseData.minerals);
-          setShowShelfMineralsModal(true);
-          router.replace('/', undefined, { shallow: true });
-        } else {
-          console.error('Fehler beim Laden der Box:', responseData);
-          alert('Box nicht gefunden oder Fehler beim Laden');
-          router.replace('/', undefined, { shallow: true });
-        }
+        // URL-Parameter entfernen
+        router.replace('/', undefined, { shallow: true });
       } else {
-        // Regal-Details laden
-        const response = await fetch(`/api/shelves/${id}`);
-        const responseData = await response.json();
-        
-        if (response.ok) {
-          setSelectedShelf(responseData);
-          setShowShelfMineralsModal(true);
-          router.replace('/', undefined, { shallow: true });
-        } else {
-          console.error('Fehler beim Laden des Regals:', responseData);
-          alert('Regal nicht gefunden oder Fehler beim Laden');
-          router.replace('/', undefined, { shallow: true });
-        }
+        console.error('Fehler beim Laden des Regals:', responseData);
+        alert('Regal nicht gefunden oder Fehler beim Laden');
+        router.replace('/', undefined, { shallow: true });
       }
     } catch (error) {
       console.error('Fehler beim QR-Code-Handling:', error);
-      alert('Fehler beim Öffnen');
+      alert('Fehler beim Öffnen des Regals');
       router.replace('/', undefined, { shallow: true });
     } finally {
       setLoading(false);
@@ -339,7 +318,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Mineraliensammlung - Samuel von Pufendorf Gymasium</title>
+        <title>Mineraliensammlung - Samuel von Pufendorf Gymnasium</title>
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="../public/picture/icon.png" />

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ShelfFormData {
   name: string;
@@ -8,6 +9,7 @@ interface ShelfFormData {
 }
 
 interface ShelfFormModalProps {
+  showcase: any;
   formData: ShelfFormData;
   setFormData: (data: ShelfFormData) => void;
   image: File | null;
@@ -18,6 +20,7 @@ interface ShelfFormModalProps {
 }
 
 export default function ShelfFormModal({ 
+  showcase,
   formData, 
   setFormData, 
   image, 
@@ -48,86 +51,91 @@ export default function ShelfFormModal({
   }, [onClose]);
   
   return (
-    <div className="modal-overlay-new" ref={modalOverlayRef}>
-      <div className="modal-container-new" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-new" onClick={onClose}>×</button>
+    <div className="modal" style={{ display: 'flex' }} ref={modalOverlayRef}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <span className="close-button" onClick={onClose}>&times;</span>
+        <h2>Neues Regal für {showcase.name} hinzufügen</h2>
         
-        <div className="modal-header-new">
-          <h2 className="modal-title">Neues Regal hinzufügen</h2>
-        </div>
-        
-        <form onSubmit={onSubmit} className="form-new">
-          <div className="form-group-new">
-            <label className="form-label-new">Name des Regals</label>
+        <form onSubmit={onSubmit}>
+          <div className="form-group">
+            <label htmlFor="shelf-name">Name des Regals</label>
             <input
               type="text"
-              className="form-input-new"
+              id="shelf-name"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="z.B. Hauptregal, Edelsteine"
+              placeholder="z.B. Oberes Regal, Edelsteine, Kristalle"
               required
             />
           </div>
 
-          <div className="form-group-new">
-            <label className="form-label-new">Regal-Code</label>
+          <div className="form-group">
+            <label htmlFor="shelf-code">Regal-Code</label>
             <input
               type="text"
-              className="form-input-new"
+              id="shelf-code"
               value={formData.code}
               onChange={(e) => setFormData({...formData, code: e.target.value})}
-              placeholder="z.B. R1, V1"
+              placeholder="z.B. R1, OBER, EDL"
               required
             />
+            <small style={{ color: 'var(--gray-600)', fontSize: 'var(--font-size-sm)' }}>
+              Vollständiger Code wird: {showcase.code}-{formData.code}
+            </small>
           </div>
 
-          <div className="form-group-new">
-            <label className="form-label-new">Beschreibung</label>
+          <div className="form-group">
+            <label htmlFor="shelf-description">Beschreibung</label>
             <textarea
-              className="form-textarea-new"
+              id="shelf-description"
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Beschreibung des Regals"
+              placeholder="Beschreibung des Regals, Inhalt, Besonderheiten..."
               rows={3}
             />
           </div>
 
-          <div className="form-group-new">
-            <label className="form-label-new">Position</label>
+          <div className="form-group">
+            <label htmlFor="shelf-position">Position/Reihenfolge</label>
             <input
               type="number"
-              className="form-input-new"
+              id="shelf-position"
               value={formData.position_order}
               onChange={(e) => setFormData({...formData, position_order: parseInt(e.target.value) || 0})}
               placeholder="0"
               min="0"
             />
+            <small style={{ color: 'var(--gray-600)', fontSize: 'var(--font-size-sm)' }}>
+              Bestimmt die Anzeigereihenfolge (0 = erstes Regal)
+            </small>
           </div>
 
-          <div className="form-group-new">
-            <label className="form-label-new">Bild des Regals</label>
+          <div className="form-group">
+            <label htmlFor="shelf-image">Bild des Regals</label>
             <input
               type="file"
-              className="form-file-new"
+              id="shelf-image"
               accept="image/*"
               onChange={(e) => setImage(e.target.files?.[0] || null)}
             />
             {image && (
-              <div className="file-selected">{image.name}</div>
+              <div style={{ marginTop: 'var(--space-2)', fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)' }}>
+                Ausgewählt: {image.name}
+              </div>
             )}
           </div>
 
-          <div className="form-actions-new">
+          <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end', marginTop: 'var(--space-6)' }}>
             <button 
               type="button" 
-              className="btn-new btn-secondary-new"
+              className="btn btn-secondary"
               onClick={onClose}
             >
               Abbrechen
             </button>
             <button 
               type="submit" 
-              className="btn-new btn-primary-new"
+              className="btn btn-primary"
               disabled={loading}
             >
               {loading ? 'Wird hinzugefügt...' : 'Regal hinzufügen'}
