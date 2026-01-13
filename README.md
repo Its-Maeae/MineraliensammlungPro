@@ -30,7 +30,7 @@ Eine moderne Webanwendung zur Verwaltung einer privaten Mineraliensammlung, entw
    ```bash
    npm install
    npm install @google/generative-ai
-   npm install qr code
+   npm install qrcode
    ```
 
 3. **Datenbank initialisieren**
