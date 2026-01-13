@@ -1,15 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 
-interface ShelfFormData {
+interface BoxFormData {
   name: string;
   code: string;
   description: string;
   position_order: number;
 }
 
-interface ShelfFormModalProps {
-  formData: ShelfFormData;
-  setFormData: (data: ShelfFormData) => void;
+interface BoxFormModalProps {
+  shelf: any;
+  formData: BoxFormData;
+  setFormData: (data: BoxFormData) => void;
   image: File | null;
   setImage: (image: File | null) => void;
   loading: boolean;
@@ -17,7 +18,8 @@ interface ShelfFormModalProps {
   onClose: () => void;
 }
 
-export default function ShelfFormModal({ 
+export default function BoxFormModal({ 
+  shelf,
   formData, 
   setFormData, 
   image, 
@@ -25,7 +27,7 @@ export default function ShelfFormModal({
   loading, 
   onSubmit, 
   onClose 
-}: ShelfFormModalProps) {
+}: BoxFormModalProps) {
 
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
@@ -53,30 +55,30 @@ export default function ShelfFormModal({
         <button className="modal-close-new" onClick={onClose}>×</button>
         
         <div className="modal-header-new">
-          <h2 className="modal-title">Neues Regal hinzufügen</h2>
+          <h2 className="modal-title">Neue Box zu Regal "{shelf.name}" hinzufügen</h2>
         </div>
         
         <form onSubmit={onSubmit} className="form-new">
           <div className="form-group-new">
-            <label className="form-label-new">Name des Regals</label>
+            <label className="form-label-new">Name der Box</label>
             <input
               type="text"
               className="form-input-new"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="z.B. Hauptregal, Edelsteine"
+              placeholder="z.B. Box A, Quarz-Sammlung"
               required
             />
           </div>
 
           <div className="form-group-new">
-            <label className="form-label-new">Regal-Code</label>
+            <label className="form-label-new">Box-Code</label>
             <input
               type="text"
               className="form-input-new"
               value={formData.code}
               onChange={(e) => setFormData({...formData, code: e.target.value})}
-              placeholder="z.B. R1, V1"
+              placeholder="z.B. A, B1, C2"
               required
             />
           </div>
@@ -87,7 +89,7 @@ export default function ShelfFormModal({
               className="form-textarea-new"
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Beschreibung des Regals"
+              placeholder="Beschreibung der Box"
               rows={3}
             />
           </div>
@@ -105,7 +107,7 @@ export default function ShelfFormModal({
           </div>
 
           <div className="form-group-new">
-            <label className="form-label-new">Bild des Regals</label>
+            <label className="form-label-new">Bild der Box</label>
             <input
               type="file"
               className="form-file-new"
@@ -130,7 +132,7 @@ export default function ShelfFormModal({
               className="btn-new btn-primary-new"
               disabled={loading}
             >
-              {loading ? 'Wird hinzugefügt...' : 'Regal hinzufügen'}
+              {loading ? 'Wird hinzugefügt...' : 'Box hinzufügen'}
             </button>
           </div>
         </form>
