@@ -40,6 +40,7 @@ interface VitrinesPageProps {
   loadStats: () => void;
 }
 
+// Optimierte RegalCard mit besserer Performance
 const RegalCard = React.memo(({ 
   showcase, 
   onClick,
@@ -51,9 +52,13 @@ const RegalCard = React.memo(({
 }) => {
   const boxes = showcase.shelves || [];
   
+  const handleRegalClick = useCallback(() => {
+    onClick(showcase.id);
+  }, [onClick, showcase.id]);
+  
   return (
     <div className="regal-card">
-      <div className="regal-header" onClick={() => onClick(showcase.id)}>
+      <div className="regal-header" onClick={handleRegalClick}>
         {showcase.image_path && (
           <div className="regal-image-preview">
             <img src={`/uploads/${showcase.image_path}`} alt={showcase.name} loading="lazy" />
@@ -96,18 +101,11 @@ const RegalCard = React.memo(({
         {boxes.length > 0 ? (
           <div className="box-preview-grid">
             {boxes.map((box: any) => (
-              <div 
-                key={box.id} 
-                className="box-square"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onBoxClick(box.id);
-                }}
-                title={`${box.name} - ${box.mineral_count || 0} Mineralien`}
-              >
-                <div className="box-square-code">{box.code}</div>
-                <div className="box-square-mineral-count">{box.mineral_count || 0}</div>
-              </div>
+              <BoxSquare 
+                key={box.id}
+                box={box}
+                onBoxClick={onBoxClick}
+              />
             ))}
           </div>
         ) : (
@@ -116,6 +114,40 @@ const RegalCard = React.memo(({
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return prevProps.showcase.id === nextProps.showcase.id &&
+         prevProps.showcase.shelf_count === nextProps.showcase.shelf_count &&
+         prevProps.showcase.mineral_count === nextProps.showcase.mineral_count &&
+         prevProps.showcase.image_path === nextProps.showcase.image_path;
+});
+
+// Separate BoxSquare Component für bessere Performance
+const BoxSquare = React.memo(({ 
+  box, 
+  onBoxClick 
+}: { 
+  box: any; 
+  onBoxClick: (boxId: number) => void;
+}) => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onBoxClick(box.id);
+  }, [box.id, onBoxClick]);
+
+  return (
+    <div 
+      className="box-square"
+      onClick={handleClick}
+      title={`${box.name} - ${box.mineral_count || 0} Mineralien`}
+    >
+      <div className="box-square-code">{box.code}</div>
+      <div className="box-square-mineral-count">{box.mineral_count || 0}</div>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  return prevProps.box.id === nextProps.box.id &&
+         prevProps.box.mineral_count === nextProps.box.mineral_count;
 });
 
 export default function VitrinesPage({ 
@@ -180,13 +212,15 @@ export default function VitrinesPage({
       if (response.ok) {
         const data = await response.json();
         
-        // Für jede Vitrine/Regal die Boxen laden
+        // Lade nur Details für die ersten 5 Vitrinen initial
+        // Rest wird on-demand geladen
         const showcasesWithBoxes = await Promise.all(
-          data.map(async (showcase: Showcase) => {
+          data.slice(0, 5).map(async (showcase: Showcase) => {
             try {
               const detailResponse = await fetch(`/api/showcases/${showcase.id}`);
               if (detailResponse.ok) {
                 const detailData = await detailResponse.json();
+                showcaseCache.current.set(showcase.id, detailData);
                 return detailData;
               }
             } catch (error) {
@@ -196,8 +230,13 @@ export default function VitrinesPage({
           })
         );
         
-        setShowcases(showcasesWithBoxes);
-        showcaseCache.current.clear();
+        // Kombiniere geladene Details mit Rest der Daten
+        const allShowcases = [
+          ...showcasesWithBoxes,
+          ...data.slice(5)
+        ];
+        
+        setShowcases(allShowcases);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Regale:', error);
@@ -242,7 +281,8 @@ export default function VitrinesPage({
     setShelfLoading(true);
     
     try {
-      const response = await fetch(`/api/shelves/${shelfId}/minerals`);
+      // Lade nur die ersten 10 Mineralien initial
+      const response = await fetch(`/api/shelves/${shelfId}/minerals?limit=1000`);
       const responseData = await response.json();
       
       if (response.ok) {

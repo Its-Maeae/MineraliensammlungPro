@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Mineral } from '../types';
 import QRCodeGenerator from './QRCodeGenerator';
-import { useEffect, useRef } from 'react';
 
 interface ShelfModalProps {
   shelf: any;
@@ -14,6 +13,114 @@ interface ShelfModalProps {
   onOpenMineralDetails: (id: number) => void;
   setShowShelfMineralsModal: (show: boolean) => void;
 }
+
+// Virtualisierter Mineral Grid mit Lazy Loading
+const VirtualizedMineralGrid = React.memo(({ 
+  minerals, 
+  onMineralClick 
+}: { 
+  minerals: Mineral[]; 
+  onMineralClick: (id: number) => void;
+}) => {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Cleanup old observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Create new observer for infinite scroll
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < minerals.length) {
+          setVisibleCount(prev => Math.min(prev + 10, minerals.length));
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    if (sentinelRef.current) {
+      observerRef.current.observe(sentinelRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [visibleCount, minerals.length]);
+
+  const visibleMinerals = useMemo(
+    () => minerals.slice(0, visibleCount),
+    [minerals, visibleCount]
+  );
+
+  return (
+    <>
+      <div className="shelf-minerals-grid">
+        {visibleMinerals.map(mineral => (
+          <MineralCard 
+            key={mineral.id}
+            mineral={mineral}
+            onClick={onMineralClick}
+          />
+        ))}
+      </div>
+      {visibleCount < minerals.length && (
+        <div ref={sentinelRef} style={{ height: '20px', margin: '20px 0' }}>
+          <div className="loading">Lade weitere Mineralien...</div>
+        </div>
+      )}
+    </>
+  );
+});
+
+// Memoized Mineral Card Component
+const MineralCard = React.memo(({ 
+  mineral, 
+  onClick 
+}: { 
+  mineral: Mineral; 
+  onClick: (id: number) => void;
+}) => {
+  const handleClick = useCallback(() => {
+    onClick(mineral.id);
+  }, [mineral.id, onClick]);
+
+  return (
+    <div 
+      className="mineral-card-small" 
+      onClick={handleClick}
+    >
+      <div className="mineral-image-small">
+        {mineral.image_path ? (
+          <img 
+            src={`/uploads/${mineral.image_path}`} 
+            alt={mineral.name}
+            loading="lazy"
+          />
+        ) : (
+          <div className="placeholder">📸</div>
+        )}
+      </div>
+      <div className="mineral-info-small">
+        <h4>{mineral.name}</h4>
+        <p><strong>Nr:</strong> {mineral.number}</p>
+        <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
+        {mineral.location && (
+          <p><strong>Fundort:</strong> {mineral.location}</p>
+        )}
+      </div>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return prevProps.mineral.id === nextProps.mineral.id &&
+         prevProps.mineral.image_path === nextProps.mineral.image_path;
+});
 
 export default function ShelfModal({ 
   shelf, 
@@ -52,17 +159,21 @@ export default function ShelfModal({
     };
   }, [onClose]);
 
-  // Memoize filter options - wird nur bei minerals-Änderung neu berechnet
+  // Memoize filter options - optimiert
   const filterOptions = useMemo(() => {
+    if (minerals.length === 0) {
+      return { colors: [], locations: [], rock_types: [] };
+    }
+
     const colors = new Set<string>();
     const locations = new Set<string>();
     const rockTypes = new Set<string>();
     
-    minerals.forEach(mineral => {
+    for (const mineral of minerals) {
       if (mineral.color) colors.add(mineral.color);
       if (mineral.location) locations.add(mineral.location);
       if (mineral.rock_type) rockTypes.add(mineral.rock_type);
-    });
+    }
     
     return {
       colors: Array.from(colors).sort(),
@@ -73,15 +184,17 @@ export default function ShelfModal({
 
   // Optimierte Filter- und Sortier-Funktion
   const filteredMinerals = useMemo(() => {
-    let filtered = minerals;
+    if (minerals.length === 0) return [];
 
     // Früher Ausstieg wenn keine Filter aktiv
-    if (!searchTerm && !colorFilter && !locationFilter && !rockTypeFilter) {
-      filtered = minerals;
-    } else {
+    const hasFilters = searchTerm || colorFilter || locationFilter || rockTypeFilter;
+    
+    let filtered = minerals;
+
+    if (hasFilters) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = minerals.filter(mineral => {
         if (searchTerm) {
-          const searchLower = searchTerm.toLowerCase();
           const nameMatch = mineral.name.toLowerCase().includes(searchLower);
           const numberMatch = mineral.number.toLowerCase().includes(searchLower);
           if (!nameMatch && !numberMatch) return false;
@@ -96,7 +209,7 @@ export default function ShelfModal({
     }
 
     // Sortierung nur wenn nötig
-    if (sortBy !== 'name' || searchTerm || colorFilter || locationFilter || rockTypeFilter) {
+    if (sortBy !== 'name' || hasFilters) {
       filtered = [...filtered].sort((a, b) => {
         switch (sortBy) {
           case 'number':
@@ -292,35 +405,10 @@ export default function ShelfModal({
             </button>
           </div>
         ) : (
-          <div className="shelf-minerals-grid">
-            {filteredMinerals.map(mineral => (
-              <div 
-                key={mineral.id} 
-                className="mineral-card-small" 
-                onClick={() => handleMineralClick(mineral.id)}
-              >
-                <div className="mineral-image-small">
-                  {mineral.image_path ? (
-                    <img 
-                      src={`/uploads/${mineral.image_path}`} 
-                      alt={mineral.name}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="placeholder">📸</div>
-                  )}
-                </div>
-                <div className="mineral-info-small">
-                  <h4>{mineral.name}</h4>
-                  <p><strong>Nr:</strong> {mineral.number}</p>
-                  <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
-                  {mineral.location && (
-                    <p><strong>Fundort:</strong> {mineral.location}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <VirtualizedMineralGrid 
+            minerals={filteredMinerals}
+            onMineralClick={handleMineralClick}
+          />
         )}
       </div>
     </div>

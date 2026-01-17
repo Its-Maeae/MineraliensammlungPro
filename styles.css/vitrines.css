@@ -613,3 +613,31 @@
         padding: var(--space-4);
     }
 }
+
+/* Performance-Optimierung für Hover-Animationen */
+.regal-card,
+.box-square,
+.mineral-card-small {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.regal-card:hover,
+.box-square:hover,
+.mineral-card-small:hover {
+  transform: translateY(-2px) translateZ(0);
+}
+
+/* GPU-beschleunigte Animationen */
+.modal,
+.modal-content-large {
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+/* Bilder optimieren */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
