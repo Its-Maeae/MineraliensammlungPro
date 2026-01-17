@@ -36,7 +36,7 @@ export default function Header({
               className={`nav-link ${currentPage === 'vitrines' ? 'active' : ''}`}
               onClick={() => showPage('vitrines')}
             >
-              Vitrinen
+              Regale
             </a>
             <a 
               className={`nav-link ${currentPage === 'collection' ? 'active' : ''}`}
