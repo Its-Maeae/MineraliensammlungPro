@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Mineral } from '../types';
 import QRCodeGenerator from './QRCodeGenerator';
 
@@ -16,8 +16,8 @@ interface BoxModalProps {
 
 export default function BoxModal({ 
   shelf, 
-  minerals, 
-  loading, 
+  minerals: initialMinerals, 
+  loading: initialLoading, 
   isAuthenticated, 
   onClose, 
   onEdit, 
@@ -25,8 +25,90 @@ export default function BoxModal({
   onOpenMineralDetails,
   setShowShelfMineralsModal 
 }: BoxModalProps) {
-  const [showQRGenerator, setShowQRGenerator] = React.useState(false);
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
+  
+  // Lazy Loading States
+  const [minerals, setMinerals] = useState<Mineral[]>(initialMinerals);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loading, setLoading] = useState(initialLoading);
+  const observerTarget = useRef<HTMLDivElement>(null);
+  const ITEMS_PER_PAGE = 12;
+
+  const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const params = new URLSearchParams({
+        page: pageNum.toString(),
+        limit: ITEMS_PER_PAGE.toString()
+      });
+      
+      const response = await fetch(`/api/shelves/${shelf.id}/minerals?${params}`);
+      if (response.ok) {
+        const responseData = await response.json();
+        const newMinerals = responseData.minerals || [];
+        
+        if (append) {
+          setMinerals(prev => [...prev, ...newMinerals]);
+        } else {
+          setMinerals(newMinerals);
+        }
+        
+        // Prüfen ob es mehr Daten gibt
+        setHasMore(newMinerals.length === ITEMS_PER_PAGE);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Mineralien:', error);
+    } finally {
+      if (append) {
+        setIsLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [shelf.id]);
+
+  // Intersection Observer für Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          loadMinerals(nextPage, true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, isLoadingMore, loading, page, loadMinerals]);
+
+  // Initial load
+  useEffect(() => {
+    if (initialMinerals.length === 0) {
+      loadMinerals(1, false);
+    } else {
+      setMinerals(initialMinerals);
+      setHasMore(initialMinerals.length >= ITEMS_PER_PAGE);
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,6 +133,8 @@ export default function BoxModal({
     onOpenMineralDetails(id);
   };
 
+  const totalMinerals = minerals.length;
+
   return (
     <div className="modal-minimal" ref={modalOverlayRef}>
       <div className="modal-content-minimal" onClick={(e) => e.stopPropagation()}>
@@ -73,8 +157,8 @@ export default function BoxModal({
 
           <div className="stats-minimal">
             <div className="stat-minimal">
-              <span className="stat-value-minimal">{minerals.length}</span>
-              <span className="stat-label-minimal">Mineralien</span>
+              <span className="stat-value-minimal">{totalMinerals}</span>
+              <span className="stat-label-minimal">Mineralien geladen</span>
             </div>
           </div>
 
@@ -105,43 +189,76 @@ export default function BoxModal({
 
           <div className="section-divider"></div>
           
-          <div className="detail-label-minimal">Mineralien in dieser Box ({minerals.length})</div>
+          <div className="detail-label-minimal">
+            Mineralien in dieser Box
+            {totalMinerals > 0 && ` (${totalMinerals}${hasMore ? '+' : ''})`}
+          </div>
           
-          {loading ? (
+          {loading && minerals.length === 0 ? (
             <div className="loading">Lade Mineralien...</div>
           ) : minerals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
               Diese Box ist noch leer
             </div>
           ) : (
-            <div className="mineralien-simple-grid">
-              {minerals.map(mineral => (
-                <div 
-                  key={mineral.id} 
-                  className="mineral-card-simple" 
-                  onClick={() => handleMineralClick(mineral.id)}
-                >
-                  <div className="mineral-image-simple">
-                    {mineral.image_path ? (
-                      <img 
-                        src={`/uploads/${mineral.image_path}`} 
-                        alt={mineral.name}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', background: 'var(--gray-300)' }}></div>
-                    )}
+            <>
+              <div className="mineralien-simple-grid">
+                {minerals.map(mineral => (
+                  <div 
+                    key={mineral.id} 
+                    className="mineral-card-simple" 
+                    onClick={() => handleMineralClick(mineral.id)}
+                  >
+                    <div className="mineral-image-simple">
+                      {mineral.image_path ? (
+                        <img 
+                          src={`/uploads/${mineral.image_path}`} 
+                          alt={mineral.name}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: 'var(--gray-300)' }}></div>
+                      )}
+                    </div>
+                    <div className="mineral-info-simple">
+                      <div className="mineral-name-simple">{mineral.name}</div>
+                      <div className="mineral-number-simple">Nr. {mineral.number}</div>
+                      {mineral.color && (
+                        <div className="mineral-number-simple">{mineral.color}</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="mineral-info-simple">
-                    <div className="mineral-name-simple">{mineral.name}</div>
-                    <div className="mineral-number-simple">Nr. {mineral.number}</div>
-                    {mineral.color && (
-                      <div className="mineral-number-simple">{mineral.color}</div>
-                    )}
-                  </div>
+                ))}
+              </div>
+
+              {/* Infinite Scroll Trigger */}
+              {hasMore && (
+                <div ref={observerTarget} style={{ height: '20px', margin: 'var(--space-4) 0' }}>
+                  {isLoadingMore && (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      padding: 'var(--space-3)', 
+                      color: 'var(--gray-500)',
+                      fontSize: 'var(--font-size-sm)'
+                    }}>
+                      Lade weitere Mineralien...
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              )}
+
+              {!hasMore && minerals.length > 0 && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: 'var(--space-3)', 
+                  color: 'var(--gray-500)',
+                  fontSize: 'var(--font-size-sm)',
+                  marginTop: 'var(--space-2)'
+                }}>
+                  Alle Mineralien geladen
+                </div>
+              )}
+            </>
           )}
         </div>
 

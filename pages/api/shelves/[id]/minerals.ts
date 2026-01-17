@@ -6,6 +6,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'GET') {
     try {
+      // Pagination Parameter
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 1000; // Standard: alle
+      const offset = (page - 1) * limit;
+
       // Regal-Informationen laden
       const shelfInfo = await database.get(`
         SELECT s.id,
@@ -26,17 +31,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: 'Regal nicht gefunden' });
       }
 
-      // Mineralien in diesem Regal laden
+      // Mineralien in diesem Regal laden mit Pagination
       const minerals = await database.query(`
         SELECT m.*
         FROM minerals m
         WHERE m.shelf_id = ?
         ORDER BY m.name
+        LIMIT ? OFFSET ?
+      `, [id, limit, offset]);
+
+      // Gesamtanzahl für Info
+      const totalResult = await database.get(`
+        SELECT COUNT(*) as total
+        FROM minerals m
+        WHERE m.shelf_id = ?
       `, [id]);
 
       res.status(200).json({
         shelfInfo,
-        minerals
+        minerals,
+        pagination: {
+          page,
+          limit,
+          total: totalResult.total,
+          hasMore: offset + minerals.length < totalResult.total
+        }
       });
     } catch (error) {
       console.error('Fehler beim Laden der Regal-Mineralien:', error);
