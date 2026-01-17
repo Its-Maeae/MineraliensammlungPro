@@ -49,90 +49,97 @@ export default function VitrineFormModal({
   }, [onClose]);
 
   return (
-    <div className="modal" style={{ display: 'flex' }} ref={modalOverlayRef}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <span className="close-button" onClick={onClose}>&times;</span>
-        <h2>Neue Vitrine hinzufügen</h2>
+    <div className="modal-minimal" ref={modalOverlayRef}>
+      <div className="modal-content-minimal" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close-minimal" onClick={onClose}>×</button>
         
-        <form onSubmit={onSubmit}>
-          <div className="form-group">
-            <label htmlFor="vitrine-name">Name der Vitrine</label>
-            <input
-              type="text"
-              id="vitrine-name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="z.B. Hauptsammlung, Edelsteine, Kristalle"
-              required
-            />
-          </div>
+        <div className="modal-header-minimal">
+          <h2 className="modal-title-minimal">Neues Regal hinzufügen</h2>
+        </div>
+        
+        <div className="modal-body-minimal">
+          <form onSubmit={onSubmit}>
+            <div className="form-group">
+              <label htmlFor="vitrine-name">Name des Regals</label>
+              <input
+                type="text"
+                id="vitrine-name"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                placeholder="z.B. Hauptregal, Edelsteine, Kristalle"
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="vitrine-code">Vitrine-Code</label>
-            <input
-              type="text"
-              id="vitrine-code"
-              value={formData.code}
-              onChange={(e) => setFormData({...formData, code: e.target.value})}
-              placeholder="z.B. V1, HAUPT, EDL"
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label htmlFor="vitrine-code">Regal-Code</label>
+              <input
+                type="text"
+                id="vitrine-code"
+                value={formData.code}
+                onChange={(e) => setFormData({...formData, code: e.target.value})}
+                placeholder="z.B. V1, HAUPT, EDL"
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="vitrine-location">Standort</label>
-            <input
-              type="text"
-              id="vitrine-location"
-              value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
-              placeholder="z.B. Wohnzimmer, Keller, Arbeitszimmer"
-            />
-          </div>
+            <div className="form-group">
+              <label htmlFor="vitrine-location">Standort</label>
+              <input
+                type="text"
+                id="vitrine-location"
+                value={formData.location}
+                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                placeholder="z.B. Wohnzimmer, Keller, Arbeitszimmer"
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="vitrine-description">Beschreibung</label>
-            <textarea
-              id="vitrine-description"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Beschreibung der Vitrine, Thema, Besonderheiten..."
-              rows={4}
-            />
-          </div>
+            <div className="form-group">
+              <label htmlFor="vitrine-description">Beschreibung</label>
+              <textarea
+                id="vitrine-description"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Beschreibung des Regals, Thema, Besonderheiten..."
+                rows={3}
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="vitrine-image">Bild der Vitrine</label>
-            <input
-              type="file"
-              id="vitrine-image"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
-            />
-            {image && (
-              <div style={{ marginTop: 'var(--space-2)', fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)' }}>
-                Ausgewählt: {image.name}
-              </div>
-            )}
-          </div>
+            <div className="form-group">
+              <label htmlFor="vitrine-image">Bild des Regals</label>
+              <input
+                type="file"
+                id="vitrine-image"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+              />
+              {image && (
+                <div style={{ marginTop: 'var(--space-2)', fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)' }}>
+                  Ausgewählt: {image.name}
+                </div>
+              )}
+            </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end', marginTop: 'var(--space-6)' }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary"
-              onClick={onClose}
-            >
-              Abbrechen
-            </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Wird hinzugefügt...' : 'Vitrine hinzufügen'}
-            </button>
-          </div>
-        </form>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-6)' }}>
+              <button 
+                type="button" 
+                className="btn-minimal"
+                onClick={onClose}
+                style={{ flex: 1 }}
+              >
+                Abbrechen
+              </button>
+              <button 
+                type="submit" 
+                className="btn-minimal primary"
+                disabled={loading}
+                style={{ flex: 1 }}
+              >
+                {loading ? 'Wird hinzugefügt...' : 'Regal hinzufügen'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

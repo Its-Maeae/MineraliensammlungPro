@@ -1,0 +1,505 @@
+/* ========================================
+   REGALE & BOXEN - NEUES DESIGN SYSTEM
+   ======================================== */
+
+/* Regale Grid - Professionelles Layout */
+.regale-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-6);
+    padding: var(--space-4) 0;
+}
+
+/* Regal Card - Minimalistisches Design */
+.regal-card {
+    background: var(--white);
+    border: 2px solid var(--gray-300);
+    border-radius: 0;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    position: relative;
+}
+
+.regal-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+}
+
+/* Regal Header - Kompakte Informationen */
+.regal-header {
+    padding: var(--space-4);
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.regal-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.regal-code-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--primary-color);
+    color: var(--white);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border-radius: 0;
+    letter-spacing: 0.5px;
+}
+
+.regal-meta {
+    display: flex;
+    gap: var(--space-4);
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-top: var(--space-2);
+}
+
+.regal-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.regal-description {
+    font-size: var(--font-size-xs);
+    color: var(--gray-500);
+    margin-top: var(--space-2);
+    line-height: 1.4;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Box Vorschau Grid */
+.box-preview-section {
+    padding: var(--space-3);
+    background: var(--gray-50);
+}
+
+.box-preview-title {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.box-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: var(--space-2);
+}
+
+/* Box Quadrat - Geometrisches Design */
+.box-square {
+    aspect-ratio: 1;
+    background: var(--white);
+    border: 2px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.box-square:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.box-square:hover .box-square-code {
+    color: var(--white);
+}
+
+.box-square-code {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--gray-700);
+    transition: color var(--transition-fast);
+    letter-spacing: 0.5px;
+}
+
+.box-square-mineral-count {
+    font-size: 10px;
+    color: var(--gray-500);
+    margin-top: 2px;
+}
+
+.box-square:hover .box-square-mineral-count {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Empty State */
+.empty-boxes {
+    text-align: center;
+    padding: var(--space-4);
+    color: var(--gray-400);
+    font-size: var(--font-size-sm);
+    background: var(--gray-50);
+}
+
+/* Modal - Minimalistisches Design */
+.modal-minimal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+}
+
+.modal-content-minimal {
+    background: var(--white);
+    border: 3px solid var(--gray-900);
+    max-width: 900px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Modal Header */
+.modal-header-minimal {
+    padding: var(--space-5);
+    border-bottom: 2px solid var(--gray-300);
+    background: var(--gray-50);
+}
+
+.modal-title-minimal {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.modal-subtitle-minimal {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-top: var(--space-2);
+}
+
+/* Modal Body */
+.modal-body-minimal {
+    padding: var(--space-5);
+}
+
+/* Modal Close Button */
+.modal-close-minimal {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 32px;
+    height: 32px;
+    background: var(--gray-900);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+    font-weight: 300;
+    transition: all var(--transition-fast);
+    z-index: 1;
+}
+
+.modal-close-minimal:hover {
+    background: var(--primary-color);
+    transform: rotate(90deg);
+}
+
+/* Detail Info Grid */
+.detail-grid-minimal {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-4) 0;
+}
+
+.detail-item-minimal {
+    background: var(--gray-50);
+    padding: var(--space-3);
+    border-left: 3px solid var(--primary-color);
+}
+
+.detail-label-minimal {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-1);
+}
+
+.detail-value-minimal {
+    font-size: var(--font-size-sm);
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+/* Boxen Liste in Modal */
+.boxen-grid-modal {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.box-card-modal {
+    background: var(--white);
+    border: 2px solid var(--gray-300);
+    padding: var(--space-3);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.box-card-modal:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.box-card-code {
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--space-2);
+}
+
+.box-card-modal:hover .box-card-code {
+    color: var(--white);
+}
+
+.box-card-name {
+    font-size: var(--font-size-xs);
+    color: var(--gray-600);
+    margin-bottom: var(--space-1);
+}
+
+.box-card-modal:hover .box-card-name {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.box-card-count {
+    font-size: var(--font-size-xs);
+    color: var(--gray-500);
+}
+
+.box-card-modal:hover .box-card-count {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Mineralien in Box - Einfache Liste */
+.mineralien-simple-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.mineral-card-simple {
+    background: var(--white);
+    border: 2px solid var(--gray-300);
+    padding: var(--space-3);
+    display: flex;
+    gap: var(--space-3);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.mineral-card-simple:hover {
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.mineral-image-simple {
+    width: 60px;
+    height: 60px;
+    background: var(--gray-200);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.mineral-image-simple img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mineral-info-simple {
+    flex: 1;
+    min-width: 0;
+}
+
+.mineral-name-simple {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-1);
+}
+
+.mineral-number-simple {
+    font-size: var(--font-size-xs);
+    color: var(--gray-600);
+}
+
+/* Admin Buttons - Minimal */
+.admin-buttons-minimal {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-top: 2px solid var(--gray-300);
+    background: var(--gray-50);
+}
+
+.btn-minimal {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border: 2px solid var(--gray-900);
+    background: var(--white);
+    color: var(--gray-900);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-minimal:hover {
+    background: var(--gray-900);
+    color: var(--white);
+}
+
+.btn-minimal.primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-minimal.primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-minimal.danger {
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+
+.btn-minimal.danger:hover {
+    background: var(--error-color);
+    color: var(--white);
+}
+
+/* Image Display - Minimal */
+.detail-image-minimal {
+    margin: var(--space-4) 0;
+    border: 2px solid var(--gray-300);
+    overflow: hidden;
+}
+
+.detail-image-minimal img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Section Divider */
+.section-divider {
+    height: 2px;
+    background: var(--gray-300);
+    margin: var(--space-5) 0;
+}
+
+/* Stats Display */
+.stats-minimal {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-3);
+    background: var(--gray-50);
+    border: 2px solid var(--gray-300);
+    margin: var(--space-4) 0;
+}
+
+.stat-minimal {
+    flex: 1;
+    text-align: center;
+}
+
+.stat-value-minimal {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label-minimal {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: var(--space-1);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .regale-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .box-preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    }
+    
+    .boxen-grid-modal {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .mineralien-simple-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-grid-minimal {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-buttons-minimal {
+        flex-direction: column;
+    }
+    
+    .btn-minimal {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .box-preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+    }
+    
+    .box-square-code {
+        font-size: 10px;
+    }
+}
