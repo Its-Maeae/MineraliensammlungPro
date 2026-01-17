@@ -48,57 +48,75 @@ const RegalCard = React.memo(({
   showcase: Showcase; 
   onClick: (id: number) => void;
   onBoxClick: (boxId: number) => void;
-}) => (
-  <div className="regal-card">
-    <div className="regal-header" onClick={() => onClick(showcase.id)}>
-      <div className="regal-title">
-        <span>{showcase.name}</span>
-        <span className="regal-code-badge">{showcase.code}</span>
-      </div>
-      <div className="regal-meta">
-        <div className="regal-meta-item">
-          <strong>{showcase.shelf_count || 0}</strong> Boxen
-        </div>
-        <div className="regal-meta-item">
-          <strong>{showcase.mineral_count || 0}</strong> Mineralien
-        </div>
-        {showcase.location && (
-          <div className="regal-meta-item">
-            {showcase.location}
+}) => {
+  const boxes = showcase.shelves || [];
+  
+  return (
+    <div className="regal-card">
+      <div className="regal-header" onClick={() => onClick(showcase.id)}>
+        {showcase.image_path && (
+          <div className="regal-image-preview">
+            <img src={`/uploads/${showcase.image_path}`} alt={showcase.name} loading="lazy" />
           </div>
         )}
-      </div>
-      {showcase.description && (
-        <div className="regal-description">
-          {showcase.description}
-        </div>
-      )}
-    </div>
-    
-    <div className="box-preview-section">
-      <div className="box-preview-title">Boxen</div>
-      {showcase.shelves && showcase.shelves.length > 0 ? (
-        <div className="box-preview-grid">
-          {showcase.shelves.map((box: any) => (
-            <div 
-              key={box.id} 
-              className="box-square"
-              onClick={(e) => {
-                e.stopPropagation();
-                onBoxClick(box.id);
-              }}
-            >
-              <div className="box-square-code">{box.code}</div>
-              <div className="box-square-mineral-count">{box.mineral_count || 0}</div>
+        {!showcase.image_path && (
+          <div className="regal-image-preview">
+            <div className="regal-image-preview-placeholder"></div>
+          </div>
+        )}
+        
+        <div className="regal-header-content">
+          <div className="regal-title">
+            <span>{showcase.name}</span>
+            <span className="regal-code-badge">{showcase.code}</span>
+          </div>
+          <div className="regal-meta">
+            <div className="regal-meta-item">
+              <strong>{boxes.length}</strong> Boxen
             </div>
-          ))}
+            <div className="regal-meta-item">
+              <strong>{showcase.mineral_count || 0}</strong> Mineralien
+            </div>
+            {showcase.location && (
+              <div className="regal-meta-item">
+                {showcase.location}
+              </div>
+            )}
+          </div>
+          {showcase.description && (
+            <div className="regal-description">
+              {showcase.description}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="empty-boxes">Keine Boxen</div>
-      )}
+      </div>
+      
+      <div className="box-preview-section">
+        <div className="box-preview-title">Boxen ({boxes.length})</div>
+        {boxes.length > 0 ? (
+          <div className="box-preview-grid">
+            {boxes.map((box: any) => (
+              <div 
+                key={box.id} 
+                className="box-square"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBoxClick(box.id);
+                }}
+                title={`${box.name} - ${box.mineral_count || 0} Mineralien`}
+              >
+                <div className="box-square-code">{box.code}</div>
+                <div className="box-square-mineral-count">{box.mineral_count || 0}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-boxes">Keine Boxen vorhanden</div>
+        )}
+      </div>
     </div>
-  </div>
-));
+  );
+});
 
 export default function VitrinesPage({ 
   showcases,
@@ -161,7 +179,24 @@ export default function VitrinesPage({
       const response = await fetch('/api/showcases');
       if (response.ok) {
         const data = await response.json();
-        setShowcases(data);
+        
+        // Für jede Vitrine/Regal die Boxen laden
+        const showcasesWithBoxes = await Promise.all(
+          data.map(async (showcase: Showcase) => {
+            try {
+              const detailResponse = await fetch(`/api/showcases/${showcase.id}`);
+              if (detailResponse.ok) {
+                const detailData = await detailResponse.json();
+                return detailData;
+              }
+            } catch (error) {
+              console.error(`Fehler beim Laden der Boxen für Regal ${showcase.id}:`, error);
+            }
+            return showcase;
+          })
+        );
+        
+        setShowcases(showcasesWithBoxes);
         showcaseCache.current.clear();
       }
     } catch (error) {

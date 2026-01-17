@@ -1,5 +1,5 @@
 /* ========================================
-   REGALE & BOXEN - NEUES DESIGN SYSTEM
+   REGALE & BOXEN - MODERNES DESIGN SYSTEM
    ======================================== */
 
 /* Regale Grid - Professionelles Layout */
@@ -10,26 +10,60 @@
     padding: var(--space-4) 0;
 }
 
-/* Regal Card - Minimalistisches Design */
+/* Regal Card - Modernes Design */
 .regal-card {
     background: var(--white);
-    border: 2px solid var(--gray-300);
-    border-radius: 0;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
     overflow: hidden;
     transition: all var(--transition-normal);
     cursor: pointer;
     position: relative;
+    box-shadow: var(--shadow-sm);
 }
 
 .regal-card:hover {
     border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
 }
 
 /* Regal Header - Kompakte Informationen */
 .regal-header {
     padding: var(--space-4);
-    border-bottom: 2px solid var(--gray-200);
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+}
+
+.regal-image-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.regal-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.regal-image-preview-placeholder {
+    width: 40px;
+    height: 40px;
+    background: var(--gray-300);
+    border-radius: var(--radius-md);
+}
+
+.regal-header-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .regal-title {
@@ -39,26 +73,27 @@
     margin-bottom: var(--space-2);
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
+    flex-wrap: wrap;
 }
 
 .regal-code-badge {
     display: inline-block;
-    padding: 2px 8px;
-    background: var(--primary-color);
+    padding: 4px 10px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     color: var(--white);
     font-size: var(--font-size-xs);
     font-weight: 600;
-    border-radius: 0;
+    border-radius: var(--radius-md);
     letter-spacing: 0.5px;
 }
 
 .regal-meta {
     display: flex;
-    gap: var(--space-4);
-    font-size: var(--font-size-sm);
+    gap: var(--space-3);
+    font-size: var(--font-size-xs);
     color: var(--gray-600);
-    margin-top: var(--space-2);
+    margin-top: var(--space-1);
 }
 
 .regal-meta-item {
@@ -72,37 +107,42 @@
     color: var(--gray-500);
     margin-top: var(--space-2);
     line-height: 1.4;
-    max-height: 40px;
+    max-height: 32px;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-/* Box Vorschau Grid */
+/* Box Vorschau Section */
 .box-preview-section {
-    padding: var(--space-3);
+    padding: var(--space-4);
     background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
 }
 
 .box-preview-title {
     font-size: var(--font-size-xs);
     font-weight: 600;
     color: var(--gray-700);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .box-preview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
     gap: var(--space-2);
 }
 
-/* Box Quadrat - Geometrisches Design */
+/* Box Quadrat - Modernes Design */
 .box-square {
     aspect-ratio: 1;
     background: var(--white);
-    border: 2px solid var(--gray-300);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -110,12 +150,15 @@
     cursor: pointer;
     transition: all var(--transition-fast);
     position: relative;
+    padding: var(--space-2);
+    box-shadow: var(--shadow-sm);
 }
 
 .box-square:hover {
     border-color: var(--primary-color);
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .box-square:hover .box-square-code {
@@ -128,65 +171,90 @@
     color: var(--gray-700);
     transition: color var(--transition-fast);
     letter-spacing: 0.5px;
+    text-align: center;
 }
 
 .box-square-mineral-count {
     font-size: 10px;
     color: var(--gray-500);
     margin-top: 2px;
+    transition: color var(--transition-fast);
 }
 
 .box-square:hover .box-square-mineral-count {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* Empty State */
 .empty-boxes {
     text-align: center;
-    padding: var(--space-4);
+    padding: var(--space-6);
     color: var(--gray-400);
     font-size: var(--font-size-sm);
-    background: var(--gray-50);
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px dashed var(--gray-300);
 }
 
-/* Modal - Minimalistisches Design */
+/* Modal - Modernes Design */
 .modal-minimal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-4);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-content-minimal {
     background: var(--white);
-    border: 3px solid var(--gray-900);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-2xl);
     max-width: 900px;
     width: 100%;
-    max-height: 85vh;
+    max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 /* Modal Header */
 .modal-header-minimal {
-    padding: var(--space-5);
-    border-bottom: 2px solid var(--gray-300);
-    background: var(--gray-50);
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--gray-200);
+    background: linear-gradient(to bottom, var(--white), var(--gray-50));
 }
 
 .modal-title-minimal {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-2xl);
     font-weight: 600;
     color: var(--gray-900);
     margin: 0;
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    flex-wrap: wrap;
 }
 
 .modal-subtitle-minimal {
@@ -197,31 +265,33 @@
 
 /* Modal Body */
 .modal-body-minimal {
-    padding: var(--space-5);
+    padding: var(--space-6);
 }
 
 /* Modal Close Button */
 .modal-close-minimal {
     position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    width: 32px;
-    height: 32px;
-    background: var(--gray-900);
-    color: var(--white);
+    top: var(--space-5);
+    right: var(--space-5);
+    width: 36px;
+    height: 36px;
+    background: var(--gray-100);
+    color: var(--gray-600);
     border: none;
+    border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-2xl);
     font-weight: 300;
     transition: all var(--transition-fast);
     z-index: 1;
 }
 
 .modal-close-minimal:hover {
-    background: var(--primary-color);
+    background: var(--gray-900);
+    color: var(--white);
     transform: rotate(90deg);
 }
 
@@ -235,7 +305,8 @@
 
 .detail-item-minimal {
     background: var(--gray-50);
-    padding: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
     border-left: 3px solid var(--primary-color);
 }
 
@@ -245,7 +316,7 @@
     color: var(--gray-600);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: var(--space-1);
+    margin-bottom: var(--space-2);
 }
 
 .detail-value-minimal {
@@ -257,24 +328,27 @@
 /* Boxen Liste in Modal */
 .boxen-grid-modal {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: var(--space-3);
     margin-top: var(--space-4);
 }
 
 .box-card-modal {
     background: var(--white);
-    border: 2px solid var(--gray-300);
-    padding: var(--space-3);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
     cursor: pointer;
     transition: all var(--transition-fast);
     text-align: center;
+    box-shadow: var(--shadow-sm);
 }
 
 .box-card-modal:hover {
     border-color: var(--primary-color);
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .box-card-code {
@@ -304,7 +378,7 @@
 }
 
 .box-card-modal:hover .box-card-count {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 /* Mineralien in Box - Einfache Liste */
@@ -317,23 +391,27 @@
 
 .mineral-card-simple {
     background: var(--white);
-    border: 2px solid var(--gray-300);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
     padding: var(--space-3);
     display: flex;
     gap: var(--space-3);
     cursor: pointer;
     transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
 }
 
 .mineral-card-simple:hover {
     border-color: var(--primary-color);
     transform: translateX(4px);
+    box-shadow: var(--shadow-md);
 }
 
 .mineral-image-simple {
     width: 60px;
     height: 60px;
     background: var(--gray-200);
+    border-radius: var(--radius-md);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -364,41 +442,49 @@
     color: var(--gray-600);
 }
 
-/* Admin Buttons - Minimal */
+/* Admin Buttons */
 .admin-buttons-minimal {
     display: flex;
     gap: var(--space-3);
-    padding: var(--space-4);
-    border-top: 2px solid var(--gray-300);
+    padding: var(--space-5);
+    border-top: 1px solid var(--gray-200);
     background: var(--gray-50);
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    flex-wrap: wrap;
 }
 
 .btn-minimal {
-    padding: var(--space-2) var(--space-4);
+    flex: 1;
+    min-width: 120px;
+    padding: var(--space-3) var(--space-4);
     font-size: var(--font-size-sm);
     font-weight: 600;
-    border: 2px solid var(--gray-900);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
     background: var(--white);
-    color: var(--gray-900);
+    color: var(--gray-700);
     cursor: pointer;
     transition: all var(--transition-fast);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .btn-minimal:hover {
     background: var(--gray-900);
     color: var(--white);
+    border-color: var(--gray-900);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-minimal.primary {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     border-color: var(--primary-color);
     color: var(--white);
 }
 
 .btn-minimal.primary:hover {
-    background: var(--primary-dark);
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
     border-color: var(--primary-dark);
 }
 
@@ -410,13 +496,15 @@
 .btn-minimal.danger:hover {
     background: var(--error-color);
     color: var(--white);
+    border-color: var(--error-color);
 }
 
-/* Image Display - Minimal */
+/* Image Display */
 .detail-image-minimal {
     margin: var(--space-4) 0;
-    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-xl);
     overflow: hidden;
+    border: 1px solid var(--gray-200);
 }
 
 .detail-image-minimal img {
@@ -427,8 +515,8 @@
 
 /* Section Divider */
 .section-divider {
-    height: 2px;
-    background: var(--gray-300);
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gray-300), transparent);
     margin: var(--space-5) 0;
 }
 
@@ -436,9 +524,10 @@
 .stats-minimal {
     display: flex;
     gap: var(--space-4);
-    padding: var(--space-3);
-    background: var(--gray-50);
-    border: 2px solid var(--gray-300);
+    padding: var(--space-4);
+    background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
     margin: var(--space-4) 0;
 }
 
@@ -449,9 +538,12 @@
 
 .stat-value-minimal {
     display: block;
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-2xl);
     font-weight: 700;
-    color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .stat-label-minimal {
@@ -470,11 +562,11 @@
     }
     
     .box-preview-grid {
-        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
     }
     
     .boxen-grid-modal {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
     
     .mineralien-simple-grid {
@@ -492,14 +584,32 @@
     .btn-minimal {
         width: 100%;
     }
+
+    .regal-header {
+        flex-direction: column;
+    }
+
+    .regal-image-preview {
+        width: 100%;
+        height: 120px;
+    }
 }
 
 @media (max-width: 480px) {
     .box-preview-grid {
-        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
     }
     
     .box-square-code {
         font-size: 10px;
+    }
+
+    .modal-content-minimal {
+        border-radius: var(--radius-xl);
+    }
+
+    .modal-header-minimal,
+    .modal-body-minimal {
+        padding: var(--space-4);
     }
 }
