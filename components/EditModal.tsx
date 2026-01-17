@@ -23,6 +23,7 @@ interface EditModalProps {
   setShowcases: (showcases: any[]) => void;
   loadStats: () => void;
   loadMinerals?: () => Promise<void>;
+  clearCaches?: (type: 'showcase' | 'shelf' | 'mineral', id: number) => void;
 }
 
 export default function EditModal({ 
@@ -45,7 +46,8 @@ export default function EditModal({
   setMinerals,
   setShowcases,
   loadStats,
-  loadMinerals
+  loadMinerals,
+  clearCaches
 }: EditModalProps) {
   
   const modalOverlayRef = useRef<HTMLDivElement>(null);
@@ -120,6 +122,11 @@ export default function EditModal({
         setFormData({});
         
         if (editMode === 'mineral') {
+          // Cache löschen
+          if (clearCaches) {
+            clearCaches('mineral', formData.id);
+          }
+          
           if (currentPage === 'collection') {
             if (loadMinerals) {
               await loadMinerals();
@@ -134,6 +141,24 @@ export default function EditModal({
           setShowMineralModal(false);
           setSelectedMineral(null);
         } else if (editMode === 'showcase') {
+          // Cache löschen VOR dem Neu-Laden
+          if (clearCaches) {
+            clearCaches('showcase', formData.id);
+          }
+          
+          // Showcase-Details MIT Shelves neu laden
+          if (formData.id) {
+            try {
+              const response = await fetch(`/api/showcases/${formData.id}`);
+              if (response.ok) {
+                const showcase = await response.json();
+                setSelectedShowcase(showcase);
+              }
+            } catch (error) {
+              console.error('Fehler beim Laden der Regal-Details:', error);
+            }
+          }
+          
           // Showcases-Liste neu laden
           const loadShowcases = async () => {
             try {
@@ -147,22 +172,19 @@ export default function EditModal({
             }
           };
           await loadShowcases();
-          
-          // WICHTIG: Showcase MIT Shelves neu laden
-          if (formData.id) {
-            try {
-              const response = await fetch(`/api/showcases/${formData.id}`);
-              if (response.ok) {
-                const showcase = await response.json();
-                setSelectedShowcase(showcase);
-              }
-            } catch (error) {
-              console.error('Fehler beim Laden der Regal-Details:', error);
-            }
-          }
         } else if (editMode === 'shelf') {
+          // Cache löschen
+          if (clearCaches) {
+            clearCaches('shelf', formData.id);
+          }
+          
           // Showcase neu laden um aktualisierte Box-Liste zu bekommen
           if (formData.showcase_id) {
+            // Cache der Showcase auch löschen
+            if (clearCaches) {
+              clearCaches('showcase', formData.showcase_id);
+            }
+            
             try {
               const response = await fetch(`/api/showcases/${formData.showcase_id}`);
               if (response.ok) {

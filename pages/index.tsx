@@ -489,7 +489,7 @@ export default function Home() {
       )}
 
       {editMode && (
-        <EditModal 
+        <EditModal
           editMode={editMode}
           formData={editFormData}
           setFormData={setEditFormData}
@@ -513,6 +513,7 @@ export default function Home() {
           setShowcases={setShowcases}
           loadStats={loadStats}
           loadMinerals={loadMinerals}
+          clearCaches={clearCaches} // NEU!
         />
       )}
     </>

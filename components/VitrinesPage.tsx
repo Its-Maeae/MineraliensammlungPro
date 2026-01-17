@@ -187,6 +187,19 @@ export default function VitrinesPage({
   const showcaseCache = useRef<Map<number, Showcase>>(new Map());
   const shelfCache = useRef<Map<number, { shelfInfo: any; minerals: Mineral[] }>>(new Map());
   const mineralCache = useRef<Map<number, Mineral>>(new Map());
+  const clearCaches = useCallback((type: 'showcase' | 'shelf' | 'mineral', id: number) => {
+    console.log('Clearing cache for', type, id);
+    
+    if (type === 'showcase') {
+      showcaseCache.current.delete(id);
+      // Alle Shelf-Caches löschen, da wir nicht wissen welche zu dieser Showcase gehören
+      shelfCache.current.clear();
+    } else if (type === 'shelf') {
+      shelfCache.current.delete(id);
+    } else if (type === 'mineral') {
+      mineralCache.current.delete(id);
+    }
+  }, []);
 
   const [vitrineFormData, setVitrineFormData] = useState({
     name: '',
