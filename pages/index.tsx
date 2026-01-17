@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Mineral, Showcase, Stats } from '../types';
@@ -62,6 +62,26 @@ export default function Home() {
   const [editImage, setEditImage] = useState<File | null>(null);
   const [shelves, setShelves] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  // Cache Refs für verschiedene Seiten
+  const mineralCache = useRef<Map<number, Mineral>>(new Map());
+  const showcaseCache = useRef<Map<number, Showcase>>(new Map());
+  const shelfCache = useRef<Map<number, { shelfInfo: any; minerals: Mineral[] }>>(new Map());
+
+  // Clear Cache Funktion
+  const clearCaches = useCallback((type: 'showcase' | 'shelf' | 'mineral', id: number) => {
+    console.log('Clearing cache for', type, id);
+    
+    if (type === 'showcase') {
+      showcaseCache.current.delete(id);
+      // Alle Shelf-Caches löschen, da wir nicht wissen welche zu dieser Showcase gehören
+      shelfCache.current.clear();
+    } else if (type === 'shelf') {
+      shelfCache.current.delete(id);
+    } else if (type === 'mineral') {
+      mineralCache.current.delete(id);
+    }
+  }, []);
 
   // QR-Code Handling
   useEffect(() => {
@@ -513,7 +533,7 @@ export default function Home() {
           setShowcases={setShowcases}
           loadStats={loadStats}
           loadMinerals={loadMinerals}
-          clearCaches={clearCaches} // NEU!
+          clearCaches={clearCaches}
         />
       )}
     </>
