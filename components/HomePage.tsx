@@ -148,7 +148,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 <div className="impressum-card">
                   <h3>Kontaktperson</h3>
                   <p><strong>Manuela Barthel</strong></p>
-                  <p>Leherin Bereich Geografie</p>
+                  <p>Lehrerin Bereich Geografie</p>
                   {/* <p>📞</p> */}
                   <p><a href="mailto:manuela-bathel@gymnasium-floeha.lernsax.de">
                     manuela-barthel@gymnasium-floeha.lernsax.de
