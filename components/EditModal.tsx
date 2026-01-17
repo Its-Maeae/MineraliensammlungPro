@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import MapSelector from './MapSelector';
+import ShelfSelector from './ShelfSelector';
 
 interface EditModalProps {
   editMode: 'mineral' | 'showcase' | 'shelf';
@@ -47,26 +48,21 @@ export default function EditModal({
   loadMinerals
 }: EditModalProps) {
   
-  // Ref für das Modal-Overlay
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
-  // Click Outside Handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       
-      // Prüfe ob direkt auf den modal-overlay geklickt wurde
       if (modalOverlayRef.current && target === modalOverlayRef.current) {
         onClose();
       }
     };
 
-    // Kurze Verzögerung um Konflikt mit öffnendem Click zu vermeiden
     const timeoutId = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
     }, 100);
 
-    // Cleanup
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
@@ -80,12 +76,10 @@ export default function EditModal({
     try {
       const formDataToSend = new FormData();
       
-      // Handle all form fields including coordinates
       Object.keys(formData).forEach(key => {
         if (key !== 'id' && formData[key] !== undefined) {
-          // Special handling for coordinates - convert 0 values to null for clearing
           if ((key === 'latitude' || key === 'longitude') && formData[key] === 0) {
-            formDataToSend.append(key, ''); // Send empty string to indicate clearing
+            formDataToSend.append(key, '');
           } else if (formData[key] !== null) {
             formDataToSend.append(key, formData[key].toString());
           }
@@ -127,11 +121,9 @@ export default function EditModal({
         
         if (editMode === 'mineral') {
           if (currentPage === 'collection') {
-            // Verwende die übergebene loadMinerals Funktion mit aktuellen Filtern
             if (loadMinerals) {
               await loadMinerals();
             } else {
-              // Fallback: Lade ohne Filter
               const response = await fetch('/api/minerals');
               if (response.ok) {
                 const data = await response.json();
@@ -142,7 +134,6 @@ export default function EditModal({
           setShowMineralModal(false);
           setSelectedMineral(null);
         } else if (editMode === 'showcase') {
-          // Reload showcases
           const loadShowcases = async () => {
             try {
               const response = await fetch('/api/showcases');
@@ -156,7 +147,6 @@ export default function EditModal({
           };
           await loadShowcases();
           
-          // Reload current showcase details if it was open
           if (formData.id) {
             try {
               const response = await fetch(`/api/showcases/${formData.id}`);
@@ -169,7 +159,6 @@ export default function EditModal({
             }
           }
         } else if (editMode === 'shelf') {
-          // Reload shelf's showcase if needed
           if (formData.showcase_id) {
             try {
               const response = await fetch(`/api/showcases/${formData.showcase_id}`);
@@ -298,17 +287,11 @@ export default function EditModal({
               </div>
               <div className="form-group">
                 <label>Regal</label>
-                <select
-                  value={formData.shelf_id || ''}
-                  onChange={(e) => setFormData({...formData, shelf_id: e.target.value})}
-                >
-                  <option value="">Kein Regal zugeordnet</option>
-                  {shelves.map(shelf => (
-                    <option key={shelf.id} value={shelf.id}>
-                      {shelf.showcase_name} - {shelf.name} ({shelf.full_code})
-                    </option>
-                  ))}
-                </select>
+                <ShelfSelector
+                  shelves={shelves}
+                  selectedShelfId={formData.shelf_id || ''}
+                  onChange={(shelfId) => setFormData({...formData, shelf_id: shelfId})}
+                />
               </div>
             </>
           )}

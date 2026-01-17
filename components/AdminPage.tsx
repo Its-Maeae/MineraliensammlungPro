@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Stats } from '../types';
 import MapSelector from './MapSelector';
+import ShelfSelector from './ShelfSelector';
 
 interface AdminPageProps {
   isAuthenticated: boolean;
@@ -25,7 +26,10 @@ interface ShelfOption {
   id: number;
   name: string;
   showcase_name: string;
+  showcase_code: string;
+  code: string;
   full_code: string;
+  mineral_count?: number;
 }
 
 const FORM_STORAGE_KEY = 'mineralFormData';
@@ -797,18 +801,11 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
 
       <div className="form-group">
         <label htmlFor="shelf_id">Regal</label>
-        <select
-          id="shelf_id"
-          value={formData.shelf_id}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, shelf_id: e.target.value }))}
-        >
-          <option value="">Kein Regal zugeordnet</option>
-          {shelves.map(shelf => (
-            <option key={shelf.id} value={shelf.id}>
-              {shelf.showcase_name} - {shelf.name} ({shelf.full_code})
-            </option>
-          ))}
-        </select>
+        <ShelfSelector
+          shelves={shelves}
+          selectedShelfId={formData.shelf_id}
+          onChange={(shelfId) => setFormData(prevData => ({ ...prevData, shelf_id: shelfId }))}
+        />
       </div>
 
       <div className="form-group">
