@@ -20,6 +20,9 @@
     cursor: pointer;
     position: relative;
     box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .regal-card:hover {
@@ -121,6 +124,9 @@
     padding: var(--space-4);
     background: var(--gray-50);
     border-top: 1px solid var(--gray-200);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .box-preview-title {
