@@ -99,11 +99,11 @@ export default function EditModal({
           break;
         case 'showcase':
           url = `/api/showcases/${formData.id}`;
-          entityName = 'Vitrine';
+          entityName = 'Regal';
           break;
         case 'shelf':
           url = `/api/shelves/${formData.id}`;
-          entityName = 'Regal';
+          entityName = 'Box';
           break;
       }
 
@@ -134,6 +134,7 @@ export default function EditModal({
           setShowMineralModal(false);
           setSelectedMineral(null);
         } else if (editMode === 'showcase') {
+          // Showcases-Liste neu laden
           const loadShowcases = async () => {
             try {
               const response = await fetch('/api/showcases');
@@ -142,11 +143,12 @@ export default function EditModal({
                 setShowcases(data);
               }
             } catch (error) {
-              console.error('Fehler beim Laden der Vitrinen:', error);
+              console.error('Fehler beim Laden der Regale:', error);
             }
           };
           await loadShowcases();
           
+          // WICHTIG: Showcase MIT Shelves neu laden
           if (formData.id) {
             try {
               const response = await fetch(`/api/showcases/${formData.id}`);
@@ -155,10 +157,11 @@ export default function EditModal({
                 setSelectedShowcase(showcase);
               }
             } catch (error) {
-              console.error('Fehler beim Laden der Vitrine-Details:', error);
+              console.error('Fehler beim Laden der Regal-Details:', error);
             }
           }
         } else if (editMode === 'shelf') {
+          // Showcase neu laden um aktualisierte Box-Liste zu bekommen
           if (formData.showcase_id) {
             try {
               const response = await fetch(`/api/showcases/${formData.showcase_id}`);
@@ -167,7 +170,7 @@ export default function EditModal({
                 setSelectedShowcase(showcase);
               }
             } catch (error) {
-              console.error('Fehler beim Laden der Vitrine-Details:', error);
+              console.error('Fehler beim Laden der Regal-Details:', error);
             }
           }
           setShowShelfMineralsModal(false);
@@ -200,8 +203,8 @@ export default function EditModal({
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>
           {editMode === 'mineral' ? 'Mineral bearbeiten' : 
-          editMode === 'showcase' ? 'Vitrine bearbeiten' : 
-          'Regal bearbeiten'}
+          editMode === 'showcase' ? 'Regal bearbeiten' : 
+          'Box bearbeiten'}
         </h2>
         
         <form onSubmit={handleUpdateSubmit}>
@@ -286,7 +289,7 @@ export default function EditModal({
                 />
               </div>
               <div className="form-group">
-                <label>Regal</label>
+                <label>Box</label>
                 <ShelfSelector
                   shelves={shelves}
                   selectedShelfId={formData.shelf_id || ''}
@@ -299,7 +302,7 @@ export default function EditModal({
           {editMode === 'showcase' && (
             <>
               <div className="form-group">
-                <label>Name der Vitrine</label>
+                <label>Name des Regals</label>
                 <input
                   type="text"
                   value={formData.name || ''}
@@ -308,7 +311,7 @@ export default function EditModal({
                 />
               </div>
               <div className="form-group">
-                <label>Vitrine-Code</label>
+                <label>Regal-Code</label>
                 <input
                   type="text"
                   value={formData.code || ''}
@@ -338,7 +341,7 @@ export default function EditModal({
           {editMode === 'shelf' && (
             <>
               <div className="form-group">
-                <label>Name des Regals</label>
+                <label>Name der Box</label>
                 <input
                   type="text"
                   value={formData.name || ''}
@@ -347,7 +350,7 @@ export default function EditModal({
                 />
               </div>
               <div className="form-group">
-                <label>Regal-Code</label>
+                <label>Box-Code</label>
                 <input
                   type="text"
                   value={formData.code || ''}
