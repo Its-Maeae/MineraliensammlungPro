@@ -1,3 +1,7 @@
+/* ========================================
+   SHELF SELECTOR - MODERNE REGAL-AUSWAHL
+   ======================================== */
+
 /* Shelf Selector Komponente */
 .shelf-selector {
   position: relative;
@@ -66,18 +70,26 @@
 /* Dropdown */
 .shelf-selector-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background: var(--white);
-  border: 2px solid var(--primary-color);
+  border: 2px solid var(--gray-300);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   max-height: 400px;
   display: flex;
   flex-direction: column;
   animation: dropdownSlideIn 0.2s ease-out;
+}
+
+.shelf-selector-dropdown.dropdown-bottom {
+  top: calc(100% + 4px);
+}
+
+.shelf-selector-dropdown.dropdown-top {
+  bottom: calc(100% + 4px);
+  animation: dropdownSlideInTop 0.2s ease-out;
 }
 
 @keyframes dropdownSlideIn {
@@ -91,13 +103,35 @@
   }
 }
 
+@keyframes dropdownSlideInTop {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Search */
 .shelf-selector-search {
   position: relative;
   padding: var(--space-3);
   border-bottom: 1px solid var(--gray-200);
-  background: var(--gray-50);
+  background: var(--white);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.shelf-selector-dropdown.dropdown-top .shelf-selector-search {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-bottom: none;
+  border-top: 1px solid var(--gray-200);
+  order: 2;
+}
+
+.shelf-selector-dropdown.dropdown-top .shelf-selector-options {
+  order: 1;
 }
 
 .shelf-selector-search-input {
@@ -171,7 +205,7 @@
 .shelf-selector-clear-option {
   padding: var(--space-2);
   border-bottom: 1px solid var(--gray-200);
-  background: var(--gray-50);
+  background: var(--white);
 }
 
 .shelf-selector-clear-btn {
@@ -215,12 +249,10 @@
 
 .shelf-selector-group-header {
   padding: var(--space-3) var(--space-4);
-  background: var(--gray-100);
-  color: var(--primary-color);
+  background: var(--gray-50);
+  color: var(--gray-700);
   font-size: var(--font-size-sm);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -246,20 +278,21 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-3);
+  background: var(--white);
 }
 
 .shelf-selector-option:hover {
   background: var(--gray-50);
-  border-left-color: var(--primary-color);
+  border-left-color: var(--gray-400);
 }
 
 .shelf-selector-option.selected {
-  background: rgba(30, 64, 175, 0.1);
+  background: var(--gray-100);
   border-left-color: var(--primary-color);
 }
 
 .shelf-selector-option.selected:hover {
-  background: rgba(30, 64, 175, 0.15);
+  background: var(--gray-200);
 }
 
 .shelf-selector-option-main {

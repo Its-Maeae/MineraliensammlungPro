@@ -19,6 +19,7 @@ interface ShelfSelectorProps {
 export default function ShelfSelector({ shelves, selectedShelfId, onChange }: ShelfSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dropdownPosition, setDropdownPosition] = useState<'top' | 'bottom'>('bottom');
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
