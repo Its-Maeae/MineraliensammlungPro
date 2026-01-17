@@ -107,9 +107,26 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
     setSearchTerm('');
   };
 
+  const handleToggle = () => {
+    if (!isOpen && containerRef.current) {
+      // Calculate position before opening
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      // If less than 400px below and more space above, open upwards
+      if (spaceBelow < 400 && spaceAbove > spaceBelow) {
+        setDropdownPosition('top');
+      } else {
+        setDropdownPosition('bottom');
+      }
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="shelf-selector" ref={containerRef}>
-      <div className="shelf-selector-trigger" onClick={() => setIsOpen(!isOpen)}>
+      <div className="shelf-selector-trigger" onClick={handleToggle}>
         <div className="shelf-selector-value">
           {selectedShelf ? (
             <>
@@ -127,7 +144,7 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
       </div>
 
       {isOpen && (
-        <div className="shelf-selector-dropdown">
+        <div className={`shelf-selector-dropdown ${dropdownPosition === 'top' ? 'dropdown-top' : 'dropdown-bottom'}`}>
           <div className="shelf-selector-search">
             <input
               ref={searchInputRef}
