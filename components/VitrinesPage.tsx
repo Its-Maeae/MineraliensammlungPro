@@ -413,7 +413,7 @@ export default function VitrinesPage({
     }
   }, [vitrineFormData, vitrineImage, setLoading, setShowVitrineForm, loadShowcases, loadStats]);
 
-  const handleShelfSubmit = useCallback(async (e: React.FormEvent) => {
+   const handleShelfSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -443,9 +443,15 @@ export default function VitrinesPage({
         });
         setShelfImage(null);
         setShowShelfForm(false);
+        
+        // Caches löschen
         showcaseCache.current.delete(selectedShowcase!.id);
         shelfCache.current.clear();
-        openShowcaseDetails(selectedShowcase!.id);
+        
+        // Vitrine neu laden und dann anzeigen
+        await loadShowcases();
+        await openShowcaseDetails(selectedShowcase!.id);
+        
         loadStats();
         alert('Box erfolgreich hinzugefügt!');
       } else {
@@ -458,7 +464,7 @@ export default function VitrinesPage({
     } finally {
       setLoading(false);
     }
-  }, [shelfFormData, shelfImage, selectedShowcase, setLoading, setShowShelfForm, openShowcaseDetails, loadStats]);
+  }, [shelfFormData, shelfImage, selectedShowcase, setLoading, setShowShelfForm, loadShowcases, openShowcaseDetails, loadStats]);
 
   const handleDelete = useCallback(async (type: 'mineral' | 'showcase' | 'shelf', id: number) => {
     const confirmMessage = {
