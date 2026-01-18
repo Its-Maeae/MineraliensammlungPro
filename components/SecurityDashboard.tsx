@@ -78,7 +78,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
     <section className="page active">
       <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div className="page-header">
-          <h1 className="page-title">🔒 Security Dashboard</h1>
+          <h1 className="page-title">Security Dashboard</h1>
           <p className="page-description">Überwachung von Login-Versuchen und aktiven Sessions</p>
         </div>
         
@@ -90,7 +90,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
           marginBottom: '30px' 
         }}>
           <div style={{ 
-            backgroundColor: '#f8d7da', 
+            backgroundColor: 'white', 
             padding: '20px', 
             borderRadius: '8px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -102,7 +102,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
           </div>
           
           <div style={{ 
-            backgroundColor: '#d4edda', 
+            backgroundColor: 'white', 
             padding: '20px', 
             borderRadius: '8px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -114,7 +114,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
           </div>
           
           <div style={{ 
-            backgroundColor: '#d1ecf1', 
+            backgroundColor: 'white', 
             padding: '20px', 
             borderRadius: '8px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -126,7 +126,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
           </div>
           
           <div style={{ 
-            backgroundColor: '#fff3cd', 
+            backgroundColor: 'white', 
             padding: '20px', 
             borderRadius: '8px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -223,7 +223,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
             }}
             className="btn btn-primary btn-large"
           >
-            ← Zurück zum Admin-Bereich
+            Zurück zum Admin-Bereich
           </button>
           
           <button 
@@ -233,7 +233,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
             }}
             className="btn btn-secondary btn-large"
           >
-            🔄 Aktualisieren
+            Aktualisieren
           </button>
         </div>
       </div>
