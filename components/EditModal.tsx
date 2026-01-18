@@ -122,15 +122,22 @@ export default function EditModal({
         setFormData({});
         
         if (editMode === 'mineral') {
+          console.log('=== MINERAL UPDATE ERFOLGREICH ===');
+          console.log('currentPage:', currentPage);
+          console.log('loadMinerals vorhanden:', !!loadMinerals);
+          
           // Cache löschen
           if (clearCaches) {
             clearCaches('mineral', formData.id);
           }
           
           if (currentPage === 'collection') {
+            // WICHTIG: Verwende IMMER loadMinerals wenn vorhanden
             if (loadMinerals) {
+              console.log('Rufe loadMinerals() auf (paginierte Version)');
               await loadMinerals();
             } else {
+              console.log('WARNUNG: loadMinerals nicht verfügbar, lade ALLE Mineralien');
               const response = await fetch('/api/minerals');
               if (response.ok) {
                 const data = await response.json();
