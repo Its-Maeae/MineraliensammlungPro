@@ -8,6 +8,7 @@ interface ChartDataItem {
 interface StatisticsPageProps {
   currentPage: string;
   showPage?: (page: string) => void;
+  isAuthenticated?: boolean;
 }
 
 const chartTypes = [
@@ -17,11 +18,12 @@ const chartTypes = [
   { value: 'location', label: 'Fundort' },
 ];
 
-export default function StatisticsPage({ currentPage, showPage }: StatisticsPageProps) {
+export default function StatisticsPage({ currentPage, showPage, isAuthenticated }: StatisticsPageProps) {
   const [chartType, setChartType] = useState<string>('name');
   const [chartData, setChartData] = useState<ChartDataItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
     if (currentPage === 'statistics') {
@@ -29,12 +31,16 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
     }
   }, [chartType, currentPage]);
 
-  const loadChartData = async () => {
+  const loadChartData = async (forceRefresh: boolean = false) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`/api/chart-data?type=${chartType}`);
+      const url = forceRefresh 
+        ? `/api/chart-data?type=${chartType}&force=true`
+        : `/api/chart-data?type=${chartType}`;
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -50,6 +56,7 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
       }
       
       setChartData(data);
+      setLastUpdate(new Date());
     } catch (error) {
       console.error('Fehler beim Laden der Chart-Daten:', error);
       setError(error instanceof Error ? error.message : 'Unbekannter Fehler');
@@ -57,6 +64,10 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = () => {
+    loadChartData(true);
   };
 
   const maxCount = Math.max(...chartData.map(item => item.count), 1);
@@ -76,26 +87,45 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
             <div>
               <h1 className="page-title">Sammlungsstatistik</h1>
               <p className="page-description">Visualisierung Ihrer Mineraliensammlung</p>
+              {lastUpdate && (
+                <p style={{ fontSize: '0.85em', color: '#666', marginTop: '5px' }}>
+                  Letzte Aktualisierung: {lastUpdate.toLocaleTimeString('de-DE')}
+                </p>
+              )}
             </div>
-            {showPage ? (
-              <button 
-                className="btn btn-secondary btn-large"
-                onClick={() => showPage('collection')}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <span></span>
-                <span>Zur Sammlung</span>
-              </button>
-            ) : (
-              <button 
-                className="btn btn-primary btn-large"
-                onClick={() => window.location.href = '/?page=collection'}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <span></span>
-                <span>Zur Sammlung</span>
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {isAuthenticated && (
+                <button 
+                  className="btn btn-secondary btn-large"
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  title="Statistiken neu laden"
+                >
+                  <span>🔄</span>
+                  <span>{loading ? 'Lädt...' : 'Aktualisieren'}</span>
+                </button>
+              )}
+              {showPage ? (
+                <button 
+                  className="btn btn-secondary btn-large"
+                  onClick={() => showPage('collection')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span>📚</span>
+                  <span>Zur Sammlung</span>
+                </button>
+              ) : (
+                <button 
+                  className="btn btn-primary btn-large"
+                  onClick={() => window.location.href = '/?page=collection'}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span>📚</span>
+                  <span>Zur Sammlung</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -120,7 +150,7 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
             <p>Fehler beim Laden der Daten</p>
             <button 
               className="btn btn-secondary"
-              onClick={loadChartData}
+              onClick={() => loadChartData()}
               style={{ marginTop: '10px' }}
             >
               Erneut versuchen
@@ -196,7 +226,7 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
 
             <div className="chart-summary">
               <div className="summary-card">
-                <div className="summary-icon"></div>
+                <div className="summary-icon">📊</div>
                 <div className="summary-content">
                   <div className="summary-value">{chartData.reduce((sum, item) => sum + item.count, 0)}</div>
                   <div className="summary-label">Gesamtanzahl</div>
@@ -204,7 +234,7 @@ export default function StatisticsPage({ currentPage, showPage }: StatisticsPage
               </div>
               
               <div className="summary-card">
-                <div className="summary-icon"></div>
+                <div className="summary-icon">🏆</div>
                 <div className="summary-content">
                   <div className="summary-value">{chartData[0]?.label || '-'}</div>
                   <div className="summary-label">Häufigste Kategorie</div>

@@ -479,6 +479,7 @@ export default function Home() {
           <StatisticsPage 
             currentPage={currentPage} 
             showPage={showPage}
+            isAuthenticated={isAuthenticated}
           />
         )}
 

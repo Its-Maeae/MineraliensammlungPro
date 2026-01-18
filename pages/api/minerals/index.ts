@@ -46,6 +46,19 @@ function runMiddleware(req: any, res: any, fn: any) {
   });
 }
 
+// Funktion zum Invalidieren des Chart-Caches
+function invalidateChartCache() {
+  try {
+    // Dynamischer Import der Invalidierungs-Funktion
+    const chartDataModule = require('../chart-data');
+    if (chartDataModule.invalidateChartCache) {
+      chartDataModule.invalidateChartCache();
+    }
+  } catch (error) {
+    console.error('Fehler beim Invalidieren des Chart-Caches:', error);
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
@@ -167,6 +180,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             longitude ? parseFloat(longitude) : null
           ]
         );
+        
+        // Chart-Cache invalidieren nach erfolgreichem Hinzufügen
+        invalidateChartCache();
+        console.log('Chart-Cache invalidiert nach Mineral-Hinzufügung');
         
         res.status(201).json({ id: result.id, message: 'Mineral erfolgreich hinzugefügt' });
       } catch (error) {

@@ -6,6 +6,17 @@ interface ChartDataItem {
   count: number;
 }
 
+interface CachedChartData {
+  data: ChartDataItem[];
+  timestamp: number;
+}
+
+// In-Memory Cache für Chart-Daten
+const chartDataCache = new Map<string, CachedChartData>();
+
+// Cache-Gültigkeit: 1 Stunde (kann angepasst werden)
+const CACHE_TTL = 60 * 60 * 1000;
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ChartDataItem[] | { error: string }>
@@ -14,12 +25,24 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { type } = req.query;
+  const { type, force } = req.query;
 
   console.log('Chart-Data API aufgerufen mit Typ:', type);
 
   if (!type || typeof type !== 'string') {
     return res.status(400).json({ error: 'Type ist erforderlich' });
+  }
+
+  // Cache-Schlüssel
+  const cacheKey = `chart_${type}`;
+  
+  // Prüfen ob gecachte Daten vorhanden und gültig sind (außer bei force refresh)
+  if (force !== 'true') {
+    const cached = chartDataCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+      console.log('Sende gecachte Daten für:', type);
+      return res.status(200).json(cached.data);
+    }
   }
 
   try {
@@ -127,10 +150,22 @@ export default async function handler(
         return res.status(400).json({ error: 'Ungültiger Typ' });
     }
 
-    console.log('Sende Daten:', data);
+    // Daten im Cache speichern
+    chartDataCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+
+    console.log('Sende neue Daten und speichere im Cache:', data);
     res.status(200).json(data);
   } catch (error) {
     console.error('Fehler beim Laden der Chart-Daten:', error);
     res.status(500).json({ error: 'Fehler beim Laden der Chart-Daten' });
   }
+}
+
+// Export-Funktion zum Invalidieren des Caches
+export function invalidateChartCache() {
+  console.log('Chart-Cache wird geleert...');
+  chartDataCache.clear();
 }
