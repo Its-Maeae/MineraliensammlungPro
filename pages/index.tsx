@@ -413,6 +413,7 @@ export default function Home() {
             shelves={shelves}
             loadStats={loadStats}
             showPage={showPage}
+            clearCaches={clearCaches}
           />
         )}
 

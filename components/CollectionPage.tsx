@@ -42,6 +42,7 @@ interface CollectionPageProps {
   shelves: any[];
   loadStats: () => void;
   showPage?: (page: string) => void;
+  clearCaches?: (type: 'showcase' | 'shelf' | 'mineral', id: number) => void;
 }
 
 export default function CollectionPage({ 
@@ -76,7 +77,8 @@ export default function CollectionPage({
   setEditImage,
   shelves,
   loadStats,
-  showPage
+  showPage,
+  clearCaches
 }: CollectionPageProps) {
 
   // Lazy Loading States
@@ -474,6 +476,10 @@ export default function CollectionPage({
           setShowcases={() => {}}
           loadStats={loadStats}
           loadMinerals={async () => {
+            // Cache löschen
+            if (clearCaches && editFormData.id) {
+              clearCaches('mineral', editFormData.id);
+            }
             // Erst alles zurücksetzen
             setMinerals([]);
             setPage(1);
@@ -481,6 +487,7 @@ export default function CollectionPage({
             // Dann neu laden
             await loadMinerals(1, false);
           }}
+          clearCaches={clearCaches}
         />
       )}
     </>
