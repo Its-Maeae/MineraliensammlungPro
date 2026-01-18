@@ -85,6 +85,11 @@ export default function CollectionPage({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
+  const mineralsRef = useRef<Mineral[]>(minerals);
+
+  useEffect(() => {
+    mineralsRef.current = minerals;
+  }, [minerals]);
 
   const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
     if (append) {
@@ -109,7 +114,7 @@ export default function CollectionPage({
         const data = await response.json();
         
         if (append) {
-          setMinerals([...minerals, ...data]);
+          setMinerals([...mineralsRef.current, ...data]);
         } else {
           setMinerals(data);
         }
@@ -126,7 +131,8 @@ export default function CollectionPage({
         setLoading(false);
       }
     }
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, setLoading, setMinerals, minerals]);
+  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, setLoading, setMinerals]);
+
 
   const loadFilterOptions = async () => {
     try {
