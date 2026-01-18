@@ -536,7 +536,6 @@ export default function Home() {
           setShowcases={setShowcases}
           loadStats={loadStats}
           loadMinerals={currentPage === 'collection' ? async () => {
-            console.log('=== RELOAD TRIGGER FÜR COLLECTION PAGE ===');
             setReloadTrigger(prev => prev + 1);
           } : loadMinerals}
           clearCaches={clearCaches}
