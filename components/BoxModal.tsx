@@ -129,7 +129,7 @@ export default function BoxModal({
   }, [onClose]);
 
   const handleMineralClick = (id: number) => {
-    setShowShelfMineralsModal(false);
+    // BoxModal NICHT schließen, nur Mineral öffnen
     onOpenMineralDetails(id);
   };
 
