@@ -476,16 +476,22 @@ export default function CollectionPage({
           setShowcases={() => {}}
           loadStats={loadStats}
           loadMinerals={async () => {
+            console.log('=== RELOAD NACH BEARBEITUNG ===');
             // Cache löschen
             if (clearCaches && editFormData.id) {
               clearCaches('mineral', editFormData.id);
             }
             // Erst alles zurücksetzen
+            console.log('Setze Minerals auf []');
             setMinerals([]);
+            console.log('Setze Page auf 1');
             setPage(1);
+            console.log('Setze HasMore auf true');
             setHasMore(true);
-            // Dann neu laden
+            // Dann neu laden mit Pagination
+            console.log('Lade Seite 1 mit loadMinerals');
             await loadMinerals(1, false);
+            console.log('=== RELOAD FERTIG ===');
           }}
           clearCaches={clearCaches}
         />
