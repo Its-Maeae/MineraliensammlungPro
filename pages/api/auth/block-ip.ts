@@ -18,6 +18,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
     try {
+      // Erstelle Tabelle falls nicht vorhanden
+      await database.run(`
+        CREATE TABLE IF NOT EXISTS blocked_ips (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          ip_address TEXT NOT NULL UNIQUE,
+          blocked_at INTEGER NOT NULL,
+          reason TEXT DEFAULT 'Verdächtige Aktivität'
+        )
+      `);
+
       const { ip, reason } = req.body;
 
       if (!ip) {

@@ -36,8 +36,8 @@ Eine moderne Webanwendung zur Verwaltung einer privaten Mineraliensammlung, entw
 3. **Datenbank initialisieren**
    ```bash
    npm run init-db
-   npm run add-coordinates
-   npm run migrate-security
+   node run add-coordinates
+   node migrate-security
    ```
 
 4. **Entwicklungsserver starten**

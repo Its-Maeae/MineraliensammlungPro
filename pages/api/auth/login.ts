@@ -52,6 +52,16 @@ async function logLoginAttempt(ip: string, success: boolean) {
 
 async function isIPBlocked(ip: string): Promise<boolean> {
   try {
+    // Erstelle Tabelle falls nicht vorhanden
+    await database.run(`
+      CREATE TABLE IF NOT EXISTS blocked_ips (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ip_address TEXT NOT NULL UNIQUE,
+        blocked_at INTEGER NOT NULL,
+        reason TEXT DEFAULT 'Verdächtige Aktivität'
+      )
+    `);
+    
     const blocked = await database.get(
       'SELECT * FROM blocked_ips WHERE ip_address = ?',
       [ip]
