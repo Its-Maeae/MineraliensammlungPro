@@ -50,6 +50,19 @@ async function logLoginAttempt(ip: string, success: boolean) {
   }
 }
 
+async function isIPBlocked(ip: string): Promise<boolean> {
+  try {
+    const blocked = await database.get(
+      'SELECT * FROM blocked_ips WHERE ip_address = ?',
+      [ip]
+    );
+    return !!blocked;
+  } catch (error) {
+    console.error('Fehler beim Prüfen der IP-Blockierung:', error);
+    return false;
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const clientIP = getClientIP(req);
@@ -60,6 +73,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!password) {
         return res.status(400).json({ error: 'Passwort erforderlich' });
+      }
+
+      // Prüfe ob IP blockiert ist
+      const blocked = await isIPBlocked(clientIP);
+      if (blocked) {
+        console.log('🚫 Blockierte IP versucht Login:', clientIP);
+        await logLoginAttempt(clientIP, false);
+        return res.status(403).json({ 
+          error: 'Ihre IP-Adresse wurde blockiert. Bitte kontaktieren Sie den Administrator.',
+          blocked: true
+        });
       }
 
       // Rate-Limiting prüfen
@@ -104,44 +128,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('🔑 Token (erste 10 Zeichen):', sessionToken.substring(0, 10) + '...');
       console.log('⏰ Läuft ab:', new Date(expiresAt).toISOString());
 
-      // WICHTIG: Alte Sessions des Users löschen BEVOR neue erstellt wird
-      await database.run(
-        'DELETE FROM admin_sessions WHERE user_id = ?',
-        [adminUser.id]
-      );
+      // Alte Sessions des Users löschen (optional: nur wenn man nur eine Session pro User will)
+      // await database.run('DELETE FROM admin_sessions WHERE user_id = ?', [adminUser.id]);
 
       // Session in Datenbank speichern
       const insertResult = await database.run(
-        'INSERT INTO admin_sessions (token, user_id, expires_at, ip_address, last_activity) VALUES (?, ?, ?, ?, ?)',
-        [sessionToken, adminUser.id, expiresAt, clientIP, Date.now()]
+        'INSERT INTO admin_sessions (token, user_id, expires_at, ip_address, last_activity, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [sessionToken, adminUser.id, expiresAt, clientIP, Date.now(), Date.now()]
       );
 
       console.log('💾 Session in DB gespeichert, ID:', insertResult.id);
-
-      // Verifizieren, dass Session gespeichert wurde
-      const verifySession = await database.get(
-        'SELECT * FROM admin_sessions WHERE token = ?',
-        [sessionToken]
-      );
-
-      if (!verifySession) {
-        console.error('❌ Session konnte nicht verifiziert werden!');
-        return res.status(500).json({ error: 'Session konnte nicht erstellt werden' });
-      }
-
-      console.log('✅ Session verifiziert in DB');
 
       // Cookie mit korrekten Einstellungen setzen
       const isProduction = process.env.NODE_ENV === 'production';
       const cookie = serialize('admin_session', sessionToken, {
         httpOnly: true,
-        secure: isProduction, // Nur über HTTPS in Production
-        sameSite: isProduction ? 'strict' : 'lax', // 'lax' für Development
+        secure: isProduction,
+        sameSite: isProduction ? 'strict' : 'lax',
         maxAge: 24 * 60 * 60, // 24 Stunden
         path: '/'
       });
 
-      console.log('🍪 Cookie gesetzt:', cookie.substring(0, 100) + '...');
+      console.log('🍪 Cookie gesetzt');
 
       res.setHeader('Set-Cookie', cookie);
       res.status(200).json({ 

@@ -22,16 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         LIMIT 50
       `, [Date.now() - (7 * 24 * 60 * 60 * 1000)]);
 
-      // Erfolgreiche Logins der letzten 7 Tage
-      const successfulLogins = await database.query(`
-        SELECT ip_address, attempted_at
-        FROM login_attempts 
-        WHERE success = 1 
-          AND attempted_at > ?
-        ORDER BY attempted_at DESC
-        LIMIT 50
-      `, [Date.now() - (7 * 24 * 60 * 60 * 1000)]);
-
       // Aktive Sessions
       const activeSessions = await database.query(`
         SELECT token, user_id, ip_address, 
@@ -40,6 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         WHERE expires_at > ?
         ORDER BY last_activity DESC
       `, [Date.now()]);
+
+      // Blockierte IP-Adressen
+      const blockedIPs = await database.query(`
+        SELECT ip_address, blocked_at, reason
+        FROM blocked_ips
+        ORDER BY blocked_at DESC
+      `);
 
       // Statistiken
       const stats = {
@@ -59,12 +56,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         active_sessions: activeSessions.length,
         
-        unique_ips_failed: await database.get(`
-          SELECT COUNT(DISTINCT ip_address) as count 
-          FROM login_attempts 
-          WHERE success = 0 
-            AND attempted_at > ?
-        `, [Date.now() - (24 * 60 * 60 * 1000)])
+        blocked_ips_count: await database.get(`
+          SELECT COUNT(*) as count 
+          FROM blocked_ips
+        `)
       };
 
       res.status(200).json({
@@ -72,22 +67,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           failed_logins_24h: stats.total_failed_24h.count,
           successful_logins_24h: stats.total_successful_24h.count,
           active_sessions: stats.active_sessions,
-          unique_failed_ips: stats.unique_ips_failed.count
+          unique_failed_ips: failedLogins.length,
+          blocked_ips: stats.blocked_ips_count.count
         },
         failedLogins: failedLogins.map(row => ({
           ip: row.ip_address,
           attempts: row.attempts,
           lastAttempt: new Date(row.last_attempt).toISOString()
         })),
-        successfulLogins: successfulLogins.map(row => ({
-          ip: row.ip_address,
-          timestamp: new Date(row.attempted_at).toISOString()
-        })),
         activeSessions: activeSessions.map(row => ({
+          token: row.token,
           ip: row.ip_address,
           createdAt: new Date(row.created_at).toISOString(),
           lastActivity: new Date(row.last_activity || row.created_at).toISOString(),
-          expiresAt: new Date(row.expires_at).toISOString()
+          expiresAt: new Date(row.expires_at).toISOString(),
+          isCurrent: row.token === req.sessionToken
+        })),
+        blockedIPs: blockedIPs.map(row => ({
+          ip: row.ip_address,
+          blockedAt: new Date(row.blocked_at).toISOString(),
+          reason: row.reason
         }))
       });
     } catch (error) {

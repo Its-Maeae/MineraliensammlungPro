@@ -37,6 +37,7 @@ Eine moderne Webanwendung zur Verwaltung einer privaten Mineraliensammlung, entw
    ```bash
    npm run init-db
    npm run add-coordinates
+   npm run migrate-security
    ```
 
 4. **Entwicklungsserver starten**
