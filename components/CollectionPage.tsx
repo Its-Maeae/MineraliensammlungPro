@@ -85,8 +85,10 @@ export default function CollectionPage({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
-  const mineralsRef = useRef<Mineral[]>(minerals);
 
+  // Ref für aktuelle Minerals um Closure-Problem zu vermeiden
+  const mineralsRef = useRef<Mineral[]>(minerals);
+  
   useEffect(() => {
     mineralsRef.current = minerals;
   }, [minerals]);
@@ -132,7 +134,6 @@ export default function CollectionPage({
       }
     }
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, setLoading, setMinerals]);
-
 
   const loadFilterOptions = async () => {
     try {
@@ -271,6 +272,7 @@ export default function CollectionPage({
     setPage(1);
     setHasMore(true);
     loadMinerals(1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
   return (
@@ -289,7 +291,7 @@ export default function CollectionPage({
                   onClick={() => showPage('statistics')}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span></span>
+                  <span>📊</span>
                   <span>Statistiken anzeigen</span>
                 </button>
               ) : (
@@ -298,7 +300,7 @@ export default function CollectionPage({
                   onClick={() => window.location.href = '/?page=statistics'}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span></span>
+                  <span>📊</span>
                   <span>Statistiken anzeigen</span>
                 </button>
               )}
@@ -472,8 +474,11 @@ export default function CollectionPage({
           setShowcases={() => {}}
           loadStats={loadStats}
           loadMinerals={async () => {
+            // Erst alles zurücksetzen
+            setMinerals([]);
             setPage(1);
             setHasMore(true);
+            // Dann neu laden
             await loadMinerals(1, false);
           }}
         />
