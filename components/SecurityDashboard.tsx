@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import './SecurityDashboard.css';
 
 interface SecurityStats {
   failed_logins_24h: number;
