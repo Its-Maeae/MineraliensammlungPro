@@ -61,7 +61,6 @@ export default function BoxModal({
           setMinerals(newMinerals);
         }
         
-        // Prüfen ob es mehr Daten gibt
         setHasMore(newMinerals.length === ITEMS_PER_PAGE);
       }
     } catch (error) {
@@ -129,7 +128,6 @@ export default function BoxModal({
   }, [onClose]);
 
   const handleMineralClick = (id: number) => {
-    // BoxModal NICHT schließen, nur Mineral öffnen
     onOpenMineralDetails(id);
   };
 

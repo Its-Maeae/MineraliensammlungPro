@@ -12,10 +12,8 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
   const markerRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Leaflet CSS und JS laden
   useEffect(() => {
     const loadLeaflet = () => {
-      // CSS laden (falls noch nicht vorhanden)
       if (!document.querySelector('link[href*="leaflet.css"]')) {
         const cssLink = document.createElement('link');
         cssLink.rel = 'stylesheet';
@@ -25,7 +23,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
         document.head.appendChild(cssLink);
       }
 
-      // JavaScript laden
       if (!window.L) {
         const script = document.createElement('script');
         script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
@@ -43,21 +40,17 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
     loadLeaflet();
   }, []);
 
-  // Initialisiere Karte wenn Leaflet geladen ist
   useEffect(() => {
     if (mapLoaded && mapRef.current && !mapInstance.current && window.L) {
       initializeMap();
     }
   }, [mapLoaded]);
 
-  // Aktualisiere Marker wenn sich Koordinaten ändern
   useEffect(() => {
-    // Nur wenn Karte bereits initialisiert ist
     if (mapInstance.current && mapLoaded) {
       if (latitude && longitude && latitude !== 0 && longitude !== 0) {
         updateMarker(latitude, longitude);
       } else if (latitude === 0 || longitude === 0 || !latitude || !longitude) {
-        // Marker entfernen wenn Koordinaten null, undefined oder 0 sind
         clearMarker();
       }
     }
@@ -66,7 +59,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
   const initializeMap = () => {
     if (!mapRef.current || !window.L) return;
 
-    // Bestimme initiale Ansicht basierend auf vorhandenen Koordinaten
     const initialLat = (latitude && longitude && latitude !== 0 && longitude !== 0) ? latitude : 51.1657;
     const initialLng = (latitude && longitude && latitude !== 0 && longitude !== 0) ? longitude : 10.4515;
     const initialZoom = (latitude && longitude && latitude !== 0 && longitude !== 0) ? 12 : 6;
@@ -76,7 +68,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
       initialZoom
     );
 
-    // OpenStreetMap Tiles hinzufügen
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19
@@ -84,7 +75,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
 
     mapInstance.current = map;
 
-    // Click Listener für Marker setzen
     map.on('click', (event: any) => {
       const lat = event.latlng.lat;
       const lng = event.latlng.lng;
@@ -92,7 +82,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
       onLocationSelect(lat, lng);
     });
 
-    // Initialen Marker setzen falls Koordinaten vorhanden
     if (latitude && longitude && latitude !== 0 && longitude !== 0) {
       updateMarker(latitude, longitude);
     }
@@ -101,17 +90,14 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
   const updateMarker = (lat: number, lng: number) => {
     if (!mapInstance.current || !window.L) return;
 
-    // Alten Marker entfernen
     if (markerRef.current) {
       mapInstance.current.removeLayer(markerRef.current);
     }
 
-    // Neuen Marker erstellen
     const marker = window.L.marker([lat, lng], {
       draggable: true
     }).addTo(mapInstance.current);
 
-    // Popup für den Marker
     marker.bindPopup(`
       <div style="text-align: center;">
         <strong>Fundort</strong><br>
@@ -119,12 +105,10 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
       </div>
     `).openPopup();
 
-    // Drag Event Listener für Marker
     marker.on('dragend', (event: any) => {
       const newLat = event.target.getLatLng().lat;
       const newLng = event.target.getLatLng().lng;
       
-      // Popup aktualisieren
       marker.setPopupContent(`
         <div style="text-align: center;">
           <strong>Fundort</strong><br>
@@ -137,7 +121,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
 
     markerRef.current = marker;
 
-    // Karte auf Marker zentrieren mit sanfter Animation
     mapInstance.current.setView([lat, lng], Math.max(mapInstance.current.getZoom(), 12), {
       animate: true,
       duration: 0.5

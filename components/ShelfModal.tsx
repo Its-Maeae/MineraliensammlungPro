@@ -14,7 +14,6 @@ interface ShelfModalProps {
   setShowShelfMineralsModal: (show: boolean) => void;
 }
 
-// Virtualisierter Mineral Grid mit Lazy Loading
 const VirtualizedMineralGrid = React.memo(({ 
   minerals, 
   onMineralClick 
@@ -32,7 +31,6 @@ const VirtualizedMineralGrid = React.memo(({
       observerRef.current.disconnect();
     }
 
-    // Create new observer for infinite scroll
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && visibleCount < minerals.length) {
@@ -78,7 +76,6 @@ const VirtualizedMineralGrid = React.memo(({
   );
 });
 
-// Memoized Mineral Card Component
 const MineralCard = React.memo(({ 
   mineral, 
   onClick 
@@ -117,7 +114,6 @@ const MineralCard = React.memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison for better performance
   return prevProps.mineral.id === nextProps.mineral.id &&
          prevProps.mineral.image_path === nextProps.mineral.image_path;
 });
@@ -159,7 +155,6 @@ export default function ShelfModal({
     };
   }, [onClose]);
 
-  // Memoize filter options - optimiert
   const filterOptions = useMemo(() => {
     if (minerals.length === 0) {
       return { colors: [], locations: [], rock_types: [] };
@@ -182,11 +177,9 @@ export default function ShelfModal({
     };
   }, [minerals]);
 
-  // Optimierte Filter- und Sortier-Funktion
   const filteredMinerals = useMemo(() => {
     if (minerals.length === 0) return [];
 
-    // Früher Ausstieg wenn keine Filter aktiv
     const hasFilters = searchTerm || colorFilter || locationFilter || rockTypeFilter;
     
     let filtered = minerals;
@@ -208,7 +201,6 @@ export default function ShelfModal({
       });
     }
 
-    // Sortierung nur wenn nötig
     if (sortBy !== 'name' || hasFilters) {
       filtered = [...filtered].sort((a, b) => {
         switch (sortBy) {

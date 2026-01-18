@@ -63,7 +63,6 @@ export default function PasswordModal({
         setErrorMessage(data.error || 'Zu viele Anmeldeversuche');
         setRemainingAttempts(null);
       } else if (response.status === 401) {
-        // Falsches Passwort
         setErrorMessage(data.error || 'Ungültiges Passwort');
         if (data.remainingAttempts !== undefined) {
           setRemainingAttempts(data.remainingAttempts);

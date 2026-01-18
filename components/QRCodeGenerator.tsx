@@ -24,10 +24,8 @@ export default function QRCodeGenerator({
     setIsGenerating(true);
     
     try {
-      // URL zum direkten Aufrufen des Regals
       const qrUrl = `${baseUrl}?shelf=${shelfId}`;
       
-      // QR-Code generieren
       await QRCode.toCanvas(canvasRef.current, qrUrl, {
         width: 200,
         margin: 2,
@@ -49,7 +47,6 @@ export default function QRCodeGenerator({
   const downloadQRCode = () => {
     if (!canvasRef.current || !isGenerated) return;
     
-    // Canvas als Bild herunterladen
     const link = document.createElement('a');
     link.download = `qr-code-${fullCode}.png`;
     link.href = canvasRef.current.toDataURL('image/png');

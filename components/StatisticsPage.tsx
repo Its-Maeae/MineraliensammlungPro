@@ -102,7 +102,7 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                   title="Statistiken neu laden"
                 >
-                  <span>🔄</span>
+                  <span></span>
                   <span>{loading ? 'Lädt...' : 'Aktualisieren'}</span>
                 </button>
               )}
@@ -112,7 +112,7 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
                   onClick={() => showPage('collection')}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span>📚</span>
+                  <span></span>
                   <span>Zur Sammlung</span>
                 </button>
               ) : (
@@ -121,7 +121,7 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
                   onClick={() => window.location.href = '/?page=collection'}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span>📚</span>
+                  <span></span>
                   <span>Zur Sammlung</span>
                 </button>
               )}

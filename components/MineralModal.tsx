@@ -37,13 +37,10 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
     };
   }, [onClose]);
 
-  // Verhindere Scrollen im Hintergrund, wenn Bild maximiert ist
   useEffect(() => {
     if (isImageMaximized) {
-      // Speichere aktuelle Scroll-Position
       const scrollY = window.scrollY;
       
-      // Deaktiviere smooth scrolling temporär
       const htmlElement = document.documentElement;
       const originalScrollBehavior = htmlElement.style.scrollBehavior;
       htmlElement.style.scrollBehavior = 'auto';
@@ -54,34 +51,28 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       
-      // Reset zoom und position beim Öffnen
       setZoom(1);
       setPosition({ x: 0, y: 0 });
       
-      // Cleanup-Funktion, die beim Schließen ausgeführt wird
       return () => {
-        // Stelle Scroll-Position wieder her
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
         window.scrollTo(0, scrollY);
         
-        // Stelle ursprüngliches scroll-behavior wieder her
         htmlElement.style.scrollBehavior = originalScrollBehavior;
       };
     }
   }, [isImageMaximized]);
 
-  // Zoom mit Mausrad (Desktop)
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const delta = e.deltaY > 0 ? -0.2 : 0.2; // 20% Schritte
+    const delta = e.deltaY > 0 ? -0.2 : 0.2; 
     const newZoom = Math.min(Math.max(1, zoom + delta), 5);
     
-    // Wenn zurück auf Zoom 1, zentriere das Bild
     if (newZoom === 1) {
       setPosition({ x: 0, y: 0 });
     }
@@ -89,7 +80,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
     setZoom(newZoom);
   };
 
-  // Touch-Events für Pinch-Zoom (Mobile)
   const [touchDistance, setTouchDistance] = useState(0);
 
   const getTouchDistance = (touches: React.TouchList) => {
@@ -164,14 +154,13 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
     setIsDragging(false);
   };
 
-  // Zoom-Buttons
   const handleZoomIn = () => {
-    const newZoom = Math.min(zoom + 0.2, 5); // 20% Schritte
+    const newZoom = Math.min(zoom + 0.2, 5); 
     setZoom(newZoom);
   };
 
   const handleZoomOut = () => {
-    const newZoom = Math.max(zoom - 0.2, 1); // 20% Schritte
+    const newZoom = Math.max(zoom - 0.2, 1); 
     if (newZoom === 1) {
       setPosition({ x: 0, y: 0 });
     }

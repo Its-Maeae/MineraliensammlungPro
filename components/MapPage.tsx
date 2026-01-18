@@ -45,7 +45,7 @@ export default function MapPage({
   setMinerals,
   currentPage
 }: MapPageProps) {
-  // Lokaler State für die Karten-Mineralien (unabhängig von Collection-Page)
+
   const [mapMinerals, setMapMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -56,11 +56,9 @@ export default function MapPage({
   const isMapVisible = currentPage === 'map';
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mineralien laden - ALLE Mineralien, nicht nur die ersten 12
   const loadAllMinerals = useCallback(async () => {
     try {
       setLoading(true);
-      // Ohne Pagination-Parameter, um ALLE Mineralien zu laden
       const response = await fetch('/api/minerals?limit=999999');
       if (response.ok) {
         const data = await response.json();
@@ -77,12 +75,10 @@ export default function MapPage({
     }
   }, []);
 
-  // Mineralien laden wenn Komponente mountet
   useEffect(() => {
     loadAllMinerals();
   }, [loadAllMinerals]);
 
-  // Leaflet laden und Map initialisieren wenn Page sichtbar wird
   useEffect(() => {
     if (isMapVisible && !loading && !mapInitialized) {
       initializeLeafletAndMap();
@@ -96,7 +92,6 @@ export default function MapPage({
     }
   }, [mapMinerals, mapInitialized]);
 
-  // Cleanup wenn Page nicht mehr sichtbar
   useEffect(() => {
     if (!isMapVisible) {
       cleanupMap();
@@ -135,7 +130,6 @@ export default function MapPage({
 
   const ensureLeafletLoaded = (): Promise<void> => {
     return new Promise((resolve, reject) => {
-      // Bereits geladen?
       if (window.L) {
         resolve();
         return;
@@ -151,10 +145,8 @@ export default function MapPage({
         document.head.appendChild(cssLink);
       }
 
-      // Prüfe ob Script bereits vorhanden
       const existingScript = document.querySelector('script[src*="leaflet"]');
       if (existingScript) {
-        // Warte auf das Laden
         const checkLoaded = () => {
           if (window.L) {
             resolve();
@@ -166,14 +158,12 @@ export default function MapPage({
         return;
       }
 
-      // JavaScript laden
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
       script.crossOrigin = '';
       
       script.onload = () => {
-        // Zusätzliche Wartezeit für vollständige Initialisierung
         setTimeout(() => {
           if (window.L) {
             resolve();
@@ -193,20 +183,17 @@ export default function MapPage({
 
   const cleanupMap = useCallback(() => {
     try {
-      // Timeout löschen
       if (initTimeoutRef.current) {
         clearTimeout(initTimeoutRef.current);
         initTimeoutRef.current = null;
       }
 
-      // Marker entfernen
       markersRef.current.forEach(marker => {
         try {
           if (mapInstance.current) {
             mapInstance.current.removeLayer(marker);
           }
         } catch (e) {
-          // Ignoriere Fehler beim Marker-Entfernen
         }
       });
       markersRef.current = [];
@@ -232,15 +219,12 @@ export default function MapPage({
     if (!mapRef.current || !window.L || mapInstance.current) return;
 
     try {
-      // Cleanup vorher
       cleanupMap();
 
-      // Container vorbereiten
       const container = mapRef.current;
       container.style.height = '100vh';
       container.style.width = '100%';
       
-      // Map erstellen
       const map = window.L.map(container, {
         center: [51.1657, 10.4515],
         zoom: 6,
@@ -249,7 +233,6 @@ export default function MapPage({
         preferCanvas: false
       });
 
-      // Tile Layer hinzufügen
       const tileLayer = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
@@ -258,7 +241,6 @@ export default function MapPage({
       tileLayer.addTo(map);
       mapInstance.current = map;
 
-      // Event-Listener für vollständiges Laden
       map.whenReady(() => {
         setTimeout(() => {
           if (mapInstance.current) {
@@ -281,19 +263,16 @@ export default function MapPage({
     }
 
     try {
-      // Alte Marker entfernen
       markersRef.current.forEach(marker => {
         try {
           mapInstance.current.removeLayer(marker);
         } catch (e) {
-          // Ignoriere Fehler
         }
       });
       markersRef.current = [];
 
       console.log('Adding markers for', mapMinerals.length, 'minerals');
 
-      // Neue Marker erstellen
       mapMinerals.forEach(mineral => {
         if (mineral.latitude && mineral.longitude) {
           try {
@@ -343,7 +322,6 @@ export default function MapPage({
         }
       });
 
-      // Globale Funktion für Popup-Button
       window.openMineralDetails = async (id: number) => {
         try {
           const response = await fetch(`/api/minerals/${id}`);
@@ -411,10 +389,8 @@ export default function MapPage({
         setShowMineralModal(false);
         setSelectedMineral(null);
         
-        // Mineralien neu laden - ALLE Mineralien
         await loadAllMinerals();
         
-        // Auch die globale Mineralien-Liste aktualisieren
         const mineralsResponse = await fetch('/api/minerals?limit=999999');
         if (mineralsResponse.ok) {
           const data = await mineralsResponse.json();

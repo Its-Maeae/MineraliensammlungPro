@@ -83,14 +83,12 @@ export default function CollectionPage({
   reloadTrigger
 }: CollectionPageProps) {
 
-  // Lazy Loading States
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
 
-  // Ref für aktuelle Minerals um Closure-Problem zu vermeiden
   const mineralsRef = useRef<Mineral[]>(minerals);
   
   useEffect(() => {
@@ -125,7 +123,6 @@ export default function CollectionPage({
           setMinerals(data);
         }
         
-        // Prüfen ob es mehr Daten gibt
         setHasMore(data.length === ITEMS_PER_PAGE);
       }
     } catch (error) {
@@ -271,7 +268,6 @@ export default function CollectionPage({
     loadFilterOptions();
   }, []);
 
-  // Filter-Änderungen: Reset auf Seite 1
   useEffect(() => {
     setPage(1);
     setHasMore(true);
@@ -279,7 +275,7 @@ export default function CollectionPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
-  // Reload Trigger - wenn sich reloadTrigger ändert, neu laden
+
   useEffect(() => {
     if (reloadTrigger !== undefined && reloadTrigger > 0) {
       console.log('=== RELOAD NACH BEARBEITUNG (via Trigger) ===');
@@ -307,7 +303,7 @@ export default function CollectionPage({
                   onClick={() => showPage('statistics')}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span>📊</span>
+                  <span></span>
                   <span>Statistiken anzeigen</span>
                 </button>
               ) : (
@@ -316,7 +312,7 @@ export default function CollectionPage({
                   onClick={() => window.location.href = '/?page=statistics'}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span>📊</span>
+                  <span></span>
                   <span>Statistiken anzeigen</span>
                 </button>
               )}
@@ -491,18 +487,15 @@ export default function CollectionPage({
           loadStats={loadStats}
           loadMinerals={async () => {
             console.log('=== RELOAD NACH BEARBEITUNG ===');
-            // Cache löschen
             if (clearCaches && editFormData.id) {
               clearCaches('mineral', editFormData.id);
             }
-            // Erst alles zurücksetzen
             console.log('Setze Minerals auf []');
             setMinerals([]);
             console.log('Setze Page auf 1');
             setPage(1);
             console.log('Setze HasMore auf true');
             setHasMore(true);
-            // Dann neu laden mit Pagination
             console.log('Lade Seite 1 mit loadMinerals');
             await loadMinerals(1, false);
             console.log('=== RELOAD FERTIG ===');

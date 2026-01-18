@@ -23,7 +23,6 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Gruppiere Regale nach Vitrinen
   const groupedShelves = useMemo(() => {
     const groups: { [key: string]: Shelf[] } = {};
     
@@ -35,7 +34,6 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
       groups[showcaseName].push(shelf);
     });
 
-    // Sortiere jede Gruppe nach position_order und name
     Object.keys(groups).forEach(key => {
       groups[key].sort((a, b) => a.name.localeCompare(b.name));
     });
@@ -43,7 +41,6 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
     return groups;
   }, [shelves]);
 
-  // Filtere Regale basierend auf Suchbegriff
   const filteredGroups = useMemo(() => {
     if (!searchTerm.trim()) return groupedShelves;
 
@@ -65,13 +62,11 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
     return filtered;
   }, [groupedShelves, searchTerm]);
 
-  // Finde ausgewähltes Regal
   const selectedShelf = useMemo(() => 
     shelves.find(s => s.id.toString() === selectedShelfId?.toString()),
     [shelves, selectedShelfId]
   );
 
-  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -88,7 +83,6 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
     };
   }, [isOpen]);
 
-  // Focus search input when opened
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 100);
@@ -114,7 +108,6 @@ export default function ShelfSelector({ shelves, selectedShelfId, onChange }: Sh
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
       
-      // If less than 400px below and more space above, open upwards
       if (spaceBelow < 400 && spaceAbove > spaceBelow) {
         setDropdownPosition('top');
       } else {

@@ -123,13 +123,11 @@ export default function EditModal({
         
         if (editMode === 'mineral') {
           
-          // Cache löschen
           if (clearCaches) {
             clearCaches('mineral', formData.id);
           }
           
           if (currentPage === 'collection') {
-            // WICHTIG: Verwende IMMER loadMinerals wenn vorhanden
             if (loadMinerals) {
               await loadMinerals();
             } else {
@@ -143,12 +141,10 @@ export default function EditModal({
           setShowMineralModal(false);
           setSelectedMineral(null);
         } else if (editMode === 'showcase') {
-          // Cache löschen VOR dem Neu-Laden
           if (clearCaches) {
             clearCaches('showcase', formData.id);
           }
           
-          // Showcase-Details MIT Shelves neu laden
           if (formData.id) {
             try {
               const response = await fetch(`/api/showcases/${formData.id}`);
@@ -161,7 +157,6 @@ export default function EditModal({
             }
           }
           
-          // Showcases-Liste neu laden
           const loadShowcases = async () => {
             try {
               const response = await fetch('/api/showcases');
@@ -175,14 +170,11 @@ export default function EditModal({
           };
           await loadShowcases();
         } else if (editMode === 'shelf') {
-          // Cache löschen
           if (clearCaches) {
             clearCaches('shelf', formData.id);
           }
           
-          // Showcase neu laden um aktualisierte Box-Liste zu bekommen
           if (formData.showcase_id) {
-            // Cache der Showcase auch löschen
             if (clearCaches) {
               clearCaches('showcase', formData.showcase_id);
             }

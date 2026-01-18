@@ -32,7 +32,6 @@ export default function KeyboardShortcuts({
   const [showHelp, setShowHelp] = useState(false);
 
   const shortcuts: ShortcutConfig[] = [
-    // Navigation
     {
       key: 'h',
       alt: true,
@@ -69,7 +68,6 @@ export default function KeyboardShortcuts({
       category: 'Navigation'
     },
     
-    // Suche & Filter
     {
       key: 'f',
       ctrl: true,
@@ -103,14 +101,12 @@ export default function KeyboardShortcuts({
       category: 'Suche & Filter'
     },
     
-    // Allgemein
     {
       key: 'Escape',
       action: () => {
         if (onEscape) {
           onEscape();
         } else {
-          // Schließe offene Modals
           const closeButtons = document.querySelectorAll('.close-button, .modal');
           if (closeButtons.length > 0) {
             (closeButtons[0] as HTMLElement).click();
@@ -128,7 +124,6 @@ export default function KeyboardShortcuts({
       category: 'Allgemein'
     },
     
-    // Admin (nur wenn authentifiziert)
     ...(isAuthenticated ? [
       {
         key: 'n',
@@ -155,7 +150,6 @@ export default function KeyboardShortcuts({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignoriere Shortcuts wenn in Input-Feldern (außer Escape und Ctrl+F)
       const target = e.target as HTMLElement;
       const isInputField = target.tagName === 'INPUT' || 
                           target.tagName === 'TEXTAREA' || 
@@ -165,7 +159,6 @@ export default function KeyboardShortcuts({
         return;
       }
 
-      // Finde passenden Shortcut
       const shortcut = shortcuts.find(s => {
         const keyMatch = s.key.toLowerCase() === e.key.toLowerCase();
         const ctrlMatch = s.ctrl ? e.ctrlKey : !e.ctrlKey;
@@ -185,7 +178,6 @@ export default function KeyboardShortcuts({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentPage, isAuthenticated, showPage, onOpenSearch, onOpenFilters, onClearFilters, onEscape]);
 
-  // Help Modal
   if (!showHelp) return null;
 
   const categories = Array.from(new Set(shortcuts.map(s => s.category)));
