@@ -12,7 +12,7 @@
   margin-bottom: 40px;
 }
 
-.stat-card {
+.stat-card-sec {
   background: linear-gradient(135deg, #1f2937, #111827);
   color: white;
   padding: 20px;
@@ -24,29 +24,29 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.stat-card:hover {
+.stat-card-sec:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card.variant-danger {
-  background: linear-gradient(135deg, #374151, #1f2937);
-  border-left: 4px solid #ef4444;
+.stat-card-sec.variant-danger {
+  background-color: white;
+  color: black;
 }
 
-.stat-card.variant-success {
-  background: linear-gradient(135deg, #374151, #1f2937);
-  border-left: 4px solid #10b981;
+.stat-card-sec.variant-success {
+  background-color: white;
+  color: black;
 }
 
-.stat-card.variant-info {
-  background: linear-gradient(135deg, #374151, #1f2937);
-  border-left: 4px solid #3b82f6;
+.stat-card-sec.variant-info {
+  background-color: white;
+  color: black;
 }
 
-.stat-card.variant-warning {
-  background: linear-gradient(135deg, #374151, #1f2937);
-  border-left: 4px solid #f59e0b;
+.stat-card-sec.variant-warning {
+  background-color: white;
+  color: black;
 }
 
 .stat-number {

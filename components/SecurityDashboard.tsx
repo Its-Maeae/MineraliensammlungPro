@@ -174,22 +174,22 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
         
         {/* Statistiken Grid */}
         <div className="stats-grid">
-          <div className="stat-card variant-danger">
+          <div className="stat-card-sec variant-danger">
             <span className="stat-number">{securityLog.stats.failed_logins_24h}</span>
             <span className="stat-label">Fehlgeschlagene Logins (24h)</span>
           </div>
           
-          <div className="stat-card variant-success">
+          <div className="stat-card-sec variant-success">
             <span className="stat-number">{securityLog.stats.successful_logins_24h}</span>
             <span className="stat-label">Erfolgreiche Logins (24h)</span>
           </div>
           
-          <div className="stat-card variant-info">
+          <div className="stat-card-sec variant-info">
             <span className="stat-number">{securityLog.stats.active_sessions}</span>
             <span className="stat-label">Aktive Sessions</span>
           </div>
           
-          <div className="stat-card variant-warning">
+          <div className="stat-card-sec variant-warning">
             <span className="stat-number">{securityLog.stats.blocked_ips}</span>
             <span className="stat-label">Blockierte IP-Adressen</span>
           </div>
