@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import './SecurityDashboard.css';
 
 interface SecurityStats {
   failed_logins_24h: number;
@@ -166,30 +167,30 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
 
   return (
     <section className="page active">
-      <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="container security-dashboard">
         <div className="page-header">
           <h1 className="page-title">Security Dashboard</h1>
           <p className="page-description">Überwachung und Verwaltung der Systemsicherheit</p>
         </div>
         
         {/* Statistiken Grid */}
-        <div className="stats-grid" style={{ marginBottom: '40px' }}>
-          <div className="stat-card" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
+        <div className="stats-grid">
+          <div className="stat-card variant-danger">
             <span className="stat-number">{securityLog.stats.failed_logins_24h}</span>
             <span className="stat-label">Fehlgeschlagene Logins (24h)</span>
           </div>
           
-          <div className="stat-card" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+          <div className="stat-card variant-success">
             <span className="stat-number">{securityLog.stats.successful_logins_24h}</span>
             <span className="stat-label">Erfolgreiche Logins (24h)</span>
           </div>
           
-          <div className="stat-card" style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
+          <div className="stat-card variant-info">
             <span className="stat-number">{securityLog.stats.active_sessions}</span>
             <span className="stat-label">Aktive Sessions</span>
           </div>
           
-          <div className="stat-card" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+          <div className="stat-card variant-warning">
             <span className="stat-number">{securityLog.stats.blocked_ips}</span>
             <span className="stat-label">Blockierte IP-Adressen</span>
           </div>
@@ -197,44 +198,29 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
 
         {/* Blockierte IP-Adressen */}
         {securityLog.blockedIPs && securityLog.blockedIPs.length > 0 && (
-          <div className="admin-form-container" style={{ marginBottom: '30px' }}>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: '600', 
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
+          <div className="security-section">
+            <h2 className="security-section-title">
               Blockierte IP-Adressen
             </h2>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ 
-                width: '100%', 
-                borderCollapse: 'collapse',
-                fontSize: '14px'
-              }}>
+              <table className="security-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>IP-Adresse</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Grund</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Blockiert seit</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Aktion</th>
+                  <tr>
+                    <th>IP-Adresse</th>
+                    <th>Grund</th>
+                    <th>Blockiert seit</th>
+                    <th className="center">Aktion</th>
                   </tr>
                 </thead>
                 <tbody>
                   {securityLog.blockedIPs.map((blocked, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: '500' }}>
-                        {blocked.ip}
+                    <tr key={idx}>
+                      <td>
+                        <span className="ip-address">{blocked.ip}</span>
                       </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
-                        {blocked.reason}
-                      </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
-                        {new Date(blocked.blockedAt).toLocaleString('de-DE')}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td>{blocked.reason}</td>
+                      <td>{new Date(blocked.blockedAt).toLocaleString('de-DE')}</td>
+                      <td className="center">
                         <button
                           onClick={() => unblockIP(blocked.ip)}
                           disabled={actionLoading === blocked.ip}
@@ -258,76 +244,45 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
         )}
 
         {/* Aktive Sessions */}
-        <div className="admin-form-container" style={{ marginBottom: '30px' }}>
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: '600', 
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            👥 Aktive Sessions
+        <div className="security-section">
+          <h2 className="security-section-title">
+            Aktive Sessions
           </h2>
           {securityLog.activeSessions.length === 0 ? (
-            <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>
+            <p className="security-empty-state neutral">
               Keine aktiven Sessions
             </p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ 
-                width: '100%', 
-                borderCollapse: 'collapse',
-                fontSize: '14px'
-              }}>
+              <table className="security-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>IP-Adresse</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Erstellt</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Letzte Aktivität</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Läuft ab</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Aktionen</th>
+                  <tr>
+                    <th>IP-Adresse</th>
+                    <th>Erstellt</th>
+                    <th>Letzte Aktivität</th>
+                    <th>Läuft ab</th>
+                    <th className="center">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody>
                   {securityLog.activeSessions.map((session, idx) => (
                     <tr 
                       key={idx} 
-                      style={{ 
-                        borderBottom: '1px solid #e2e8f0',
-                        backgroundColor: session.isCurrent ? '#f0f9ff' : 'transparent'
-                      }}
+                      className={session.isCurrent ? 'current-session' : ''}
                     >
-                      <td style={{ padding: '12px' }}>
+                      <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontFamily: 'monospace', fontWeight: '500' }}>
-                            {session.ip}
-                          </span>
+                          <span className="ip-address">{session.ip}</span>
                           {session.isCurrent && (
-                            <span style={{
-                              fontSize: '11px',
-                              padding: '2px 8px',
-                              background: '#3b82f6',
-                              color: 'white',
-                              borderRadius: '12px',
-                              fontWeight: '600'
-                            }}>
-                              Aktuelle Session
-                            </span>
+                            <span className="session-badge">Aktuelle Session</span>
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
-                        {new Date(session.createdAt).toLocaleString('de-DE')}
-                      </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
-                        {new Date(session.lastActivity).toLocaleString('de-DE')}
-                      </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
-                        {new Date(session.expiresAt).toLocaleString('de-DE')}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <td>{new Date(session.createdAt).toLocaleString('de-DE')}</td>
+                      <td>{new Date(session.lastActivity).toLocaleString('de-DE')}</td>
+                      <td>{new Date(session.expiresAt).toLocaleString('de-DE')}</td>
+                      <td>
+                        <div className="action-buttons">
                           <button
                             onClick={() => terminateSession(session.token)}
                             disabled={session.isCurrent || actionLoading === session.token}
@@ -371,71 +326,42 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
         </div>
 
         {/* Fehlgeschlagene Login-Versuche */}
-        <div className="admin-form-container" style={{ marginBottom: '30px' }}>
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: '600', 
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
+        <div className="security-section">
+          <h2 className="security-section-title">
             Fehlgeschlagene Login-Versuche (7 Tage)
           </h2>
           {securityLog.failedLogins.length === 0 ? (
-            <p style={{ 
-              color: '#10b981', 
-              textAlign: 'center',
-              padding: '20px',
-              background: '#f0fdf4',
-              borderRadius: '8px',
-              fontWeight: '500'
-            }}>
+            <p className="security-empty-state">
               Keine fehlgeschlagenen Login-Versuche in den letzten 7 Tagen
             </p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ 
-                width: '100%', 
-                borderCollapse: 'collapse',
-                fontSize: '14px'
-              }}>
+              <table className="security-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>IP-Adresse</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Versuche</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Letzter Versuch</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Aktion</th>
+                  <tr>
+                    <th>IP-Adresse</th>
+                    <th>Versuche</th>
+                    <th>Letzter Versuch</th>
+                    <th className="center">Aktion</th>
                   </tr>
                 </thead>
                 <tbody>
                   {securityLog.failedLogins.map((attempt, idx) => (
                     <tr 
                       key={idx} 
-                      style={{ 
-                        borderBottom: '1px solid #e2e8f0',
-                        backgroundColor: attempt.attempts >= 5 ? '#fef2f2' : 'transparent'
-                      }}
+                      className={attempt.attempts >= 5 ? 'danger-row' : ''}
                     >
-                      <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: '500' }}>
-                        {attempt.ip}
+                      <td>
+                        <span className="ip-address">{attempt.ip}</span>
                       </td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{
-                          color: attempt.attempts >= 5 ? '#ef4444' : '#64748b',
-                          fontWeight: attempt.attempts >= 5 ? '600' : 'normal',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
+                      <td>
+                        <span className={attempt.attempts >= 5 ? 'attempt-count high' : 'attempt-count'}>
                           {attempt.attempts}
-                          {attempt.attempts >= 5 && <span>⚠️</span>}
+                          {attempt.attempts >= 5 && <span>⚠</span>}
                         </span>
                       </td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>
-                        {new Date(attempt.lastAttempt).toLocaleString('de-DE')}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td>{new Date(attempt.lastAttempt).toLocaleString('de-DE')}</td>
+                      <td className="center">
                         {attempt.attempts >= 3 && (
                           <button
                             onClick={() => blockIP(attempt.ip, `${attempt.attempts} fehlgeschlagene Login-Versuche`)}
@@ -462,7 +388,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
         </div>
 
         {/* Zurück und Aktualisieren Buttons */}
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '40px' }}>
+        <div className="security-actions">
           <button 
             onClick={() => showPage && showPage('admin')}
             className="btn btn-secondary btn-large"
@@ -478,7 +404,7 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
             className="btn btn-primary btn-large"
             disabled={loading}
           >
-            {loading ? 'Lädt...' : '🔄 Aktualisieren'}
+            {loading ? 'Lädt...' : 'Aktualisieren'}
           </button>
         </div>
       </div>
