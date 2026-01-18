@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
 import database from '../../lib/database';
 
 interface ChartDataItem {
@@ -6,166 +6,89 @@ interface ChartDataItem {
   count: number;
 }
 
-interface CachedChartData {
-  data: ChartDataItem[];
-  timestamp: number;
-}
-
-// In-Memory Cache für Chart-Daten
-const chartDataCache = new Map<string, CachedChartData>();
-
-// Cache-Gültigkeit: 1 Stunde (kann angepasst werden)
-const CACHE_TTL = 60 * 60 * 1000;
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ChartDataItem[] | { error: string }>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { type, force } = req.query;
-
-  console.log('Chart-Data API aufgerufen mit Typ:', type);
-
-  if (!type || typeof type !== 'string') {
-    return res.status(400).json({ error: 'Type ist erforderlich' });
-  }
-
-  // Cache-Schlüssel
-  const cacheKey = `chart_${type}`;
-  
-  // Prüfen ob gecachte Daten vorhanden und gültig sind (außer bei force refresh)
-  if (force !== 'true') {
-    const cached = chartDataCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-      console.log('Sende gecachte Daten für:', type);
-      return res.status(200).json(cached.data);
-    }
-  }
-
   try {
-    let data: ChartDataItem[] = [];
+    const { type } = req.query;
+
+    if (!type || typeof type !== 'string') {
+      return res.status(400).json({ error: 'Type parameter is required' });
+    }
+
+    let chartData: ChartDataItem[] = [];
 
     switch (type) {
-      case 'color':
-        console.log('Lade Farben-Statistik...');
-        const colors = await database.query(
-          `SELECT color, COUNT(*) as count 
-           FROM minerals 
-           WHERE color IS NOT NULL AND color != '' AND color != '-'
-           GROUP BY color 
-           ORDER BY count DESC 
-           LIMIT 7`
-        );
-        console.log('Farben gefunden:', colors.length);
-        data = colors.map((row: any) => ({
-          label: row.color,
-          count: parseInt(row.count)
-        }));
+      case 'name':
+        // Top Mineralien nach Häufigkeit
+        const nameData = await database.query(`
+          SELECT name as label, COUNT(*) as count
+          FROM minerals
+          WHERE name IS NOT NULL AND name != ''
+          GROUP BY name
+          ORDER BY count DESC, name ASC
+          LIMIT 20
+        `);
+        chartData = nameData;
         break;
 
       case 'rock_type':
-        console.log('Lade Gesteinsarten-Statistik...');
-        const rockTypes = await database.query(
-          `SELECT rock_type, COUNT(*) as count 
-           FROM minerals 
-           WHERE rock_type IS NOT NULL AND rock_type != '' AND rock_type != '-'
-           GROUP BY rock_type 
-           ORDER BY count DESC 
-           LIMIT 7`
-        );
-        console.log('Gesteinsarten gefunden:', rockTypes.length);
-        data = rockTypes.map((row: any) => ({
-          label: row.rock_type,
-          count: parseInt(row.count)
-        }));
+        // Top Gesteinsarten
+        const rockTypeData = await database.query(`
+          SELECT rock_type as label, COUNT(*) as count
+          FROM minerals
+          WHERE rock_type IS NOT NULL AND rock_type != ''
+          GROUP BY rock_type
+          ORDER BY count DESC, rock_type ASC
+          LIMIT 20
+        `);
+        chartData = rockTypeData;
+        break;
+
+      case 'color':
+        // Top Farben
+        const colorData = await database.query(`
+          SELECT color as label, COUNT(*) as count
+          FROM minerals
+          WHERE color IS NOT NULL AND color != ''
+          GROUP BY color
+          ORDER BY count DESC, color ASC
+          LIMIT 20
+        `);
+        chartData = colorData;
         break;
 
       case 'location':
-        console.log('Lade Fundorte-Statistik...');
-        const locations = await database.query(
-          `SELECT location FROM minerals 
-           WHERE location IS NOT NULL AND location != '' AND location != '-'`
-        );
-        console.log('Fundorte gefunden:', locations.length);
-        
-        // Gruppierung nach Land (letzter Teil nach Komma)
-        const locationMap = new Map<string, number>();
-        
-        locations.forEach((row: any) => {
-          const location = row.location;
-          // Extrahiere das Land (letzter Teil)
-          const parts = location.split(',').map((p: string) => p.trim());
-          const country = parts[parts.length - 1];
-          
-          // Filter "-" auch nach der Extraktion
-          if (country !== '-') {
-            locationMap.set(country, (locationMap.get(country) || 0) + 1);
-          }
-        });
-        
-        // Sortiere und limitiere auf Top 7
-        data = Array.from(locationMap.entries())
-          .map(([label, count]) => ({ label, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 7);
-        
-        console.log('Länder gruppiert:', data.length);
-        break;
-
-      case 'name':
-        console.log('Lade Mineralien-Namen-Statistik...');
-        const names = await database.query(
-          `SELECT name FROM minerals 
-           WHERE name IS NOT NULL AND name != '' AND name != '-'`
-        );
-        console.log('Namen gefunden:', names.length);
-        
-        // Gruppierung nach Basis-Namen
-        const nameMap = new Map<string, number>();
-        
-        names.forEach((row: any) => {
-          const name = row.name;
-          // Extrahiere Basis-Namen (erster Teil vor Leerzeichen oder Bindestrich)
-          const baseName = name.split(/[\s\-]/)[0];
-          
-          // Filter "-" auch nach der Extraktion
-          if (baseName !== '-') {
-            nameMap.set(baseName, (nameMap.get(baseName) || 0) + 1);
-          }
-        });
-        
-        // Sortiere und limitiere auf Top 7
-        data = Array.from(nameMap.entries())
-          .map(([label, count]) => ({ label, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 7);
-        
-        console.log('Namen gruppiert:', data.length);
+        // Top Fundorte
+        const locationData = await database.query(`
+          SELECT location as label, COUNT(*) as count
+          FROM minerals
+          WHERE location IS NOT NULL AND location != ''
+          GROUP BY location
+          ORDER BY count DESC, location ASC
+          LIMIT 20
+        `);
+        chartData = locationData;
         break;
 
       default:
-        return res.status(400).json({ error: 'Ungültiger Typ' });
+        return res.status(400).json({ error: 'Invalid type parameter' });
     }
 
-    // Daten im Cache speichern
-    chartDataCache.set(cacheKey, {
-      data,
-      timestamp: Date.now()
-    });
+    // Sicherstellen, dass alle Werte numerisch sind
+    chartData = chartData.map(item => ({
+      label: String(item.label || 'Unbekannt'),
+      count: Number(item.count) || 0
+    }));
 
-    console.log('Sende neue Daten und speichere im Cache:', data);
-    res.status(200).json(data);
+    res.status(200).json(chartData);
   } catch (error) {
     console.error('Fehler beim Laden der Chart-Daten:', error);
-    res.status(500).json({ error: 'Fehler beim Laden der Chart-Daten' });
+    res.status(500).json({ 
+      error: 'Fehler beim Laden der Chart-Daten',
+      details: error instanceof Error ? error.message : 'Unbekannter Fehler'
+    });
   }
-}
-
-// Export-Funktion zum Invalidieren des Caches
-export function invalidateChartCache() {
-  console.log('Chart-Cache wird geleert...');
-  chartDataCache.clear();
 }
