@@ -43,6 +43,7 @@ interface CollectionPageProps {
   loadStats: () => void;
   showPage?: (page: string) => void;
   clearCaches?: (type: 'showcase' | 'shelf' | 'mineral', id: number) => void;
+  reloadTrigger?: number;
 }
 
 export default function CollectionPage({ 
@@ -78,7 +79,8 @@ export default function CollectionPage({
   shelves,
   loadStats,
   showPage,
-  clearCaches
+  clearCaches,
+  reloadTrigger
 }: CollectionPageProps) {
 
   // Lazy Loading States
@@ -276,6 +278,18 @@ export default function CollectionPage({
     loadMinerals(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
+
+  // Reload Trigger - wenn sich reloadTrigger ändert, neu laden
+  useEffect(() => {
+    if (reloadTrigger !== undefined && reloadTrigger > 0) {
+      console.log('=== RELOAD NACH BEARBEITUNG (via Trigger) ===');
+      setMinerals([]);
+      setPage(1);
+      setHasMore(true);
+      loadMinerals(1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadTrigger]);
 
   return (
     <>

@@ -62,6 +62,7 @@ export default function Home() {
   const [editImage, setEditImage] = useState<File | null>(null);
   const [shelves, setShelves] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   // Cache Refs für verschiedene Seiten
   const mineralCache = useRef<Map<number, Mineral>>(new Map());
@@ -414,6 +415,7 @@ export default function Home() {
             loadStats={loadStats}
             showPage={showPage}
             clearCaches={clearCaches}
+            reloadTrigger={reloadTrigger}
           />
         )}
 
