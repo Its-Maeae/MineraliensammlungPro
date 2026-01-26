@@ -55,7 +55,8 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
         throw new Error('Ungültiges Datenformat');
       }
       
-      setChartData(data);
+      // Nur die Top 7 Einträge anzeigen
+      setChartData(data.slice(0, 7));
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Fehler beim Laden der Chart-Daten:', error);
