@@ -223,6 +223,24 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
                 </div>
               </div>
             </div>
+
+            <div className="chart-summary">
+              <div className="summary-card">
+                <div className="summary-icon">📊</div>
+                <div className="summary-content">
+                  <div className="summary-value">{chartData.reduce((sum, item) => sum + item.count, 0)}</div>
+                  <div className="summary-label">Gesamtanzahl</div>
+                </div>
+              </div>
+              
+              <div className="summary-card">
+                <div className="summary-icon">🏆</div>
+                <div className="summary-content">
+                  <div className="summary-value">{chartData[0]?.label || '-'}</div>
+                  <div className="summary-label">Häufigste Kategorie</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
