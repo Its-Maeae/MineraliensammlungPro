@@ -8,25 +8,26 @@ interface HomePageProps {
   setLastUpdated: (date: string) => void;
 }
 
-/* Slow animated counter — counts up once on mount */
-function useCounter(target: number) {
+/* ── Animated counter hook ── */
+function useCounter(target: number, duration = 1600) {
   const [val, setVal] = useState(0);
   useEffect(() => {
     if (!target) return;
-    let i = 0;
-    const steps = 50;
+    let frame = 0;
+    const steps = 60;
     const id = setInterval(() => {
-      i++;
-      setVal(Math.round((1 - Math.pow(1 - i / steps, 3)) * target));
-      if (i >= steps) clearInterval(id);
-    }, 1800 / steps);
+      frame++;
+      const ease = 1 - Math.pow(1 - frame / steps, 3);
+      setVal(Math.floor(ease * target));
+      if (frame >= steps) clearInterval(id);
+    }, duration / steps);
     return () => clearInterval(id);
-  }, [target]);
+  }, [target, duration]);
   return val;
 }
 
-/* Subtle animated strata lines — slow, barely moving */
-function StrataBackground() {
+/* ── Geological canvas: strata + drifting crystal polygons ── */
+function GeoCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -35,290 +36,322 @@ function StrataBackground() {
     if (!ctx) return;
     let raf: number;
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
     resize();
     window.addEventListener('resize', resize);
 
-    // A handful of irregular, slow strata lines — not perfectly spaced
-    const lines = [
-      { y: 0.14, amp: 8,  freq: 0.004, phase: 0.0,  speed: 0.00025, op: 0.07, w: 1.2 },
-      { y: 0.29, amp: 12, freq: 0.003, phase: 1.2,  speed: 0.00018, op: 0.05, w: 0.9 },
-      { y: 0.41, amp: 6,  freq: 0.005, phase: 0.7,  speed: 0.0003,  op: 0.08, w: 1.5 },
-      { y: 0.55, amp: 14, freq: 0.0025,phase: 2.1,  speed: 0.00015, op: 0.06, w: 1.0 },
-      { y: 0.68, amp: 9,  freq: 0.0035,phase: 3.5,  speed: 0.00022, op: 0.07, w: 1.3 },
-      { y: 0.82, amp: 11, freq: 0.003, phase: 0.4,  speed: 0.0002,  op: 0.05, w: 0.8 },
+    const crystals = [
+      { cx: 0.72, cy: 0.18, r: 55, sides: 6, rot: 0.3, drot: 0.0004, op: 0.10, col: '30,64,175' },
+      { cx: 0.85, cy: 0.55, r: 32, sides: 4, rot: 0.8, drot: -0.0005, op: 0.08, col: '30,64,175' },
+      { cx: 0.60, cy: 0.72, r: 20, sides: 3, rot: 0.2, drot: 0.0007, op: 0.07, col: '14,165,233' },
+      { cx: 0.88, cy: 0.28, r: 16, sides: 5, rot: 1.1, drot: 0.0005, op: 0.09, col: '59,130,246' },
+      { cx: 0.76, cy: 0.86, r: 26, sides: 6, rot: 0.5, drot: -0.0003, op: 0.07, col: '30,64,175' },
+      { cx: 0.62, cy: 0.38, r: 12, sides: 4, rot: 0.0, drot: 0.0008, op: 0.09, col: '14,165,233' },
     ];
+
+    const strata = Array.from({ length: 8 }, (_, i) => ({
+      y: 0.08 + i * 0.11,
+      amp: 5 + i * 2,
+      freq: 0.007 + i * 0.002,
+      phase: Math.random() * Math.PI * 2,
+      dphase: 0.0006 + i * 0.0002,
+      op: 0.045 + i * 0.008,
+      w: 0.7 + Math.random() * 0.7,
+    }));
+
+    const drawPoly = (cx: number, cy: number, r: number, sides: number, rot: number, op: number, col: string) => {
+      ctx.beginPath();
+      for (let s = 0; s < sides; s++) {
+        const a = rot + (s / sides) * Math.PI * 2;
+        s === 0 ? ctx.moveTo(cx + Math.cos(a)*r, cy + Math.sin(a)*r)
+                : ctx.lineTo(cx + Math.cos(a)*r, cy + Math.sin(a)*r);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(${col},${op})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.fillStyle = `rgba(${col},${op * 0.28})`;
+      ctx.fill();
+    };
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      lines.forEach(l => {
-        l.phase += l.speed;
+      strata.forEach(s => {
+        s.phase += s.dphase;
         ctx.beginPath();
-        for (let x = 0; x <= canvas.width; x += 6) {
-          const y = l.y * canvas.height + Math.sin(x * l.freq + l.phase) * l.amp;
+        for (let x = 0; x <= canvas.width; x += 4) {
+          const y = s.y * canvas.height + Math.sin(x * s.freq + s.phase) * s.amp;
           x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = `rgba(30,64,175,${l.op})`;
-        ctx.lineWidth = l.w;
+        ctx.strokeStyle = `rgba(30,64,175,${s.op})`;
+        ctx.lineWidth = s.w;
         ctx.stroke();
+      });
+      crystals.forEach(c => {
+        c.rot += c.drot;
+        drawPoly(c.cx * canvas.width, c.cy * canvas.height, c.r, c.sides, c.rot, c.op, c.col);
       });
       raf = requestAnimationFrame(draw);
     };
     draw();
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
   }, []);
-  return <canvas ref={ref} className="hp-strata-canvas" />;
+  return <canvas ref={ref} className="hp-geo-canvas" />;
 }
 
-/* Mountain silhouette — asymmetric, hand-drawn feeling */
-function Mountains() {
+/* ── Mountain SVG ── */
+function MountainSVG() {
   return (
-    <svg className="hp-mountains" viewBox="0 0 1200 280" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-      {/* Far background — very light, misty */}
-      <polygon
-        points="0,230  110,128  198,182  295,92   388,155  497,68   591,138  680,105  772,162  861,88   950,140  1040,100 1130,135 1200,118 1200,280 0,280"
-        fill="rgba(148,163,184,0.18)"
-      />
+    <svg className="hp-mountain-svg" viewBox="0 0 900 300" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+      {/* Back range */}
+      <polygon points="0,240 90,110 175,180 260,80 360,155 455,60 550,145 640,95 725,160 810,85 900,130 900,300 0,300" fill="rgba(148,163,184,0.22)" />
       {/* Mid range */}
-      <polygon
-        points="0,265  78,195  148,238  224,158  305,215  390,138  468,200  545,148  638,212  718,155  800,208  882,162  962,218  1040,172 1120,210 1200,182 1200,280 0,280"
-        fill="rgba(100,116,139,0.25)"
-      />
-      {/* Foreground — most contrast */}
-      <polygon
-        points="0,280 0,262  58,222  104,258  162,192  213,248  278,172  332,228  388,178  444,240  506,175  562,232  618,182  676,252  735,188  794,245  850,192  908,250  965,200  1022,255 1080,208 1138,260 1200,220 1200,280"
-        fill="rgba(51,65,85,0.30)"
-      />
-      {/* A few sharp crystal-peak outlines on notable summits */}
-      <polyline points="278,172 298,145 318,172" stroke="rgba(30,64,175,0.38)" strokeWidth="1.4" fill="none"/>
-      <polyline points="506,175 524,150 542,175" stroke="rgba(30,64,175,0.28)" strokeWidth="1.2" fill="none"/>
-      <polyline points="735,188 752,162 769,188" stroke="rgba(14,165,233,0.25)" strokeWidth="1" fill="none"/>
-      {/* Fault line — one subtle dashed crack */}
-      <line x1="390" y1="280" x2="375" y2="138" stroke="rgba(30,64,175,0.15)" strokeWidth="1" strokeDasharray="4 8"/>
+      <polygon points="0,290 55,200 120,245 195,155 270,220 355,135 435,205 510,130 595,195 670,148 750,205 825,162 900,188 900,300 0,300" fill="rgba(100,116,139,0.28)" />
+      {/* Front range — sharpest */}
+      <polygon points="0,300 0,275 65,210 120,258 185,175 245,238 320,152 390,222 455,168 520,238 590,162 655,228 720,178 790,250 865,192 900,215 900,300" fill="rgba(51,65,85,0.32)" />
+      {/* Crystal peak accents */}
+      <polyline points="320,152 342,120 364,152" stroke="rgba(30,64,175,0.45)" strokeWidth="1.5" fill="none" />
+      <polyline points="185,175 203,148 221,175" stroke="rgba(14,165,233,0.35)" strokeWidth="1.2" fill="none" />
+      <polyline points="455,60 475,32 495,60" stroke="rgba(30,64,175,0.3)" strokeWidth="1" fill="none" />
+      {/* Tectonic fault lines */}
+      <line x1="455" y1="300" x2="440" y2="60" stroke="rgba(30,64,175,0.18)" strokeWidth="1.2" strokeDasharray="5 8" />
+      <line x1="260" y1="300" x2="250" y2="80" stroke="rgba(14,165,233,0.13)" strokeWidth="1" strokeDasharray="4 7" />
+      {/* Strata hints */}
+      <line x1="0" y1="268" x2="900" y2="262" stroke="rgba(30,64,175,0.08)" strokeWidth="1.5" />
+      <line x1="0" y1="282" x2="900" y2="278" stroke="rgba(30,64,175,0.06)" strokeWidth="1" />
     </svg>
   );
 }
 
+/* ── Main component ── */
 export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated }: HomePageProps) {
+  const [visible, setVisible] = useState(false);
+
   const cMin = useCounter(stats.total_minerals);
   const cLoc = useCounter(stats.total_locations);
   const cCol = useCounter(stats.total_colors);
   const cShl = useCounter(stats.total_shelves);
 
   useEffect(() => {
-    fetch('/api/last-updated')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => d && setLastUpdated(d.last_updated))
-      .catch(() => {});
+    (async () => {
+      try {
+        const res = await fetch('/api/last-updated');
+        if (res.ok) setLastUpdated((await res.json()).last_updated);
+      } catch {}
+    })();
+    const t = setTimeout(() => setVisible(true), 80);
+    return () => clearTimeout(t);
   }, []);
 
   return (
-    <section className="page active hp-root">
+    <section className={`page active hp-root ${visible ? 'hp-visible' : ''}`}>
 
-      {/* ─────────────────────────────────────
-          HERO
-      ───────────────────────────────────── */}
+      {/* ══ HERO ══ */}
       <div className="hp-hero">
-        <StrataBackground />
+        <GeoCanvas />
+        <div className="hp-hero-diagonal" />
 
         <div className="container hp-hero-inner">
-          {/* Left — text, intentionally a bit offset */}
           <div className="hp-hero-text">
-            <p className="hp-school-label">Samuel von Pufendorf Gymnasium Flöha</p>
-
-            <h1 className="hp-headline">
-              Mineralien<br />
-              <span className="hp-headline-and">&amp;</span>{' '}
-              <span className="hp-headline-second">Gesteine</span>
+            <h1 className="hp-title">
+              <span className="hp-title-main">Mineralien</span>
+              <span className="hp-title-main hp-title-main--indent">&amp; Gesteine</span>
+              <span className="hp-title-sub">Digitale Sammlung</span>
             </h1>
-
-            <p className="hp-intro">
-              Dieses Projekt entstand aus einer Schülerarbeit. Wir haben die Mineraliensammlung 
-              unserer Schule sortiert, fotografiert und für alle zugänglich gemacht — 
-              von jedem Gerät aus, kostenlos.
+            <p className="hp-lead">
+              Eine vollständig digitalisierte Schulsammlung —
+              systematisch erfasst, interaktiv erkundbar
+              und wissenschaftlich dokumentiert.
             </p>
-
-            <div className="hp-actions">
-              <button className="hp-btn-main" onClick={() => showPage('collection')}>
-                Sammlung ansehen
+            <div className="hp-cta-row">
+              <button className="hp-btn hp-btn--primary" onClick={() => showPage('collection')}>
+                Sammlung erkunden
               </button>
-              <button className="hp-btn-sec" onClick={() => showPage('vitrines')}>
-                Wo liegt was? →
+              <button className="hp-btn hp-btn--outline" onClick={() => showPage('vitrines')}>
+                Vitrinen ansehen
               </button>
             </div>
           </div>
 
-          {/* Right — geological cross-section diagram */}
-          <div className="hp-hero-diagram" aria-hidden>
-            <svg viewBox="0 0 280 320" className="hp-section-svg" xmlns="http://www.w3.org/2000/svg">
-              {/* Layer fills — wavy, slightly irregular */}
-              <path d="M0,20  Q70,14  140,22 Q210,30  280,18 L280,62 Q210,70 140,64 Q70,58  0,66 Z"  fill="rgba(203,213,225,0.6)"/>
-              <path d="M0,66  Q70,58  140,64 Q210,70 280,62 L280,108 Q210,116 140,110 Q70,104 0,112 Z" fill="rgba(148,163,184,0.55)"/>
-              <path d="M0,112 Q70,104 140,110 Q210,116 280,108 L280,158 Q210,168 140,162 Q70,156 0,164 Z" fill="rgba(100,116,139,0.5)"/>
-              <path d="M0,164 Q70,156 140,162 Q210,168 280,158 L280,214 Q210,224 140,218 Q70,212 0,220 Z" fill="rgba(71,85,105,0.48)"/>
-              <path d="M0,220 Q70,212 140,218 Q210,224 280,214 L280,274 Q210,284 140,278 Q70,272 0,280 Z" fill="rgba(51,65,85,0.44)"/>
-              <path d="M0,280 Q70,272 140,278 Q210,284 280,274 L280,320 L0,320 Z"                       fill="rgba(30,41,59,0.42)"/>
+          {/* Pure SVG crystal composition — no emojis */}
+          <div className="hp-hero-visual" aria-hidden>
+            <svg className="hp-crystal-svg" viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg">
+              {/* Outer hexagon — rotates in CSS */}
+              <polygon className="hp-svg-spin-slow" points="160,18 272,82 272,210 160,274 48,210 48,82"
+                stroke="rgba(30,64,175,0.3)" strokeWidth="1.5" fill="rgba(30,64,175,0.04)" />
+              {/* Mid hexagon — counter-rotates */}
+              <polygon className="hp-svg-spin-rev" points="160,52 247,101 247,199 160,248 73,199 73,101"
+                stroke="rgba(14,165,233,0.22)" strokeWidth="1" fill="rgba(14,165,233,0.03)" />
+              {/* Central diamond */}
+              <polygon points="160,88 215,160 160,232 105,160"
+                stroke="rgba(30,64,175,0.65)" strokeWidth="2" fill="rgba(30,64,175,0.09)" />
+              {/* Facet lines */}
+              <line x1="160" y1="88" x2="160" y2="232" stroke="rgba(30,64,175,0.22)" strokeWidth="1"/>
+              <line x1="105" y1="160" x2="215" y2="160" stroke="rgba(30,64,175,0.22)" strokeWidth="1"/>
+              <line x1="105" y1="160" x2="160" y2="88" stroke="rgba(14,165,233,0.18)" strokeWidth="0.8"/>
+              <line x1="215" y1="160" x2="160" y2="88" stroke="rgba(14,165,233,0.18)" strokeWidth="0.8"/>
+              <line x1="105" y1="160" x2="160" y2="232" stroke="rgba(14,165,233,0.14)" strokeWidth="0.8"/>
+              <line x1="215" y1="160" x2="160" y2="232" stroke="rgba(14,165,233,0.14)" strokeWidth="0.8"/>
+              {/* Floating corner accents */}
+              <polygon points="160,282 188,314 132,314"
+                stroke="rgba(30,64,175,0.28)" strokeWidth="1.2" fill="rgba(30,64,175,0.06)" />
+              <polygon points="44,48 68,22 92,48 68,74"
+                stroke="rgba(14,165,233,0.22)" strokeWidth="1" fill="rgba(14,165,233,0.04)" />
+              <polygon points="252,24 274,50 252,76 230,50"
+                stroke="rgba(30,64,175,0.18)" strokeWidth="1" fill="rgba(30,64,175,0.03)" />
+              {/* Background strata */}
+              <line x1="28" y1="138" x2="292" y2="150" stroke="rgba(100,116,139,0.14)" strokeWidth="1" strokeDasharray="6 9"/>
+              <line x1="28" y1="168" x2="292" y2="176" stroke="rgba(100,116,139,0.11)" strokeWidth="1" strokeDasharray="6 9"/>
+            </svg>
+          </div>
+        </div>
 
-              {/* Layer borders */}
-              {[66,112,164,220,280].map(y => (
-                <path key={y}
-                  d={`M0,${y} Q70,${y-6} 140,${y} Q210,${y+6} 280,${y-2}`}
-                  stroke="rgba(30,64,175,0.2)" strokeWidth="1" fill="none"
-                />
+        <div className="hp-mountain-wrapper">
+          <MountainSVG />
+        </div>
+      </div>
+
+      {/* ══ STATS ══ */}
+      <div className="hp-stats">
+        <div className="container hp-stats-grid">
+          {[
+            { value: cMin, label: 'Mineralien', shape: 'hex' },
+            { value: cLoc, label: 'Fundorte',   shape: 'dia' },
+            { value: cCol, label: 'Farben',     shape: 'tri' },
+            { value: cShl, label: 'Regale',     shape: 'sqr' },
+          ].map((s, i) => (
+            <div className="hp-stat" key={i} style={{ '--delay': `${i * 0.1}s` } as React.CSSProperties}>
+              <div className={`hp-stat-shape hp-stat-shape--${s.shape}`} />
+              <span className="hp-stat-value">{s.value}</span>
+              <span className="hp-stat-label">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ GEOLOGY SECTION ══ */}
+      <div className="hp-geo-section">
+        <div className="container hp-geo-inner">
+
+          {/* Strata cross-section diagram */}
+          <div className="hp-strata-wrap" aria-hidden>
+            <svg viewBox="0 0 340 380" className="hp-strata-svg" xmlns="http://www.w3.org/2000/svg">
+              {[
+                { y:28,  h:40, ca:'203,213,225', op:0.55 },
+                { y:76,  h:36, ca:'148,163,184', op:0.50 },
+                { y:120, h:46, ca:'100,116,139', op:0.45 },
+                { y:174, h:50, ca:'71,85,105',   op:0.42 },
+                { y:232, h:56, ca:'51,65,85',    op:0.38 },
+                { y:296, h:66, ca:'30,41,59',    op:0.35 },
+              ].map((l, i) => (
+                <g key={i}>
+                  <path
+                    d={`M0,${l.y} Q85,${l.y+(i%2===0?7:-7)} 170,${l.y+2} Q255,${l.y+(i%2===0?-6:6)} 340,${l.y} L340,${l.y+l.h} Q255,${l.y+l.h+(i%2===0?-5:5)} 170,${l.y+l.h+1} Q85,${l.y+l.h+(i%2===0?5:-5)} 0,${l.y+l.h} Z`}
+                    fill={`rgba(${l.ca},${l.op})`}
+                  />
+                  <path
+                    d={`M0,${l.y} Q85,${l.y+(i%2===0?7:-7)} 170,${l.y+2} Q255,${l.y+(i%2===0?-6:6)} 340,${l.y}`}
+                    stroke="rgba(30,64,175,0.18)" strokeWidth="1" fill="none"
+                  />
+                </g>
               ))}
-
-              {/* Intrusion / crystal vein */}
-              <polygon points="130,148 148,110 166,148 158,194 140,194"
-                stroke="rgba(30,64,175,0.55)" strokeWidth="1.5" fill="rgba(30,64,175,0.14)"/>
-              <line x1="140" y1="110" x2="140" y2="194" stroke="rgba(14,165,233,0.3)" strokeWidth="0.8"/>
-
-              {/* Fault line */}
-              <line x1="148" y1="0" x2="136" y2="320" stroke="rgba(30,64,175,0.22)" strokeWidth="1.2" strokeDasharray="5 8"/>
-
-              {/* Tick marks right side */}
-              {[43,89,138,192,252,300].map(y => (
-                <line key={y} x1="280" y1={y} x2="294" y2={y} stroke="rgba(100,116,139,0.4)" strokeWidth="1"/>
+              {/* Fault */}
+              <line x1="172" y1="0" x2="158" y2="370" stroke="rgba(30,64,175,0.28)" strokeWidth="1.5" strokeDasharray="5 7"/>
+              {/* Intrusion */}
+              <polygon points="145,192 170,150 195,192 182,242 158,242"
+                stroke="rgba(30,64,175,0.5)" strokeWidth="1.5" fill="rgba(30,64,175,0.13)" />
+              <line x1="160" y1="150" x2="160" y2="242" stroke="rgba(14,165,233,0.3)" strokeWidth="0.9"/>
+              {/* Labels dashes */}
+              {[48,94,143,199,260,329].map(y => (
+                <line key={y} x1="340" y1={y} x2="360" y2={y} stroke="rgba(100,116,139,0.35)" strokeWidth="1"/>
               ))}
             </svg>
-
-            {/* Layer labels — right of diagram, human handwriting-style font */}
-            <div className="hp-layer-labels">
-              <span>Sediment</span>
-              <span>Kalkstein</span>
-              <span>Tonschiefer</span>
-              <span>Metamorphit</span>
-              <span>Tiefengestein</span>
-              <span>Magma</span>
+            <div className="hp-strata-labels">
+              {['Sedimentgestein','Kalkstein','Tonschiefer','Metamorphit','Tiefengestein','Magma'].map(l => (
+                <span key={l} className="hp-strata-label">{l}</span>
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="hp-mountains-wrap">
-          <Mountains />
+          <div className="hp-geo-text">
+            <div className="hp-section-tag">Hintergrund</div>
+            <h2 className="hp-section-title">Über dieses Projekt</h2>
+            <p className="hp-about-body">
+              Die Mineraliensammlung ist Eigentum des{' '}
+              <strong>Samuel von Pufendorf Gymnasiums Flöha</strong>.
+              Lehrer und externe Fachleute haben die Sammlung über Jahrzehnte hinweg
+              zusammengetragen und stetig erweitert.
+            </p>
+            <p className="hp-about-body">
+              Im Jahr 2025 wurde im Rahmen einer <em>Komplexen Leistung</em> das Ziel gesetzt,
+              diese Sammlung vollständig zu digitalisieren, zu katalogisieren und für Schüler
+              und Interessierte zugänglich zu machen.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────
-          STATS — simple, no shapes
-      ───────────────────────────────────── */}
-      <div className="hp-stats">
+      {/* ══ IMPRESSUM ══ */}
+      <div className="hp-impressum">
         <div className="container">
-          <div className="hp-stats-row">
-            <div className="hp-stat">
-              <strong>{cMin}</strong>
-              <span>Mineralien in der Sammlung</span>
-            </div>
-            <div className="hp-stat-divider" />
-            <div className="hp-stat">
-              <strong>{cLoc}</strong>
-              <span>verschiedene Fundorte</span>
-            </div>
-            <div className="hp-stat-divider" />
-            <div className="hp-stat">
-              <strong>{cCol}</strong>
-              <span>erfasste Farben</span>
-            </div>
-            <div className="hp-stat-divider" />
-            <div className="hp-stat">
-              <strong>{cShl}</strong>
-              <span>Regale und Vitrinen</span>
-            </div>
+          <div className="hp-section-header">
+            <div className="hp-section-tag">Impressum</div>
+            <h2 className="hp-section-title">Kontakt &amp; Informationen</h2>
           </div>
-        </div>
-      </div>
 
-      {/* ─────────────────────────────────────
-          ABOUT — editorial, two-column with pull quote
-      ───────────────────────────────────── */}
-      <div className="hp-about">
-        <div className="container hp-about-inner">
-          <div className="hp-about-left">
-            <h2 className="hp-about-heading">Wie das hier entstanden ist</h2>
-            <p className="hp-about-pull">
-              „Eine Schublade mit Steinen. Keine Beschriftung. 
-              Keiner wusste mehr, woher sie kamen."
-            </p>
-          </div>
-          <div className="hp-about-right">
-            <p>
-              Die Mineraliensammlung des Samuel von Pufendorf Gymnasiums schlummerte jahrelang 
-              in Vitrinen und Schubladen. Lehrer und Fachleute hatten über Jahrzehnte Stücke 
-              zusammengetragen — aber eine systematische Übersicht fehlte.
-            </p>
-            <p>
-              Im Rahmen unserer Komplexen Leistung haben wir 2025 jeden einzelnen Stein 
-              in die Hand genommen, fotografiert, bestimmt und in diesen Katalog eingetragen. 
-              Das Ergebnis ist diese Website.
-            </p>
-            <div className="hp-about-tags">
-              <span>Geologie</span>
-              <span>Mineralogie</span>
-              <span>Schülerprojekt 2025</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────
-          IMPRESSUM
-      ───────────────────────────────────── */}
-      <div className="hp-imprint">
-        <div className="container">
-          <h2 className="hp-imprint-heading">Impressum</h2>
-
-          <div className="hp-imprint-grid">
+          <div className="hp-impressum-grid">
             {[
-              { init: 'MS', name: 'Marius Schmieder',  role: 'Schüler, 10c', mail: 'marius-schmieder@gymnasium-floeha.lernsax.de' },
-              { init: 'CE', name: 'Charlie Espig',     role: 'Schüler, 10c', mail: 'charlie-espig@gymnasium-floeha.lernsax.de' },
-              { init: 'MB', name: 'Manuela Barthel',   role: 'Lehrerin Geografie', mail: 'manuela-barthel@gymnasium-floeha.lernsax.de' },
+              { init:'MS', name:'Marius Schmieder', role:'Schüler der 10c', mail:'marius-schmieder@gymnasium-floeha.lernsax.de' },
+              { init:'CE', name:'Charlie Espig',    role:'Schüler der 10c', mail:'charlie-espig@gymnasium-floeha.lernsax.de' },
+              { init:'MB', name:'Manuela Barthel',  role:'Lehrerin — Geografie', mail:'manuela-barthel@gymnasium-floeha.lernsax.de' },
             ].map(p => (
-              <div className="hp-person" key={p.init}>
-                <div className="hp-person-init">{p.init}</div>
+              <div key={p.init} className="hp-imp-card">
+                <div className="hp-imp-avatar">{p.init}</div>
                 <div>
-                  <p className="hp-person-name">{p.name}</p>
-                  <p className="hp-person-role">{p.role}</p>
-                  <a className="hp-person-mail" href={`mailto:${p.mail}`}>{p.mail}</a>
+                  <p className="hp-imp-name">{p.name}</p>
+                  <p className="hp-imp-role">{p.role}</p>
+                  <a className="hp-imp-mail" href={`mailto:${p.mail}`}>{p.mail}</a>
                 </div>
               </div>
             ))}
-          </div>
 
-          <div className="hp-imprint-meta">
-            <div className="hp-imprint-school">
-              <strong>Samuel von Pufendorf Gymnasium Flöha</strong><br />
-              Turnerstraße 16, 09557 Flöha —{' '}
-              <a href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
-                gymnasium-floeha.de
-              </a>
-            </div>
-
-            <div className="hp-imprint-contrib">
-              <span className="hp-imprint-label">Mitwirkende</span>
-              <p>Marius Schmieder, Charlie Espig, Manuela Barthel, Matthias Albrecht, Lagertechnik.de</p>
-            </div>
-
-            {lastUpdated && (
-              <div className="hp-imprint-updated">
-                <span className="hp-imprint-label">Zuletzt aktualisiert</span>
-                <p>{new Date(lastUpdated).toLocaleDateString('de-DE', {
-                  year: 'numeric', month: 'long', day: 'numeric',
-                  hour: '2-digit', minute: '2-digit'
-                })}</p>
+            <div className="hp-imp-card hp-imp-card--wide">
+              <div className="hp-imp-avatar hp-imp-avatar--school">SvP</div>
+              <div>
+                <p className="hp-imp-name">Samuel von Pufendorf Gymnasium Flöha</p>
+                <p className="hp-imp-role">Turnerstraße 16 · 09557 Flöha, Deutschland</p>
+                <a className="hp-imp-mail" href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
+                  gymnasium-floeha.de
+                </a>
               </div>
-            )}
+            </div>
+
+            <div className="hp-imp-card hp-imp-card--contrib">
+              <p className="hp-imp-contrib-label">Mitwirkende</p>
+              <div className="hp-imp-contrib-list">
+                {['Marius Schmieder','Charlie Espig','Manuela Barthel','Matthias Albrecht','Lagertechnik.de'].map(n => (
+                  <span key={n} className="hp-imp-contrib-name">{n}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="hp-imp-card hp-imp-card--update">
+              <p className="hp-imp-contrib-label">Letzte Aktualisierung</p>
+              <p className="hp-imp-update-date">
+                {lastUpdated
+                  ? new Date(lastUpdated).toLocaleDateString('de-DE', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+                  : 'Wird geladen…'}
+              </p>
+            </div>
           </div>
 
-          <div className="hp-imprint-links">
-            <button onClick={() => showPage('impressum')}>Vollständiges Impressum</button>
-            <button onClick={() => showPage('quellen')}>Quellen &amp; Literatur</button>
-            <button onClick={() => showPage('kontakt')}>Kontakt</button>
+          <div className="hp-impressum-links">
+            <button className="hp-imp-link" onClick={() => showPage('impressum')}>Vollständiges Impressum</button>
+            <button className="hp-imp-link" onClick={() => showPage('quellen')}>Quellen &amp; Literatur</button>
+            <button className="hp-imp-link" onClick={() => showPage('kontakt')}>Kontakt &amp; Support</button>
           </div>
         </div>
       </div>
-
     </section>
   );
 }
