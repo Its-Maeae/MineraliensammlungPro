@@ -8,271 +8,305 @@ interface HomePageProps {
   setLastUpdated: (date: string) => void;
 }
 
-export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated }: HomePageProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [counters, setCounters] = useState({ minerals: 0, locations: 0, colors: 0, shelves: 0 });
-
-  const loadLastUpdated = async () => {
-    try {
-      const response = await fetch('/api/last-updated');
-      if (response.ok) {
-        const data = await response.json();
-        setLastUpdated(data.last_updated);
-      }
-    } catch (error) {
-      console.error('Fehler beim Laden des letzten Update-Datums:', error);
-    }
-  };
-
+/* ── Animated counter hook ── */
+function useCounter(target: number, duration = 1600) {
+  const [val, setVal] = useState(0);
   useEffect(() => {
-    loadLastUpdated();
-    const t = setTimeout(() => setVisible(true), 100);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Animated counters
-  useEffect(() => {
-    if (!stats.total_minerals) return;
-    const duration = 1800;
+    if (!target) return;
+    let frame = 0;
     const steps = 60;
-    const interval = duration / steps;
-    let step = 0;
-    const timer = setInterval(() => {
-      step++;
-      const progress = step / steps;
-      const ease = 1 - Math.pow(1 - progress, 3);
-      setCounters({
-        minerals: Math.floor(ease * stats.total_minerals),
-        locations: Math.floor(ease * stats.total_locations),
-        colors: Math.floor(ease * stats.total_colors),
-        shelves: Math.floor(ease * stats.total_shelves),
-      });
-      if (step >= steps) clearInterval(timer);
-    }, interval);
-    return () => clearInterval(timer);
-  }, [stats]);
+    const id = setInterval(() => {
+      frame++;
+      const ease = 1 - Math.pow(1 - frame / steps, 3);
+      setVal(Math.floor(ease * target));
+      if (frame >= steps) clearInterval(id);
+    }, duration / steps);
+    return () => clearInterval(id);
+  }, [target, duration]);
+  return val;
+}
 
-  // Particle canvas
+/* ── Geological canvas: strata + drifting crystal polygons ── */
+function GeoCanvas() {
+  const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    let raf: number;
 
-    let animId: number;
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
     resize();
     window.addEventListener('resize', resize);
 
-    const particles: { x: number; y: number; vx: number; vy: number; size: number; opacity: number; hue: number }[] = [];
-    for (let i = 0; i < 55; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        size: Math.random() * 2.5 + 0.5,
-        opacity: Math.random() * 0.5 + 0.15,
-        hue: Math.random() > 0.5 ? 214 : 196, // blue or cyan
-      });
-    }
+    const crystals = [
+      { cx: 0.72, cy: 0.18, r: 55, sides: 6, rot: 0.3, drot: 0.0004, op: 0.10, col: '30,64,175' },
+      { cx: 0.85, cy: 0.55, r: 32, sides: 4, rot: 0.8, drot: -0.0005, op: 0.08, col: '30,64,175' },
+      { cx: 0.60, cy: 0.72, r: 20, sides: 3, rot: 0.2, drot: 0.0007, op: 0.07, col: '14,165,233' },
+      { cx: 0.88, cy: 0.28, r: 16, sides: 5, rot: 1.1, drot: 0.0005, op: 0.09, col: '59,130,246' },
+      { cx: 0.76, cy: 0.86, r: 26, sides: 6, rot: 0.5, drot: -0.0003, op: 0.07, col: '30,64,175' },
+      { cx: 0.62, cy: 0.38, r: 12, sides: 4, rot: 0.0, drot: 0.0008, op: 0.09, col: '14,165,233' },
+    ];
+
+    const strata = Array.from({ length: 8 }, (_, i) => ({
+      y: 0.08 + i * 0.11,
+      amp: 5 + i * 2,
+      freq: 0.007 + i * 0.002,
+      phase: Math.random() * Math.PI * 2,
+      dphase: 0.0006 + i * 0.0002,
+      op: 0.045 + i * 0.008,
+      w: 0.7 + Math.random() * 0.7,
+    }));
+
+    const drawPoly = (cx: number, cy: number, r: number, sides: number, rot: number, op: number, col: string) => {
+      ctx.beginPath();
+      for (let s = 0; s < sides; s++) {
+        const a = rot + (s / sides) * Math.PI * 2;
+        s === 0 ? ctx.moveTo(cx + Math.cos(a)*r, cy + Math.sin(a)*r)
+                : ctx.lineTo(cx + Math.cos(a)*r, cy + Math.sin(a)*r);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(${col},${op})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.fillStyle = `rgba(${col},${op * 0.28})`;
+      ctx.fill();
+    };
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-
+      strata.forEach(s => {
+        s.phase += s.dphase;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.opacity})`;
-        ctx.fill();
-      });
-
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(96, 165, 250, ${0.12 * (1 - dist / 100)})`;
-            ctx.lineWidth = 0.6;
-            ctx.stroke();
-          }
+        for (let x = 0; x <= canvas.width; x += 4) {
+          const y = s.y * canvas.height + Math.sin(x * s.freq + s.phase) * s.amp;
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         }
-      }
-      animId = requestAnimationFrame(draw);
+        ctx.strokeStyle = `rgba(30,64,175,${s.op})`;
+        ctx.lineWidth = s.w;
+        ctx.stroke();
+      });
+      crystals.forEach(c => {
+        c.rot += c.drot;
+        drawPoly(c.cx * canvas.width, c.cy * canvas.height, c.r, c.sides, c.rot, c.op, c.col);
+      });
+      raf = requestAnimationFrame(draw);
     };
     draw();
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', resize);
-    };
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, []);
+  return <canvas ref={ref} className="hp-geo-canvas" />;
+}
+
+/* ── Mountain SVG ── */
+function MountainSVG() {
+  return (
+    <svg className="hp-mountain-svg" viewBox="0 0 900 300" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+      {/* Back range */}
+      <polygon points="0,240 90,110 175,180 260,80 360,155 455,60 550,145 640,95 725,160 810,85 900,130 900,300 0,300" fill="rgba(148,163,184,0.22)" />
+      {/* Mid range */}
+      <polygon points="0,290 55,200 120,245 195,155 270,220 355,135 435,205 510,130 595,195 670,148 750,205 825,162 900,188 900,300 0,300" fill="rgba(100,116,139,0.28)" />
+      {/* Front range — sharpest */}
+      <polygon points="0,300 0,275 65,210 120,258 185,175 245,238 320,152 390,222 455,168 520,238 590,162 655,228 720,178 790,250 865,192 900,215 900,300" fill="rgba(51,65,85,0.32)" />
+      {/* Crystal peak accents */}
+      <polyline points="320,152 342,120 364,152" stroke="rgba(30,64,175,0.45)" strokeWidth="1.5" fill="none" />
+      <polyline points="185,175 203,148 221,175" stroke="rgba(14,165,233,0.35)" strokeWidth="1.2" fill="none" />
+      <polyline points="455,60 475,32 495,60" stroke="rgba(30,64,175,0.3)" strokeWidth="1" fill="none" />
+      {/* Tectonic fault lines */}
+      <line x1="455" y1="300" x2="440" y2="60" stroke="rgba(30,64,175,0.18)" strokeWidth="1.2" strokeDasharray="5 8" />
+      <line x1="260" y1="300" x2="250" y2="80" stroke="rgba(14,165,233,0.13)" strokeWidth="1" strokeDasharray="4 7" />
+      {/* Strata hints */}
+      <line x1="0" y1="268" x2="900" y2="262" stroke="rgba(30,64,175,0.08)" strokeWidth="1.5" />
+      <line x1="0" y1="282" x2="900" y2="278" stroke="rgba(30,64,175,0.06)" strokeWidth="1" />
+    </svg>
+  );
+}
+
+/* ── Main component ── */
+export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated }: HomePageProps) {
+  const [visible, setVisible] = useState(false);
+
+  const cMin = useCounter(stats.total_minerals);
+  const cLoc = useCounter(stats.total_locations);
+  const cCol = useCounter(stats.total_colors);
+  const cShl = useCounter(stats.total_shelves);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/last-updated');
+        if (res.ok) setLastUpdated((await res.json()).last_updated);
+      } catch {}
+    })();
+    const t = setTimeout(() => setVisible(true), 80);
+    return () => clearTimeout(t);
   }, []);
 
-  const showImpressumPage = () => showPage('impressum');
-  const showQuellenPage = () => showPage('quellen');
-  const showKontaktPage = () => showPage('kontakt');
-
   return (
-    <section className="page active hp-root">
+    <section className={`page active hp-root ${visible ? 'hp-visible' : ''}`}>
 
-      {/* ── HERO ── */}
-      <div className={`hp-hero ${visible ? 'hp-hero--visible' : ''}`}>
-        <canvas ref={canvasRef} className="hp-hero-canvas" />
-
-        {/* geological texture overlay */}
-        <div className="hp-hero-texture" />
+      {/* ══ HERO ══ */}
+      <div className="hp-hero">
+        <GeoCanvas />
+        <div className="hp-hero-diagonal" />
 
         <div className="container hp-hero-inner">
-          <div className="hp-hero-left">
+          <div className="hp-hero-text">
             <span className="hp-eyebrow">Samuel von Pufendorf Gymnasium · Flöha</span>
             <h1 className="hp-title">
-              <span className="hp-title-line hp-title-line--1">Mineralien</span>
-              <span className="hp-title-line hp-title-line--2">&amp; Gesteine</span>
-              <span className="hp-title-line hp-title-line--accent">Sammlung</span>
+              <span className="hp-title-main">Mineralien</span>
+              <span className="hp-title-main hp-title-main--indent">&amp; Gesteine</span>
+              <span className="hp-title-sub">Digitale Sammlung</span>
             </h1>
             <p className="hp-lead">
-              Eine vollständig digitalisierte Schulsammlung — systematisch erfasst, 
-              interaktiv erkundbar und wissenschaftlich dokumentiert.
+              Eine vollständig digitalisierte Schulsammlung —
+              systematisch erfasst, interaktiv erkundbar
+              und wissenschaftlich dokumentiert.
             </p>
             <div className="hp-cta-row">
               <button className="hp-btn hp-btn--primary" onClick={() => showPage('collection')}>
-                <span className="hp-btn-icon">◈</span>
                 Sammlung erkunden
               </button>
-              <button className="hp-btn hp-btn--ghost" onClick={() => showPage('vitrines')}>
-                <span className="hp-btn-icon">⬡</span>
+              <button className="hp-btn hp-btn--outline" onClick={() => showPage('vitrines')}>
                 Vitrinen ansehen
               </button>
             </div>
           </div>
 
-          <div className="hp-hero-right">
-            <div className="hp-gem-wrapper">
-              <div className="hp-gem-ring hp-gem-ring--outer" />
-              <div className="hp-gem-ring hp-gem-ring--mid" />
-              <div className="hp-gem-ring hp-gem-ring--inner" />
-              <div className="hp-gem-core">💎</div>
-              <span className="hp-gem-orbit hp-gem-orbit--1">✦</span>
-              <span className="hp-gem-orbit hp-gem-orbit--2">◆</span>
-              <span className="hp-gem-orbit hp-gem-orbit--3">✧</span>
-              <span className="hp-gem-orbit hp-gem-orbit--4">◇</span>
-            </div>
+          {/* Pure SVG crystal composition — no emojis */}
+          <div className="hp-hero-visual" aria-hidden>
+            <svg className="hp-crystal-svg" viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg">
+              {/* Outer hexagon — rotates in CSS */}
+              <polygon className="hp-svg-spin-slow" points="160,18 272,82 272,210 160,274 48,210 48,82"
+                stroke="rgba(30,64,175,0.3)" strokeWidth="1.5" fill="rgba(30,64,175,0.04)" />
+              {/* Mid hexagon — counter-rotates */}
+              <polygon className="hp-svg-spin-rev" points="160,52 247,101 247,199 160,248 73,199 73,101"
+                stroke="rgba(14,165,233,0.22)" strokeWidth="1" fill="rgba(14,165,233,0.03)" />
+              {/* Central diamond */}
+              <polygon points="160,88 215,160 160,232 105,160"
+                stroke="rgba(30,64,175,0.65)" strokeWidth="2" fill="rgba(30,64,175,0.09)" />
+              {/* Facet lines */}
+              <line x1="160" y1="88" x2="160" y2="232" stroke="rgba(30,64,175,0.22)" strokeWidth="1"/>
+              <line x1="105" y1="160" x2="215" y2="160" stroke="rgba(30,64,175,0.22)" strokeWidth="1"/>
+              <line x1="105" y1="160" x2="160" y2="88" stroke="rgba(14,165,233,0.18)" strokeWidth="0.8"/>
+              <line x1="215" y1="160" x2="160" y2="88" stroke="rgba(14,165,233,0.18)" strokeWidth="0.8"/>
+              <line x1="105" y1="160" x2="160" y2="232" stroke="rgba(14,165,233,0.14)" strokeWidth="0.8"/>
+              <line x1="215" y1="160" x2="160" y2="232" stroke="rgba(14,165,233,0.14)" strokeWidth="0.8"/>
+              {/* Floating corner accents */}
+              <polygon points="160,282 188,314 132,314"
+                stroke="rgba(30,64,175,0.28)" strokeWidth="1.2" fill="rgba(30,64,175,0.06)" />
+              <polygon points="44,48 68,22 92,48 68,74"
+                stroke="rgba(14,165,233,0.22)" strokeWidth="1" fill="rgba(14,165,233,0.04)" />
+              <polygon points="252,24 274,50 252,76 230,50"
+                stroke="rgba(30,64,175,0.18)" strokeWidth="1" fill="rgba(30,64,175,0.03)" />
+              {/* Background strata */}
+              <line x1="28" y1="138" x2="292" y2="150" stroke="rgba(100,116,139,0.14)" strokeWidth="1" strokeDasharray="6 9"/>
+              <line x1="28" y1="168" x2="292" y2="176" stroke="rgba(100,116,139,0.11)" strokeWidth="1" strokeDasharray="6 9"/>
+            </svg>
           </div>
         </div>
 
-        <div className="hp-hero-scroll">
-          <span className="hp-scroll-label">Entdecken</span>
-          <div className="hp-scroll-line" />
+        <div className="hp-mountain-wrapper">
+          <MountainSVG />
         </div>
       </div>
 
-      {/* ── STATS ── */}
+      {/* ══ STATS ══ */}
       <div className="hp-stats">
         <div className="container hp-stats-grid">
           {[
-            { value: counters.minerals, label: 'Mineralien', icon: '◈', suffix: '+' },
-            { value: counters.locations, label: 'Fundorte', icon: '⌖', suffix: '' },
-            { value: counters.colors, label: 'Farben', icon: '◉', suffix: '' },
-            { value: counters.shelves, label: 'Regale', icon: '⬡', suffix: '' },
+            { value: cMin, label: 'Mineralien', shape: 'hex' },
+            { value: cLoc, label: 'Fundorte',   shape: 'dia' },
+            { value: cCol, label: 'Farben',     shape: 'tri' },
+            { value: cShl, label: 'Regale',     shape: 'sqr' },
           ].map((s, i) => (
-            <div className="hp-stat" key={i} style={{ '--delay': `${i * 0.12}s` } as React.CSSProperties}>
-              <span className="hp-stat-icon">{s.icon}</span>
-              <span className="hp-stat-value">{s.value}{s.suffix}</span>
+            <div className="hp-stat" key={i} style={{ '--delay': `${i * 0.1}s` } as React.CSSProperties}>
+              <div className={`hp-stat-shape hp-stat-shape--${s.shape}`} />
+              <span className="hp-stat-value">{s.value}</span>
               <span className="hp-stat-label">{s.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── FEATURES ── */}
-      <div className="hp-features">
-        <div className="container">
-          <div className="hp-section-header">
-            <div className="hp-section-tag">Funktionen</div>
-            <h2 className="hp-section-title">Was dich erwartet</h2>
-          </div>
+      {/* ══ GEOLOGY SECTION ══ */}
+      <div className="hp-geo-section">
+        <div className="container hp-geo-inner">
 
-          <div className="hp-features-grid">
-            {[
-              {
-                icon: '🔬',
-                title: 'Detailkatalog',
-                desc: 'Jedes Mineral mit Fundort, Farbe, Härte und wissenschaftlicher Klassifikation vollständig dokumentiert.',
-                action: () => showPage('collection'),
-                cta: 'Zur Sammlung',
-              },
-              {
-                icon: '🗺️',
-                title: 'Fundort-Karte',
-                desc: 'Interaktive Weltkarte zeigt, woher jeder Stein stammt — von Sachsen bis Südamerika.',
-                action: () => showPage('map'),
-                cta: 'Karte öffnen',
-              },
-              {
-                icon: '📦',
-                title: 'Vitrinenplan',
-                desc: 'Digitaler Grundriss aller Vitrinen und Regale. Finde jeden Stein auf Anhieb.',
-                action: () => showPage('vitrines'),
-                cta: 'Vitrinen',
-              },
-            ].map((f, i) => (
-              <div
-                className="hp-feature-card"
-                key={i}
-                onClick={f.action}
-                style={{ '--delay': `${i * 0.15}s` } as React.CSSProperties}
-              >
-                <div className="hp-feature-icon">{f.icon}</div>
-                <h3 className="hp-feature-title">{f.title}</h3>
-                <p className="hp-feature-desc">{f.desc}</p>
-                <span className="hp-feature-link">{f.cta} →</span>
-                <div className="hp-feature-glow" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── ABOUT ── */}
-      <div className="hp-about">
-        <div className="container hp-about-inner">
-          <div className="hp-about-decoration">
-            <div className="hp-crystal-large">🪨</div>
-            <div className="hp-about-lines">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="hp-about-line" style={{ '--i': i } as React.CSSProperties} />
+          {/* Strata cross-section diagram */}
+          <div className="hp-strata-wrap" aria-hidden>
+            <svg viewBox="0 0 340 380" className="hp-strata-svg" xmlns="http://www.w3.org/2000/svg">
+              {[
+                { y:28,  h:40, ca:'203,213,225', op:0.55 },
+                { y:76,  h:36, ca:'148,163,184', op:0.50 },
+                { y:120, h:46, ca:'100,116,139', op:0.45 },
+                { y:174, h:50, ca:'71,85,105',   op:0.42 },
+                { y:232, h:56, ca:'51,65,85',    op:0.38 },
+                { y:296, h:66, ca:'30,41,59',    op:0.35 },
+              ].map((l, i) => (
+                <g key={i}>
+                  <path
+                    d={`M0,${l.y} Q85,${l.y+(i%2===0?7:-7)} 170,${l.y+2} Q255,${l.y+(i%2===0?-6:6)} 340,${l.y} L340,${l.y+l.h} Q255,${l.y+l.h+(i%2===0?-5:5)} 170,${l.y+l.h+1} Q85,${l.y+l.h+(i%2===0?5:-5)} 0,${l.y+l.h} Z`}
+                    fill={`rgba(${l.ca},${l.op})`}
+                  />
+                  <path
+                    d={`M0,${l.y} Q85,${l.y+(i%2===0?7:-7)} 170,${l.y+2} Q255,${l.y+(i%2===0?-6:6)} 340,${l.y}`}
+                    stroke="rgba(30,64,175,0.18)" strokeWidth="1" fill="none"
+                  />
+                </g>
+              ))}
+              {/* Fault */}
+              <line x1="172" y1="0" x2="158" y2="370" stroke="rgba(30,64,175,0.28)" strokeWidth="1.5" strokeDasharray="5 7"/>
+              {/* Intrusion */}
+              <polygon points="145,192 170,150 195,192 182,242 158,242"
+                stroke="rgba(30,64,175,0.5)" strokeWidth="1.5" fill="rgba(30,64,175,0.13)" />
+              <line x1="160" y1="150" x2="160" y2="242" stroke="rgba(14,165,233,0.3)" strokeWidth="0.9"/>
+              {/* Labels dashes */}
+              {[48,94,143,199,260,329].map(y => (
+                <line key={y} x1="340" y1={y} x2="360" y2={y} stroke="rgba(100,116,139,0.35)" strokeWidth="1"/>
+              ))}
+            </svg>
+            <div className="hp-strata-labels">
+              {['Sedimentgestein','Kalkstein','Tonschiefer','Metamorphit','Tiefengestein','Magma'].map(l => (
+                <span key={l} className="hp-strata-label">{l}</span>
               ))}
             </div>
           </div>
-          <div className="hp-about-text">
+
+          <div className="hp-geo-text">
             <div className="hp-section-tag">Hintergrund</div>
             <h2 className="hp-section-title">Über dieses Projekt</h2>
             <p className="hp-about-body">
-              Die Mineraliensammlung ist Eigentum des <strong>Samuel von Pufendorf Gymnasiums Flöha</strong>. 
-              Lehrer und externe Fachleute haben die Sammlung über Jahrzehnte hinweg zusammengetragen 
-              und stetig erweitert.
+              Die Mineraliensammlung ist Eigentum des{' '}
+              <strong>Samuel von Pufendorf Gymnasiums Flöha</strong>.
+              Lehrer und externe Fachleute haben die Sammlung über Jahrzehnte hinweg
+              zusammengetragen und stetig erweitert.
             </p>
             <p className="hp-about-body">
-              Im Jahr 2025 wurde im Rahmen einer <em>Komplexen Leistung</em> das Ziel gesetzt, 
-              diese umfangreiche Sammlung vollständig zu digitalisieren, zu katalogisieren und 
-              für Schüler und Interessierte zugänglich zu machen.
+              Im Jahr 2025 wurde im Rahmen einer <em>Komplexen Leistung</em> das Ziel gesetzt,
+              diese Sammlung vollständig zu digitalisieren, zu katalogisieren und für Schüler
+              und Interessierte zugänglich zu machen.
             </p>
-            <div className="hp-about-tags">
-              {['Geologie', 'Mineralogie', 'Schülerprojekt 2025', 'Open Catalogue'].map(tag => (
+
+            <div className="hp-process">
+              {[
+                { num: '01', title: 'Erfassung',      desc: 'Jedes Mineral physisch begutachtet und fotografisch dokumentiert.' },
+                { num: '02', title: 'Klassifikation', desc: 'Einordnung nach Mineralklasse, Härte, Farbe und Fundort.' },
+                { num: '03', title: 'Digitalisierung',desc: 'Online-Katalog mit Suche, Fundort-Karte und Vitrinenplan.' },
+              ].map(p => (
+                <div key={p.num} className="hp-process-step">
+                  <div className="hp-process-num">{p.num}</div>
+                  <div>
+                    <p className="hp-process-title">{p.title}</p>
+                    <p className="hp-process-desc">{p.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hp-tags-row">
+              {['Geologie','Mineralogie','Schülerprojekt 2025','Open Catalogue'].map(tag => (
                 <span key={tag} className="hp-tag">{tag}</span>
               ))}
             </div>
@@ -280,7 +314,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
         </div>
       </div>
 
-      {/* ── IMPRESSUM ── */}
+      {/* ══ IMPRESSUM ══ */}
       <div className="hp-impressum">
         <div className="container">
           <div className="hp-section-header">
@@ -289,41 +323,23 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
           </div>
 
           <div className="hp-impressum-grid">
-            <div className="hp-imp-card">
-              <div className="hp-imp-avatar">MS</div>
-              <div>
-                <p className="hp-imp-name">Marius Schmieder</p>
-                <p className="hp-imp-role">Schüler der 10c</p>
-                <a className="hp-imp-mail" href="mailto:marius-schmieder@gymnasium-floeha.lernsax.de">
-                  marius-schmieder@gymnasium-floeha.lernsax.de
-                </a>
+            {[
+              { init:'MS', name:'Marius Schmieder', role:'Schüler der 10c', mail:'marius-schmieder@gymnasium-floeha.lernsax.de' },
+              { init:'CE', name:'Charlie Espig',    role:'Schüler der 10c', mail:'charlie-espig@gymnasium-floeha.lernsax.de' },
+              { init:'MB', name:'Manuela Barthel',  role:'Lehrerin — Geografie', mail:'manuela-barthel@gymnasium-floeha.lernsax.de' },
+            ].map(p => (
+              <div key={p.init} className="hp-imp-card">
+                <div className="hp-imp-avatar">{p.init}</div>
+                <div>
+                  <p className="hp-imp-name">{p.name}</p>
+                  <p className="hp-imp-role">{p.role}</p>
+                  <a className="hp-imp-mail" href={`mailto:${p.mail}`}>{p.mail}</a>
+                </div>
               </div>
-            </div>
-
-            <div className="hp-imp-card">
-              <div className="hp-imp-avatar">CE</div>
-              <div>
-                <p className="hp-imp-name">Charlie Espig</p>
-                <p className="hp-imp-role">Schüler der 10c</p>
-                <a className="hp-imp-mail" href="mailto:charlie-espig@gymnasium-floeha.lernsax.de">
-                  charlie-espig@gymnasium-floeha.lernsax.de
-                </a>
-              </div>
-            </div>
-
-            <div className="hp-imp-card">
-              <div className="hp-imp-avatar">MB</div>
-              <div>
-                <p className="hp-imp-name">Manuela Barthel</p>
-                <p className="hp-imp-role">Lehrerin – Geografie</p>
-                <a className="hp-imp-mail" href="mailto:manuela-barthel@gymnasium-floeha.lernsax.de">
-                  manuela-barthel@gymnasium-floeha.lernsax.de
-                </a>
-              </div>
-            </div>
+            ))}
 
             <div className="hp-imp-card hp-imp-card--wide">
-              <div className="hp-imp-avatar hp-imp-avatar--school">🏫</div>
+              <div className="hp-imp-avatar hp-imp-avatar--school">SvP</div>
               <div>
                 <p className="hp-imp-name">Samuel von Pufendorf Gymnasium Flöha</p>
                 <p className="hp-imp-role">Turnerstraße 16 · 09557 Flöha, Deutschland</p>
@@ -336,7 +352,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
             <div className="hp-imp-card hp-imp-card--contrib">
               <p className="hp-imp-contrib-label">Mitwirkende</p>
               <div className="hp-imp-contrib-list">
-                {['Marius Schmieder', 'Charlie Espig', 'Manuela Barthel', 'Matthias Albrecht', 'Lagertechnik.de'].map(n => (
+                {['Marius Schmieder','Charlie Espig','Manuela Barthel','Matthias Albrecht','Lagertechnik.de'].map(n => (
                   <span key={n} className="hp-imp-contrib-name">{n}</span>
                 ))}
               </div>
@@ -346,19 +362,16 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               <p className="hp-imp-contrib-label">Letzte Aktualisierung</p>
               <p className="hp-imp-update-date">
                 {lastUpdated
-                  ? new Date(lastUpdated).toLocaleDateString('de-DE', {
-                      year: 'numeric', month: 'long', day: 'numeric',
-                      hour: '2-digit', minute: '2-digit',
-                    })
+                  ? new Date(lastUpdated).toLocaleDateString('de-DE', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
                   : 'Wird geladen…'}
               </p>
             </div>
           </div>
 
           <div className="hp-impressum-links">
-            <button className="hp-imp-link" onClick={showImpressumPage}>Vollständiges Impressum</button>
-            <button className="hp-imp-link" onClick={showQuellenPage}>Quellen &amp; Literatur</button>
-            <button className="hp-imp-link" onClick={showKontaktPage}>Kontakt &amp; Support</button>
+            <button className="hp-imp-link" onClick={() => showPage('impressum')}>Vollständiges Impressum</button>
+            <button className="hp-imp-link" onClick={() => showPage('quellen')}>Quellen &amp; Literatur</button>
+            <button className="hp-imp-link" onClick={() => showPage('kontakt')}>Kontakt &amp; Support</button>
           </div>
         </div>
       </div>
