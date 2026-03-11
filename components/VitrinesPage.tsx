@@ -58,14 +58,13 @@ const RegalCard = React.memo(({
   return (
     <div className="regal-card">
       <div className="regal-header" onClick={handleRegalClick}>
-        {showcase.image_path && (
+        {showcase.image_path ? (
           <div className="regal-image-preview">
             <img src={`/uploads/${showcase.image_path}`} alt={showcase.name} loading="lazy" />
           </div>
-        )}
-        {!showcase.image_path && (
+        ) : (
           <div className="regal-image-preview">
-            <div className="regal-image-preview-placeholder"></div>
+            <div className="regal-image-preview-placeholder" />
           </div>
         )}
         
@@ -82,15 +81,11 @@ const RegalCard = React.memo(({
               <strong>{showcase.mineral_count || 0}</strong> Mineralien
             </div>
             {showcase.location && (
-              <div className="regal-meta-item">
-                {showcase.location}
-              </div>
+              <div className="regal-meta-item">{showcase.location}</div>
             )}
           </div>
           {showcase.description && (
-            <div className="regal-description">
-              {showcase.description}
-            </div>
+            <div className="regal-description">{showcase.description}</div>
           )}
         </div>
       </div>
@@ -100,11 +95,7 @@ const RegalCard = React.memo(({
         {boxes.length > 0 ? (
           <div className="box-preview-grid">
             {boxes.map((box: any) => (
-              <BoxSquare 
-                key={box.id}
-                box={box}
-                onBoxClick={onBoxClick}
-              />
+              <BoxSquare key={box.id} box={box} onBoxClick={onBoxClick} />
             ))}
           </div>
         ) : (
@@ -113,27 +104,21 @@ const RegalCard = React.memo(({
       </div>
     </div>
   );
-}, (prevProps, nextProps) => {
-  return prevProps.showcase.id === nextProps.showcase.id &&
-         prevProps.showcase.shelf_count === nextProps.showcase.shelf_count &&
-         prevProps.showcase.mineral_count === nextProps.showcase.mineral_count &&
-         prevProps.showcase.image_path === nextProps.showcase.image_path;
+}, (prev, next) => {
+  return prev.showcase.id === next.showcase.id &&
+         prev.showcase.shelf_count === next.showcase.shelf_count &&
+         prev.showcase.mineral_count === next.showcase.mineral_count &&
+         prev.showcase.image_path === next.showcase.image_path;
 });
 
-const BoxSquare = React.memo(({ 
-  box, 
-  onBoxClick 
-}: { 
-  box: any; 
-  onBoxClick: (boxId: number) => void;
-}) => {
+const BoxSquare = React.memo(({ box, onBoxClick }: { box: any; onBoxClick: (boxId: number) => void }) => {
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onBoxClick(box.id);
   }, [box.id, onBoxClick]);
 
   return (
-    <div 
+    <div
       className="box-square"
       onClick={handleClick}
       title={`${box.name} - ${box.mineral_count || 0} Mineralien`}
@@ -142,10 +127,7 @@ const BoxSquare = React.memo(({
       <div className="box-square-mineral-count">{box.mineral_count || 0}</div>
     </div>
   );
-}, (prevProps, nextProps) => {
-  return prevProps.box.id === nextProps.box.id &&
-         prevProps.box.mineral_count === nextProps.box.mineral_count;
-});
+}, (prev, next) => prev.box.id === next.box.id && prev.box.mineral_count === next.box.mineral_count);
 
 export default function VitrinesPage({ 
   showcases,
@@ -185,28 +167,13 @@ export default function VitrinesPage({
   const mineralCache = useRef<Map<number, Mineral>>(new Map());
   
   const clearCaches = useCallback((type: 'showcase' | 'shelf' | 'mineral', id: number) => {
-    console.log('Clearing cache for', type, id);
-    
-    if (type === 'showcase') {
-      showcaseCache.current.delete(id);
-    } else if (type === 'mineral') {
-      mineralCache.current.delete(id);
-    }
+    if (type === 'showcase') showcaseCache.current.delete(id);
+    else if (type === 'mineral') mineralCache.current.delete(id);
   }, []);
 
-  const [vitrineFormData, setVitrineFormData] = useState({
-    name: '',
-    code: '',
-    location: '',
-    description: ''
-  });
+  const [vitrineFormData, setVitrineFormData] = useState({ name: '', code: '', location: '', description: '' });
   const [vitrineImage, setVitrineImage] = useState<File | null>(null);
-  const [shelfFormData, setShelfFormData] = useState({
-    name: '',
-    code: '',
-    description: '',
-    position_order: 0
-  });
+  const [shelfFormData, setShelfFormData] = useState({ name: '', code: '', description: '', position_order: 0 });
   const [shelfImage, setShelfImage] = useState<File | null>(null);
   const [shelfLoading, setShelfLoading] = useState(false);
   const [showcaseLoading, setShowcaseLoading] = useState(false);
@@ -217,7 +184,6 @@ export default function VitrinesPage({
       const response = await fetch('/api/showcases');
       if (response.ok) {
         const data = await response.json();
-        
         const showcasesWithBoxes = await Promise.all(
           data.slice(0, 5).map(async (showcase: Showcase) => {
             try {
@@ -227,19 +193,11 @@ export default function VitrinesPage({
                 showcaseCache.current.set(showcase.id, detailData);
                 return detailData;
               }
-            } catch (error) {
-              console.error(`Fehler beim Laden der Boxen für Regal ${showcase.id}:`, error);
-            }
+            } catch {}
             return showcase;
           })
         );
-        
-        const allShowcases = [
-          ...showcasesWithBoxes,
-          ...data.slice(5)
-        ];
-        
-        setShowcases(allShowcases);
+        setShowcases([...showcasesWithBoxes, ...data.slice(5)]);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Regale:', error);
@@ -250,12 +208,10 @@ export default function VitrinesPage({
 
   const openShowcaseDetails = useCallback(async (id: number) => {
     if (showcaseCache.current.has(id)) {
-      const cached = showcaseCache.current.get(id)!;
-      setSelectedShowcase(cached);
+      setSelectedShowcase(showcaseCache.current.get(id)!);
       setShowShowcaseModal(true);
       return;
     }
-
     try {
       setShowcaseLoading(true);
       const response = await fetch(`/api/showcases/${id}`);
@@ -274,24 +230,18 @@ export default function VitrinesPage({
 
   const openShelfDetails = useCallback(async (shelfId: number) => {
     setShelfLoading(true);
-    
     try {
       const shelfResponse = await fetch(`/api/shelves/${shelfId}`);
-      
       if (shelfResponse.ok) {
         const shelfInfo = await shelfResponse.json();
-        
         setSelectedShelf(shelfInfo);
-        setShelfMinerals([]); 
+        setShelfMinerals([]);
         setShowShelfMineralsModal(true);
-        
       } else {
         const responseData = await shelfResponse.json();
-        console.error('Error loading box details:', responseData);
         alert('Fehler beim Laden der Box-Details: ' + (responseData.error || 'Unbekannter Fehler'));
       }
     } catch (error) {
-      console.error('Fehler beim Laden der Box-Details:', error);
       alert('Fehler beim Laden der Box-Details');
     } finally {
       setShelfLoading(false);
@@ -302,17 +252,14 @@ export default function VitrinesPage({
     setShowShelfMineralsModal(false);
     setSelectedShelf(null);
     setShelfMinerals([]);
-    console.log('Box geschlossen - Mineralien entladen');
   }, [setShowShelfMineralsModal, setSelectedShelf, setShelfMinerals]);
 
   const openMineralDetails = useCallback(async (id: number) => {
     if (mineralCache.current.has(id)) {
-      const cached = mineralCache.current.get(id)!;
-      setSelectedMineral(cached);
+      setSelectedMineral(mineralCache.current.get(id)!);
       setShowMineralModal(true);
       return;
     }
-
     try {
       const response = await fetch(`/api/minerals/${id}`);
       if (response.ok) {
@@ -327,42 +274,19 @@ export default function VitrinesPage({
   }, [setSelectedMineral, setShowMineralModal]);
 
   const handleEditShowcase = useCallback((showcase: Showcase) => {
-    setEditFormData({
-      id: showcase.id,
-      name: showcase.name,
-      code: showcase.code,
-      location: showcase.location || '',
-      description: showcase.description || ''
-    });
+    setEditFormData({ id: showcase.id, name: showcase.name, code: showcase.code, location: showcase.location || '', description: showcase.description || '' });
     setEditMode('showcase');
     setEditImage(null);
   }, [setEditFormData, setEditMode, setEditImage]);
 
   const handleEditShelf = useCallback((shelf: any) => {
-    setEditFormData({
-      id: shelf.id,
-      name: shelf.name || shelf.shelf_name,
-      code: shelf.code,
-      description: shelf.description || '',
-      position_order: shelf.position_order || 0,
-      showcase_id: shelf.showcase_id || selectedShowcase?.id
-    });
+    setEditFormData({ id: shelf.id, name: shelf.name || shelf.shelf_name, code: shelf.code, description: shelf.description || '', position_order: shelf.position_order || 0, showcase_id: shelf.showcase_id || selectedShowcase?.id });
     setEditMode('shelf');
     setEditImage(null);
   }, [setEditFormData, setEditMode, setEditImage, selectedShowcase]);
 
   const handleEditMineral = useCallback((mineral: Mineral) => {
-    setEditFormData({
-      id: mineral.id,
-      name: mineral.name,
-      number: mineral.number,
-      color: mineral.color || '',
-      description: mineral.description || '',
-      location: mineral.location || '',
-      purchase_location: mineral.purchase_location || '',
-      rock_type: mineral.rock_type || '',
-      shelf_id: mineral.shelf_id || ''
-    });
+    setEditFormData({ id: mineral.id, name: mineral.name, number: mineral.number, color: mineral.color || '', description: mineral.description || '', location: mineral.location || '', purchase_location: mineral.purchase_location || '', rock_type: mineral.rock_type || '', shelf_id: mineral.shelf_id || '' });
     setEditMode('mineral');
     setEditImage(null);
   }, [setEditFormData, setEditMode, setEditImage]);
@@ -370,30 +294,17 @@ export default function VitrinesPage({
   const handleVitrineSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const formData = new FormData();
       formData.append('name', vitrineFormData.name);
       formData.append('code', vitrineFormData.code);
       formData.append('location', vitrineFormData.location);
       formData.append('description', vitrineFormData.description);
-      
-      if (vitrineImage) {
-        formData.append('image', vitrineImage);
-      }
+      if (vitrineImage) formData.append('image', vitrineImage);
 
-      const response = await fetch('/api/showcases', {
-        method: 'POST',
-        body: formData
-      });
-
+      const response = await fetch('/api/showcases', { method: 'POST', body: formData });
       if (response.ok) {
-        setVitrineFormData({
-          name: '',
-          code: '',
-          location: '',
-          description: ''
-        });
+        setVitrineFormData({ name: '', code: '', location: '', description: '' });
         setVitrineImage(null);
         setShowVitrineForm(false);
         showcaseCache.current.clear();
@@ -401,21 +312,18 @@ export default function VitrinesPage({
         loadStats();
         alert('Regal erfolgreich hinzugefügt!');
       } else {
-        const error = await response.text();
-        alert('Fehler: ' + error);
+        alert('Fehler: ' + await response.text());
       }
     } catch (error) {
-      console.error('Fehler beim Hinzufügen des Regals:', error);
       alert('Fehler beim Hinzufügen des Regals');
     } finally {
       setLoading(false);
     }
   }, [vitrineFormData, vitrineImage, setLoading, setShowVitrineForm, loadShowcases, loadStats]);
 
-   const handleShelfSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleShelfSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const formData = new FormData();
       formData.append('name', shelfFormData.name);
@@ -423,39 +331,22 @@ export default function VitrinesPage({
       formData.append('description', shelfFormData.description);
       formData.append('position_order', shelfFormData.position_order.toString());
       formData.append('showcase_id', selectedShowcase!.id.toString());
-      
-      if (shelfImage) {
-        formData.append('image', shelfImage);
-      }
+      if (shelfImage) formData.append('image', shelfImage);
 
-      const response = await fetch('/api/shelves', {
-        method: 'POST',
-        body: formData
-      });
-
+      const response = await fetch('/api/shelves', { method: 'POST', body: formData });
       if (response.ok) {
-        setShelfFormData({
-          name: '',
-          code: '',
-          description: '',
-          position_order: 0
-        });
+        setShelfFormData({ name: '', code: '', description: '', position_order: 0 });
         setShelfImage(null);
         setShowShelfForm(false);
-        
         showcaseCache.current.delete(selectedShowcase!.id);
-        
         await loadShowcases();
         await openShowcaseDetails(selectedShowcase!.id);
-        
         loadStats();
         alert('Box erfolgreich hinzugefügt!');
       } else {
-        const error = await response.text();
-        alert('Fehler: ' + error);
+        alert('Fehler: ' + await response.text());
       }
     } catch (error) {
-      console.error('Fehler beim Hinzufügen der Box:', error);
       alert('Fehler beim Hinzufügen der Box');
     } finally {
       setLoading(false);
@@ -463,124 +354,72 @@ export default function VitrinesPage({
   }, [shelfFormData, shelfImage, selectedShowcase, setLoading, setShowShelfForm, loadShowcases, openShowcaseDetails, loadStats]);
 
   const handleDelete = useCallback(async (type: 'mineral' | 'showcase' | 'shelf', id: number) => {
-    const confirmMessage = {
+    const msgs = {
       mineral: 'Möchten Sie dieses Mineral wirklich löschen?',
       showcase: 'Möchten Sie dieses Regal wirklich löschen? Alle zugehörigen Boxen werden ebenfalls gelöscht!',
-      shelf: 'Möchten Sie diese Box wirklich löschen? Alle zugeordneten Mineralien werden nicht gelöscht, aber ihre Box-Zuordnung entfernt!'
+      shelf: 'Möchten Sie diese Box wirklich löschen?'
     };
-
-    if (!confirm(confirmMessage[type])) {
-      return;
-    }
+    if (!confirm(msgs[type])) return;
 
     try {
       setLoading(true);
-      
-      let url = '';
-      switch (type) {
-        case 'mineral':
-          url = `/api/minerals/${id}`;
-          break;
-        case 'showcase':
-          url = `/api/showcases/${id}`;
-          break;
-        case 'shelf':
-          url = `/api/shelves/${id}`;
-          break;
-      }
-
-      const response = await fetch(url, {
-        method: 'DELETE'
-      });
+      const urls = { mineral: `/api/minerals/${id}`, showcase: `/api/showcases/${id}`, shelf: `/api/shelves/${id}` };
+      const response = await fetch(urls[type], { method: 'DELETE' });
 
       if (response.ok) {
-        if (type === 'mineral') {
-          mineralCache.current.delete(id);
-          setShowMineralModal(false);
-          setSelectedMineral(null);
-        } else if (type === 'showcase') {
-          showcaseCache.current.delete(id);
-          setShowShowcaseModal(false);
-          setSelectedShowcase(null);
-        } else if (type === 'shelf') {
-          if (selectedShowcase) {
-            showcaseCache.current.delete(selectedShowcase.id);
-          }
-          handleCloseShelfModal(); 
-        }
+        if (type === 'mineral') { mineralCache.current.delete(id); setShowMineralModal(false); setSelectedMineral(null); }
+        else if (type === 'showcase') { showcaseCache.current.delete(id); setShowShowcaseModal(false); setSelectedShowcase(null); }
+        else if (type === 'shelf') { if (selectedShowcase) showcaseCache.current.delete(selectedShowcase.id); handleCloseShelfModal(); }
 
         loadStats();
-        
-        if (type === 'showcase') {
-          loadShowcases();
-        }
-        
-        if (type === 'shelf' && selectedShowcase) {
-          await openShowcaseDetails(selectedShowcase.id);
-        }
-
-        const entityNames = {
-          mineral: 'Mineral',
-          showcase: 'Regal',
-          shelf: 'Box'
-        };
-
-        alert(`${entityNames[type]} erfolgreich gelöscht!`);
+        if (type === 'showcase') loadShowcases();
+        if (type === 'shelf' && selectedShowcase) await openShowcaseDetails(selectedShowcase.id);
+        alert(`${type === 'mineral' ? 'Mineral' : type === 'showcase' ? 'Regal' : 'Box'} erfolgreich gelöscht!`);
       } else {
-        const responseData = await response.text();
-        alert('Fehler beim Löschen: ' + responseData);
+        alert('Fehler beim Löschen: ' + await response.text());
       }
     } catch (error) {
-      console.error('Fehler beim Löschen:', error);
       alert('Fehler beim Löschen. Bitte versuchen Sie es erneut.');
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setShowMineralModal, setSelectedMineral, setShowShowcaseModal, setSelectedShowcase, 
+  }, [setLoading, setShowMineralModal, setSelectedMineral, setShowShowcaseModal, setSelectedShowcase,
       handleCloseShelfModal, loadStats, loadShowcases, openShowcaseDetails, selectedShowcase]);
 
-  const showcasesList = useMemo(() => {
-    return showcases.map(showcase => (
-      <RegalCard 
-        key={showcase.id} 
-        showcase={showcase} 
-        onClick={openShowcaseDetails}
-        onBoxClick={openShelfDetails}
-      />
-    ));
-  }, [showcases, openShowcaseDetails, openShelfDetails]);
+  const showcasesList = useMemo(() => showcases.map(showcase => (
+    <RegalCard key={showcase.id} showcase={showcase} onClick={openShowcaseDetails} onBoxClick={openShelfDetails} />
+  )), [showcases, openShowcaseDetails, openShelfDetails]);
 
-  useEffect(() => {
-    loadShowcases();
-  }, []);
+  useEffect(() => { loadShowcases(); }, []);
 
   return (
     <>
       <section className="page active">
         <div className="container">
-          <div className="page-header">
-            <div className="page-header-content">
-              <div>
-                <h1 className="page-title">Regale</h1>
-                <p className="page-description">Organisieren Sie Ihre Sammlung in Regalen und Boxen</p>
-              </div>
-              {isAuthenticated && (
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => setShowVitrineForm(true)}>
-                    Neues Regal hinzufügen
-                </button>
-              )}
+
+          <div className="cp-header">
+            <div>
+              <h1 className="cp-title">Vitrinen &amp; Regale</h1>
+              <p className="cp-subtitle">
+                {showcases.length > 0 && !loading
+                  ? `${showcases.length} Vitrinen`
+                  : 'Sammlung organisiert in Vitrinen und Boxen'}
+              </p>
             </div>
+            {isAuthenticated && (
+              <button className="btn btn-primary" onClick={() => setShowVitrineForm(true)}>
+                Neues Regal
+              </button>
+            )}
           </div>
 
           <div className="regale-grid">
             {loading ? (
-              <div className="loading">Lade Regale...</div>
+              <div className="cp-loading">Lade Regale …</div>
             ) : showcases.length === 0 ? (
-              <div className="no-showcases">
-                <h3>Noch keine Regale vorhanden</h3>
-                <p>Fügen Sie Ihr erstes Regal hinzu, um Ihre Sammlung zu organisieren.</p>
+              <div className="cp-empty">
+                <p>Noch keine Regale vorhanden.</p>
+                {isAuthenticated && <p>Füge das erste Regal hinzu, um die Sammlung zu organisieren.</p>}
               </div>
             ) : (
               showcasesList
@@ -592,21 +431,11 @@ export default function VitrinesPage({
       {showShowcaseModal && selectedShowcase && (
         <>
           {showcaseLoading && (
-            <div style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 10000,
-              background: 'rgba(255,255,255,0.9)',
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-            }}>
-              <div className="loading">Lade Regal...</div>
+            <div className="cp-overlay-loading">
+              <div className="cp-loading">Lade Regal …</div>
             </div>
           )}
-          <RegalModal 
+          <RegalModal
             showcase={selectedShowcase}
             isAuthenticated={isAuthenticated}
             onClose={() => setShowShowcaseModal(false)}
@@ -619,7 +448,7 @@ export default function VitrinesPage({
       )}
 
       {showShelfMineralsModal && selectedShelf && (
-        <BoxModal 
+        <BoxModal
           shelf={selectedShelf}
           minerals={shelfMinerals}
           loading={shelfLoading}
@@ -633,22 +462,19 @@ export default function VitrinesPage({
       )}
 
       {showVitrineForm && (
-        <VitrineFormModal 
+        <VitrineFormModal
           formData={vitrineFormData}
           setFormData={setVitrineFormData}
           image={vitrineImage}
           setImage={setVitrineImage}
           loading={loading}
           onSubmit={handleVitrineSubmit}
-          onClose={() => {
-            setShowVitrineForm(false);
-            setVitrineImage(null);
-          }}
+          onClose={() => { setShowVitrineForm(false); setVitrineImage(null); }}
         />
       )}
 
       {showShelfForm && selectedShowcase && (
-        <ShelfFormModal 
+        <ShelfFormModal
           showcase={selectedShowcase}
           formData={shelfFormData}
           setFormData={setShelfFormData}
@@ -656,15 +482,12 @@ export default function VitrinesPage({
           setImage={setShelfImage}
           loading={loading}
           onSubmit={handleShelfSubmit}
-          onClose={() => {
-            setShowShelfForm(false);
-            setShelfImage(null);
-          }}
+          onClose={() => { setShowShelfForm(false); setShelfImage(null); }}
         />
       )}
 
       {showMineralModal && selectedMineral && (
-        <MineralModal 
+        <MineralModal
           mineral={selectedMineral}
           isAuthenticated={isAuthenticated}
           onClose={() => setShowMineralModal(false)}
