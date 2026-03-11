@@ -195,24 +195,41 @@ export default function CollectionPage({
       
       let url = '';
       switch (type) {
-        case 'mineral': url = `/api/minerals/${id}`; break;
-        case 'showcase': url = `/api/showcases/${id}`; break;
-        case 'shelf': url = `/api/shelves/${id}`; break;
+        case 'mineral':
+          url = `/api/minerals/${id}`;
+          break;
+        case 'showcase':
+          url = `/api/showcases/${id}`;
+          break;
+        case 'shelf':
+          url = `/api/shelves/${id}`;
+          break;
       }
 
-      const response = await fetch(url, { method: 'DELETE' });
+      const response = await fetch(url, {
+        method: 'DELETE'
+      });
 
       if (response.ok) {
         if (type === 'mineral') {
           setShowMineralModal(false);
           setSelectedMineral(null);
         }
+
         loadStats();
         setPage(1);
         loadMinerals(1, false);
-        alert(`${type === 'mineral' ? 'Mineral' : type === 'showcase' ? 'Vitrine' : 'Regal'} erfolgreich gelöscht!`);
+
+        const entityNames = {
+          mineral: 'Mineral',
+          showcase: 'Vitrine',
+          shelf: 'Regal'
+        };
+
+        alert(`${entityNames[type]} erfolgreich gelöscht!`);
       } else {
-        alert('Fehler beim Löschen: ' + await response.text());
+        const responseData = await response.text();
+        alert('Fehler beim Löschen: ' + responseData);
       }
     } catch (error) {
       console.error('Fehler beim Löschen:', error);
@@ -222,6 +239,7 @@ export default function CollectionPage({
     }
   };
 
+  // Intersection Observer für Infinite Scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -235,11 +253,20 @@ export default function CollectionPage({
     );
 
     const currentTarget = observerTarget.current;
-    if (currentTarget) observer.observe(currentTarget);
-    return () => { if (currentTarget) observer.unobserve(currentTarget); };
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
   }, [hasMore, isLoadingMore, loading, page, loadMinerals]);
 
-  useEffect(() => { loadFilterOptions(); }, []);
+  useEffect(() => {
+    loadFilterOptions();
+  }, []);
 
   useEffect(() => {
     setPage(1);
@@ -248,8 +275,10 @@ export default function CollectionPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
+
   useEffect(() => {
     if (reloadTrigger !== undefined && reloadTrigger > 0) {
+      console.log('=== RELOAD NACH BEARBEITUNG (via Trigger) ===');
       setMinerals([]);
       setPage(1);
       setHasMore(true);
@@ -262,111 +291,167 @@ export default function CollectionPage({
     <>
       <section className="page active">
         <div className="container">
-
-          {/* Page header */}
-          <div className="cp-header">
-            <div>
-              <h1 className="cp-title">Mineraliensammlung</h1>
-              <p className="cp-subtitle">
-                {minerals.length > 0 && !loading
-                  ? `${minerals.length}${hasMore ? '+' : ''} Einträge`
-                  : 'Durchsuchen und filtern'}
-              </p>
+          <div className="page-header">
+            <div className="page-header-content">
+              <div>
+                <h1 className="page-title">Mineraliensammlung</h1>
+                <p className="page-description">Durchsuchen und filtern Sie die komplette Sammlung</p>
+              </div>
+              {showPage ? (
+                <button 
+                  className="btn btn-secondary btn-large"
+                  onClick={() => showPage('statistics')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span></span>
+                  <span>Statistiken anzeigen</span>
+                </button>
+              ) : (
+                <button 
+                  className="btn btn-primary btn-large"
+                  onClick={() => window.location.href = '/?page=statistics'}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span></span>
+                  <span>Statistiken anzeigen</span>
+                </button>
+              )}
             </div>
-            {showPage && (
-              <button className="cp-btn-ghost" onClick={() => showPage('statistics')}>
-                Statistiken →
-              </button>
-            )}
           </div>
 
-          {/* Search + filters */}
-          <div className="cp-filters">
-            <input
-              type="text"
-              className="cp-search"
-              placeholder="Name oder Steinnummer …"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="cp-selects">
-              <select className="cp-select" value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
+          <div className="search-filter-container">
+            <div className="search-section">
+              <h3>Suche</h3>
+              <input 
+                type="text" 
+                className="search-input" 
+                placeholder="Nach Name oder Steinnummer suchen..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="filter-section">
+              <h3>Filter</h3>
+              <select 
+                className="filter-select" 
+                value={colorFilter} 
+                onChange={(e) => setColorFilter(e.target.value)}
+              >
                 <option value="">Alle Farben</option>
-                {filterOptions.colors.map(c => <option key={c} value={c}>{c}</option>)}
+                {filterOptions.colors.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
               </select>
-              <select className="cp-select" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
+              <select 
+                className="filter-select" 
+                value={locationFilter} 
+                onChange={(e) => setLocationFilter(e.target.value)}
+              >
                 <option value="">Alle Fundorte</option>
-                {filterOptions.locations.map(l => <option key={l} value={l}>{l}</option>)}
+                {filterOptions.locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
               </select>
-              <select className="cp-select" value={rockTypeFilter} onChange={(e) => setRockTypeFilter(e.target.value)}>
+              <select 
+                className="filter-select" 
+                value={rockTypeFilter} 
+                onChange={(e) => setRockTypeFilter(e.target.value)}
+              >
                 <option value="">Alle Gesteinsarten</option>
-                {filterOptions.rock_types.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <select className="cp-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                <option value="name">A–Z</option>
-                <option value="number">Nummer</option>
-                <option value="color">Farbe</option>
+                {filterOptions.rock_types.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          {/* Active filter tags */}
           {hasActiveFilters && (
-            <div className="cp-active-filters">
-              {searchTerm && <span className="cp-filter-tag">Suche: {searchTerm}</span>}
-              {colorFilter && <span className="cp-filter-tag">Farbe: {colorFilter}</span>}
-              {locationFilter && <span className="cp-filter-tag">Fundort: {locationFilter}</span>}
-              {rockTypeFilter && <span className="cp-filter-tag">Gestein: {rockTypeFilter}</span>}
-              <button className="cp-clear-btn" onClick={clearFilters}>Zurücksetzen</button>
+            <div className="filter-info show">
+              <strong>Aktive Filter:</strong>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {searchTerm && <span className="filter-tag">Suche: {searchTerm}</span>}
+                {colorFilter && <span className="filter-tag">Farbe: {colorFilter}</span>}
+                {locationFilter && <span className="filter-tag">Fundort: {locationFilter}</span>}
+                {rockTypeFilter && <span className="filter-tag">Gesteinsart: {rockTypeFilter}</span>}
+              </div>
+              <button className="clear-filters" onClick={clearFilters}>
+                Filter zurücksetzen
+              </button>
             </div>
           )}
 
-          {/* Grid */}
+          <div className="sort-section">
+            <label htmlFor="sortBy">Sortieren nach:</label>
+            <select 
+              id="sortBy" 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name">Name</option>
+              <option value="number">Steinnummer</option>
+              <option value="color">Farbe</option>
+            </select>
+          </div>
+
           <div className="minerals-grid">
             {loading && minerals.length === 0 ? (
-              <div className="cp-loading">Lade Mineralien …</div>
+              <div className="loading">Lade Mineralien...</div>
             ) : minerals.length === 0 ? (
-              <div className="cp-loading">Keine Mineralien gefunden</div>
+              <div className="loading">Keine Mineralien gefunden</div>
             ) : (
-              minerals.map(mineral => (
-                <div
-                  key={mineral.id}
-                  className="mineral-card"
-                  onClick={() => openMineralDetails(mineral.id)}
-                >
-                  <div className="mineral-image">
-                    {mineral.image_path ? (
-                      <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
-                    ) : (
-                      <div className="placeholder cp-placeholder" />
-                    )}
+              <>
+                {minerals.map(mineral => (
+                  <div 
+                    key={mineral.id} 
+                    className="mineral-card" 
+                    onClick={() => openMineralDetails(mineral.id)}
+                  >
+                    <div className="mineral-image">
+                      {mineral.image_path ? (
+                        <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
+                      ) : (
+                        <div className="placeholder">📸</div>
+                      )}
+                    </div>
+                    <div className="mineral-info">
+                      <h3>{mineral.name}</h3>
+                      <p><strong>Nummer:</strong> {mineral.number}</p>
+                      <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
+                      <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : 'Nicht zugeordnet'}</p>
+                    </div>
                   </div>
-                  <div className="mineral-info">
-                    <h3>{mineral.name}</h3>
-                    <p><strong>Nr.</strong> {mineral.number}</p>
-                    <p><strong>Farbe:</strong> {mineral.color || '—'}</p>
-                    <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : '—'}</p>
-                  </div>
-                </div>
-              ))
+                ))}
+              </>
             )}
           </div>
 
-          {/* Infinite scroll trigger */}
+          {/* Infinite Scroll Trigger */}
           {hasMore && (
             <div ref={observerTarget} style={{ height: '20px', margin: '20px 0' }}>
-              {isLoadingMore && <div className="cp-loading">Lade weitere …</div>}
+              {isLoadingMore && (
+                <div className="loading" style={{ gridColumn: '1 / -1' }}>
+                  Lade weitere Mineralien...
+                </div>
+              )}
             </div>
           )}
 
           {!hasMore && minerals.length > 0 && (
-            <p className="cp-end-note">Alle {minerals.length} Mineralien geladen</p>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '20px', 
+              color: 'var(--gray-500)',
+              fontSize: 'var(--font-size-sm)'
+            }}>
+              Alle Mineralien geladen ({minerals.length} gesamt)
+            </div>
           )}
         </div>
       </section>
 
       {showMineralModal && selectedMineral && (
-        <MineralModal
+        <MineralModal 
           mineral={selectedMineral}
           isAuthenticated={isAuthenticated}
           onClose={() => setShowMineralModal(false)}
@@ -385,7 +470,11 @@ export default function CollectionPage({
           shelves={shelves}
           loading={loading}
           setLoading={setLoading}
-          onClose={() => { setEditMode(null); setEditFormData({}); setEditImage(null); }}
+          onClose={() => {
+            setEditMode(null);
+            setEditFormData({});
+            setEditImage(null);
+          }}
           setEditMode={setEditMode}
           setSelectedMineral={setSelectedMineral}
           setShowMineralModal={setShowMineralModal}
@@ -397,11 +486,19 @@ export default function CollectionPage({
           setShowcases={() => {}}
           loadStats={loadStats}
           loadMinerals={async () => {
-            if (clearCaches && editFormData.id) clearCaches('mineral', editFormData.id);
+            console.log('=== RELOAD NACH BEARBEITUNG ===');
+            if (clearCaches && editFormData.id) {
+              clearCaches('mineral', editFormData.id);
+            }
+            console.log('Setze Minerals auf []');
             setMinerals([]);
+            console.log('Setze Page auf 1');
             setPage(1);
+            console.log('Setze HasMore auf true');
             setHasMore(true);
+            console.log('Lade Seite 1 mit loadMinerals');
             await loadMinerals(1, false);
+            console.log('=== RELOAD FERTIG ===');
           }}
           clearCaches={clearCaches}
         />
