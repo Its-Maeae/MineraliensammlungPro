@@ -153,7 +153,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
 
         <div className="container hp-hero-inner">
           <div className="hp-hero-text">
-            <span className="hp-eyebrow">Samuel von Pufendorf Gymnasium · Flöha</span>
             <h1 className="hp-title">
               <span className="hp-title-main">Mineralien</span>
               <span className="hp-title-main hp-title-main--indent">&amp; Gesteine</span>
@@ -288,28 +287,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               diese Sammlung vollständig zu digitalisieren, zu katalogisieren und für Schüler
               und Interessierte zugänglich zu machen.
             </p>
-
-            <div className="hp-process">
-              {[
-                { num: '01', title: 'Erfassung',      desc: 'Jedes Mineral physisch begutachtet und fotografisch dokumentiert.' },
-                { num: '02', title: 'Klassifikation', desc: 'Einordnung nach Mineralklasse, Härte, Farbe und Fundort.' },
-                { num: '03', title: 'Digitalisierung',desc: 'Online-Katalog mit Suche, Fundort-Karte und Vitrinenplan.' },
-              ].map(p => (
-                <div key={p.num} className="hp-process-step">
-                  <div className="hp-process-num">{p.num}</div>
-                  <div>
-                    <p className="hp-process-title">{p.title}</p>
-                    <p className="hp-process-desc">{p.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="hp-tags-row">
-              {['Geologie','Mineralogie','Schülerprojekt 2025','Open Catalogue'].map(tag => (
-                <span key={tag} className="hp-tag">{tag}</span>
-              ))}
-            </div>
           </div>
         </div>
       </div>
