@@ -392,7 +392,7 @@ export default function CollectionPage({
                         {mineral.image_path ? (
                           <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
                         ) : (
-                          <div className="placeholder">{undetermined ? '❓' : '📸'}</div>
+                          <div className="placeholder">{undetermined ? '?' : '📸'}</div>
                         )}
                         {undetermined && (
                           <div className="undetermined-card-badge">Unbestimmt</div>
@@ -404,7 +404,7 @@ export default function CollectionPage({
                         </h3>
                         <p><strong>Nummer:</strong> {mineral.number}</p>
                         {undetermined ? (
-                          <p className="undetermined-card-note">⚠ Noch nicht identifiziert</p>
+                          <p className="undetermined-card-note">Noch nicht identifiziert</p>
                         ) : (
                           <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
                         )}
