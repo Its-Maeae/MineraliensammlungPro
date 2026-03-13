@@ -250,7 +250,6 @@ export default function EditModal({
               {/* ── Unbestimmt-Schalter im EditModal ── */}
               <div className="undetermined-toggle-card" style={{ marginBottom: '16px' }}>
                 <div className="undetermined-toggle-content">
-                  <div className="undetermined-toggle-icon">❓</div>
                   <div className="undetermined-toggle-text">
                     <span className="undetermined-toggle-label">Unbestimmtes Mineral</span>
                     <span className="undetermined-toggle-hint">
@@ -272,7 +271,6 @@ export default function EditModal({
 
               {isUndetermined && (
                 <div className="undetermined-info-banner" style={{ marginBottom: '16px' }}>
-                  <span>⚠️</span>
                   <span>Nur Regal, Koordinate und Bild können bearbeitet werden.</span>
                 </div>
               )}
