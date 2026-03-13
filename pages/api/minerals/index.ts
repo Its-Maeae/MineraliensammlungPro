@@ -5,13 +5,10 @@ import path from 'path';
 import fs from 'fs';
 import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
-// Multer Konfiguration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(process.cwd(), 'public/uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
@@ -20,24 +17,19 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
-  storage: storage,
+const upload = multer({
+  storage,
   limits: { fileSize: 40 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Nur Bilddateien sind erlaubt'));
-    }
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Nur Bilddateien sind erlaubt'));
   }
 });
 
 function runMiddleware(req: any, res: any, fn: any) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
+      if (result instanceof Error) return reject(result);
       return resolve(result);
     });
   });
@@ -46,9 +38,7 @@ function runMiddleware(req: any, res: any, fn: any) {
 function invalidateChartCache() {
   try {
     const chartDataModule = require('../chart-data');
-    if (chartDataModule.invalidateChartCache) {
-      chartDataModule.invalidateChartCache();
-    }
+    if (chartDataModule.invalidateChartCache) chartDataModule.invalidateChartCache();
   } catch (error) {
     console.error('Fehler beim Invalidieren des Chart-Caches:', error);
   }
@@ -57,52 +47,61 @@ function invalidateChartCache() {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const { 
-        search = '', 
-        color = '', 
-        location = '', 
-        rock_type = '', 
+      const {
+        search = '',
+        color = '',
+        location = '',
+        rock_type = '',
         sort = 'name',
         page = '1',
-        limit = '12'
+        limit = '12',
+        undetermined = 'all',   // 'all' | 'only' | 'hide'
       } = req.query;
-      
+
       const pageNum = parseInt(page as string);
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
-      
+
       let sql = `
-        SELECT m.*, 
-               s.code as shelf_code, 
+        SELECT m.*,
+               s.code as shelf_code,
                sc.code as showcase_code
         FROM minerals m
         LEFT JOIN shelves s ON m.shelf_id = s.id
         LEFT JOIN showcases sc ON s.showcase_id = sc.id
         WHERE 1=1
       `;
-      
+
       const params: any[] = [];
-      
+
       if (search) {
         sql += ` AND (m.name LIKE ? OR m.number LIKE ?)`;
         params.push(`%${search}%`, `%${search}%`);
       }
-      
+
       if (color) {
         sql += ` AND m.color = ?`;
         params.push(color);
       }
-      
+
       if (location) {
         sql += ` AND m.location = ?`;
         params.push(location);
       }
-      
+
       if (rock_type) {
         sql += ` AND m.rock_type = ?`;
         params.push(rock_type);
       }
-      
+
+      // Unbestimmt-Filter
+      if (undetermined === 'only') {
+        sql += ` AND m.is_undetermined = 1`;
+      } else if (undetermined === 'hide') {
+        sql += ` AND (m.is_undetermined = 0 OR m.is_undetermined IS NULL)`;
+      }
+      // 'all' → kein zusätzliches WHERE
+
       switch (sort) {
         case 'number':
           sql += ` ORDER BY CAST(m.number AS INTEGER)`;
@@ -113,10 +112,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         default:
           sql += ` ORDER BY m.name`;
       }
-      
+
       sql += ` LIMIT ? OFFSET ?`;
       params.push(limitNum, offset);
-      
+
       const minerals = await database.query(sql, params);
       res.status(200).json(minerals);
     } catch (error) {
@@ -127,37 +126,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
       try {
         await runMiddleware(req, res, upload.single('image'));
-        
+
         const {
-          name,
-          number,
-          color,
-          description,
-          location,
-          purchase_location,
-          rock_type,
-          shelf_id,
-          latitude,
-          longitude,
-          is_undetermined
+          name, number, color, description, location,
+          purchase_location, rock_type, shelf_id, latitude, longitude, is_undetermined
         } = (req as any).body;
-        
+
         const image = (req as any).file;
         const undetermined = is_undetermined === 'true' || is_undetermined === true ? 1 : 0;
-        
-        // Prüfen ob Steinnummer bereits existiert
-        const existingMineral = await database.get(
-          'SELECT id FROM minerals WHERE number = ?',
-          [number]
-        );
-        
-        if (existingMineral) {
-          return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
-        }
-        
+
+        const existingMineral = await database.get('SELECT id FROM minerals WHERE number = ?', [number]);
+        if (existingMineral) return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
+
         const result = await database.run(
           `INSERT INTO minerals (
-            name, number, color, description, location, 
+            name, number, color, description, location,
             purchase_location, rock_type, shelf_id, image_path, latitude, longitude, is_undetermined
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
@@ -175,9 +158,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             undetermined
           ]
         );
-        
+
         invalidateChartCache();
-        
         res.status(201).json({ id: result.id, message: 'Mineral erfolgreich hinzugefügt' });
       } catch (error) {
         console.error('Fehler beim Hinzufügen des Minerals:', error);
@@ -191,7 +173,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false },
 };
