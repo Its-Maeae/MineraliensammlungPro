@@ -369,20 +369,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
 
   return (
     <form onSubmit={handleSubmit}>
-
-      {/* ── Unbestimmt-Schalter – klein, oben, klar ── */}
-      <div className="undetermined-toggle-row">
-        <label className="toggle-switch">
-          <input
-            type="checkbox"
-            checked={isUndetermined}
-            onChange={(e) => handleUndeterminedToggle(e.target.checked)}
-          />
-          <span className="toggle-slider" />
-        </label>
-        <span className="undetermined-toggle-row-label">Unbestimmtes Mineral</span>
-      </div>
-
       {/* ── Name ── */}
       <div className="form-group">
         <label htmlFor="name">Name des Minerals</label>
@@ -586,6 +572,19 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
           className="btn btn-secondary btn-large">
           Security-Logs
         </button>
+      </div>
+
+      {/* ── Unbestimmt-Schalter – klein, oben, klar ── */}
+      <div className="undetermined-toggle-row">
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={isUndetermined}
+            onChange={(e) => handleUndeterminedToggle(e.target.checked)}
+          />
+          <span className="toggle-slider" />
+        </label>
+        <span className="undetermined-toggle-row-label">Unbestimmtes Mineral</span>
       </div>
 
     </form>
