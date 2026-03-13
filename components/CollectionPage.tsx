@@ -291,28 +291,10 @@ export default function CollectionPage({
                   <input
                     type="radio"
                     name="undetermined"
-                    checked={showUndetermined === 'all'}
-                    onChange={() => setShowUndetermined('all')}
-                  />
-                  Alle
-                </label>
-                <label className="undetermined-filter-option">
-                  <input
-                    type="radio"
-                    name="undetermined"
                     checked={showUndetermined === 'only'}
                     onChange={() => setShowUndetermined('only')}
                   />
                   Nur unbestimmte
-                </label>
-                <label className="undetermined-filter-option">
-                  <input
-                    type="radio"
-                    name="undetermined"
-                    checked={showUndetermined === 'hide'}
-                    onChange={() => setShowUndetermined('hide')}
-                  />
-                  Unbestimmte ausblenden
                 </label>
               </div>
             </div>
