@@ -19,6 +19,8 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
   const containerRef = useRef<HTMLDivElement>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
+  const isUndetermined = !!(mineral as any).is_undetermined;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -40,27 +42,21 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
   useEffect(() => {
     if (isImageMaximized) {
       const scrollY = window.scrollY;
-      
       const htmlElement = document.documentElement;
       const originalScrollBehavior = htmlElement.style.scrollBehavior;
       htmlElement.style.scrollBehavior = 'auto';
-      
-      // Verhindere Scroll auf body
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
-      
       setZoom(1);
       setPosition({ x: 0, y: 0 });
-      
       return () => {
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
         window.scrollTo(0, scrollY);
-        
         htmlElement.style.scrollBehavior = originalScrollBehavior;
       };
     }
@@ -69,14 +65,9 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const delta = e.deltaY > 0 ? -0.2 : 0.2; 
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
     const newZoom = Math.min(Math.max(1, zoom + delta), 5);
-    
-    if (newZoom === 1) {
-      setPosition({ x: 0, y: 0 });
-    }
-    
+    if (newZoom === 1) setPosition({ x: 0, y: 0 });
     setZoom(newZoom);
   };
 
@@ -96,12 +87,8 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
       e.preventDefault();
       setTouchDistance(getTouchDistance(e.touches));
     } else if (e.touches.length === 1 && zoom > 1) {
-      // Dragging vorbereiten
       setIsDragging(true);
-      setDragStart({
-        x: e.touches[0].clientX - position.x,
-        y: e.touches[0].clientY - position.y
-      });
+      setDragStart({ x: e.touches[0].clientX - position.x, y: e.touches[0].clientY - position.y });
     }
   };
 
@@ -111,73 +98,64 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
       const newDistance = getTouchDistance(e.touches);
       const scale = newDistance / touchDistance;
       const newZoom = Math.min(Math.max(1, zoom * scale), 5);
-      
-      if (newZoom === 1) {
-        setPosition({ x: 0, y: 0 });
-      }
-      
+      if (newZoom === 1) setPosition({ x: 0, y: 0 });
       setZoom(newZoom);
       setTouchDistance(newDistance);
     } else if (e.touches.length === 1 && isDragging && zoom > 1) {
       e.preventDefault();
-      const newX = e.touches[0].clientX - dragStart.x;
-      const newY = e.touches[0].clientY - dragStart.y;
-      setPosition({ x: newX, y: newY });
+      setPosition({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
     }
   };
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
+  const handleTouchEnd = () => setIsDragging(false);
 
-  // Maus-Dragging (Desktop)
   const handleMouseDown = (e: React.MouseEvent) => {
     if (zoom > 1) {
       e.preventDefault();
       setIsDragging(true);
-      setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
-      });
+      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging && zoom > 1) {
-      const newX = e.clientX - dragStart.x;
-      const newY = e.clientY - dragStart.y;
-      setPosition({ x: newX, y: newY });
+      setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const handleMouseUp = () => setIsDragging(false);
 
-  const handleZoomIn = () => {
-    const newZoom = Math.min(zoom + 0.2, 5); 
-    setZoom(newZoom);
-  };
-
+  const handleZoomIn = () => setZoom(z => Math.min(z + 0.2, 5));
   const handleZoomOut = () => {
-    const newZoom = Math.max(zoom - 0.2, 1); 
-    if (newZoom === 1) {
-      setPosition({ x: 0, y: 0 });
-    }
+    const newZoom = Math.max(zoom - 0.2, 1);
+    if (newZoom === 1) setPosition({ x: 0, y: 0 });
     setZoom(newZoom);
   };
-
-  const handleResetZoom = () => {
-    setZoom(1);
-    setPosition({ x: 0, y: 0 });
-  };
+  const handleResetZoom = () => { setZoom(1); setPosition({ x: 0, y: 0 }); };
 
   return (
     <>
       <div ref={modalOverlayRef} className="modal" style={{ display: 'flex' }}>
-        <div className="modal-content"  onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <span className="close-button" onClick={onClose}>&times;</span>
-          <h2>{mineral.name}</h2>
+
+          {/* ── Unbestimmt-Banner ── */}
+          {isUndetermined && (
+            <div className="undetermined-modal-banner">
+              <span className="undetermined-modal-icon">❓</span>
+              <div>
+                <strong>Unbestimmtes Mineral</strong>
+                <p>Dieses Mineral wurde noch nicht identifiziert.</p>
+              </div>
+            </div>
+          )}
+
+          <h2>
+            {mineral.name}
+            {isUndetermined && (
+              <span className="undetermined-badge-inline">Unbestimmt</span>
+            )}
+          </h2>
           
           {mineral.image_path && (
             <div className="detail-image">
@@ -189,9 +167,7 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
                   style={{ cursor: 'pointer' }}
                   title="Klicken zum Vergrößern"
                 />
-                <div className="image-zoom-hint">
-                  Klicken zum Vergrößern
-                </div>
+                <div className="image-zoom-hint">Klicken zum Vergrößern</div>
               </div>
             </div>
           )}
@@ -201,29 +177,34 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               <span className="detail-label">Steinnummer:</span>
               <span className="detail-value">{mineral.number}</span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Farbe:</span>
-              <span className="detail-value">{mineral.color || 'Nicht angegeben'}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">Fundort:</span>
-              <span className="detail-value">{mineral.location || 'Unbekannt'}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">Kaufort:</span>
-              <span className="detail-value">{mineral.purchase_location || 'Nicht angegeben'}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">Gesteinsart:</span>
-              <span className="detail-value">{mineral.rock_type || 'Nicht angegeben'}</span>
-            </div>
+
+            {!isUndetermined && (
+              <>
+                <div className="detail-item">
+                  <span className="detail-label">Farbe:</span>
+                  <span className="detail-value">{mineral.color || 'Nicht angegeben'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Fundort:</span>
+                  <span className="detail-value">{mineral.location || 'Unbekannt'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Kaufort:</span>
+                  <span className="detail-value">{mineral.purchase_location || 'Nicht angegeben'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Gesteinsart:</span>
+                  <span className="detail-value">{mineral.rock_type || 'Nicht angegeben'}</span>
+                </div>
+              </>
+            )}
+
             <div className="detail-item">
               <span className="detail-label">Regal:</span>
               <span className="detail-value">
                 {mineral.shelf_code 
                   ? `${mineral.showcase_code}-${mineral.shelf_code}` 
-                  : 'Nicht zugeordnet'
-                }
+                  : 'Nicht zugeordnet'}
               </span>
             </div>
             <div className="detail-item">
@@ -234,25 +215,28 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
             </div>
           </div>
           
-          <div style={{ marginTop: '20px' }}>
-            <h3>Beschreibung</h3>
-            <p style={{ marginTop: '10px', color: '#555', lineHeight: '1.6' }}>
-              {mineral.description || 'Keine Beschreibung verfügbar.'}
-            </p>
-          </div>
+          {!isUndetermined && (
+            <div style={{ marginTop: '20px' }}>
+              <h3>Beschreibung</h3>
+              <p style={{ marginTop: '10px', color: '#555', lineHeight: '1.6' }}>
+                {mineral.description || 'Keine Beschreibung verfügbar.'}
+              </p>
+            </div>
+          )}
+
+          {isUndetermined && (
+            <div className="undetermined-note">
+              <span>📋</span>
+              <span>Sobald das Mineral bestimmt wurde, kann es im Bearbeiten-Dialog identifiziert werden.</span>
+            </div>
+          )}
 
           {isAuthenticated && (
             <div className="admin-buttons">
-              <button 
-                className="btn btn-secondary"
-                onClick={() => onEdit(mineral)}
-              >
+              <button className="btn btn-secondary" onClick={() => onEdit(mineral)}>
                 Bearbeiten
               </button>
-              <button 
-                className="btn error-btn"
-                onClick={() => onDelete('mineral', mineral.id)}
-              >
+              <button className="btn error-btn" onClick={() => onDelete('mineral', mineral.id)}>
                 Löschen
               </button>
             </div>
@@ -286,41 +270,10 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
             ✕
           </button>
           
-          {/* Zoom Controls */}
           <div className="zoom-controls">
-            <button 
-              className="zoom-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleZoomIn();
-              }}
-              disabled={zoom >= 5}
-              title="Vergrößern"
-            >
-              +
-            </button>
-            <button 
-              className="zoom-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleZoomOut();
-              }}
-              disabled={zoom <= 1}
-              title="Verkleinern"
-            >
-              −
-            </button>
-            <button 
-              className="zoom-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleResetZoom();
-              }}
-              disabled={zoom === 1}
-              title="Zurücksetzen"
-            >
-              ↺
-            </button>
+            <button className="zoom-btn" onClick={(e) => { e.stopPropagation(); handleZoomIn(); }} disabled={zoom >= 5} title="Vergrößern">+</button>
+            <button className="zoom-btn" onClick={(e) => { e.stopPropagation(); handleZoomOut(); }} disabled={zoom <= 1} title="Verkleinern">−</button>
+            <button className="zoom-btn" onClick={(e) => { e.stopPropagation(); handleResetZoom(); }} disabled={zoom === 1} title="Zurücksetzen">↺</button>
             <span className="zoom-indicator">{Math.round(zoom * 100)}%</span>
           </div>
 
@@ -334,9 +287,7 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               transition: isDragging ? 'none' : 'transform 0.1s ease-out',
               cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
+            onClick={(e) => e.stopPropagation()}
             draggable={false}
           />
           

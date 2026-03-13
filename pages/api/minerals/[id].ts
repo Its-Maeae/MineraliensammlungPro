@@ -5,7 +5,6 @@ import path from 'path';
 import fs from 'fs';
 import { requireAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
 
-// Multer Konfiguration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(process.cwd(), 'public/uploads');
@@ -43,10 +42,8 @@ function runMiddleware(req: any, res: any, fn: any) {
   });
 }
 
-// Funktion zum Invalidieren des Chart-Caches
 function invalidateChartCache() {
   try {
-    // Dynamischer Import der Invalidierungs-Funktion
     const chartDataModule = require('../chart-data');
     if (chartDataModule.invalidateChartCache) {
       chartDataModule.invalidateChartCache();
@@ -86,7 +83,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'PUT') {
     return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
       try {
-        // Multer Middleware für Bildupload
         await runMiddleware(req, res, upload.single('image'));
 
         const {
@@ -99,12 +95,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           rock_type,
           shelf_id,
           latitude,
-          longitude
+          longitude,
+          is_undetermined
         } = (req as any).body;
 
         const image = (req as any).file;
-
-        console.log('Received coordinates:', { latitude, longitude });
+        const undetermined = is_undetermined === 'true' || is_undetermined === true ? 1 : 0;
 
         // Prüfen ob Steinnummer bereits von anderem Mineral verwendet wird
         const existingMineral = await database.get(
@@ -116,34 +112,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
         }
 
-        // Handle coordinates - convert empty strings to null, parse valid numbers
+        // Handle coordinates
         let parsedLatitude = null;
         let parsedLongitude = null;
 
         if (latitude !== '' && latitude !== undefined && latitude !== null) {
           const lat = parseFloat(latitude);
-          if (!isNaN(lat)) {
-            parsedLatitude = lat;
-          }
+          if (!isNaN(lat)) parsedLatitude = lat;
         }
 
         if (longitude !== '' && longitude !== undefined && longitude !== null) {
           const lng = parseFloat(longitude);
-          if (!isNaN(lng)) {
-            parsedLongitude = lng;
-          }
+          if (!isNaN(lng)) parsedLongitude = lng;
         }
 
-        console.log('Parsed coordinates:', { parsedLatitude, parsedLongitude });
+        // When undetermined, clear non-essential fields
+        const finalName = undetermined ? 'Unbestimmtes Mineral' : name;
+        const finalColor = undetermined ? null : (color || null);
+        const finalDescription = undetermined ? null : (description || null);
+        const finalLocation = undetermined ? null : (location || null);
+        const finalPurchaseLocation = undetermined ? null : (purchase_location || null);
+        const finalRockType = undetermined ? null : (rock_type || null);
 
-        // SQL für Update mit oder ohne neues Bild
         let sql = `UPDATE minerals SET 
                   name = ?, number = ?, color = ?, description = ?, location = ?,
-                  purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?`;
-        let params = [
-          name, number, color, description, location,
-          purchase_location, rock_type, shelf_id || null,
-          parsedLatitude, parsedLongitude
+                  purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?,
+                  is_undetermined = ?`;
+        let params: any[] = [
+          finalName, number, finalColor, finalDescription, finalLocation,
+          finalPurchaseLocation, finalRockType, shelf_id || null,
+          parsedLatitude, parsedLongitude, undetermined
         ];
 
         if (image) {
@@ -154,12 +152,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sql += ` WHERE id = ?`;
         params.push(id);
 
-        const result = await database.run(sql, params);
-        console.log('Update result:', result);
+        await database.run(sql, params);
 
-        // Chart-Cache invalidieren nach erfolgreichem Update
         invalidateChartCache();
-        console.log('Chart-Cache invalidiert nach Mineral-Update');
 
         res.status(200).json({ message: 'Mineral erfolgreich aktualisiert' });
       } catch (error) {
@@ -170,16 +165,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'DELETE') {
     return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
       try {
-        // Mineral löschen
         const result = await database.run('DELETE FROM minerals WHERE id = ?', [id]);
 
         if (result.changes === 0) {
           return res.status(404).json({ error: 'Mineral nicht gefunden' });
         }
 
-        // Chart-Cache invalidieren nach erfolgreichem Löschen
         invalidateChartCache();
-        console.log('Chart-Cache invalidiert nach Mineral-Löschung');
 
         res.status(200).json({ message: 'Mineral erfolgreich gelöscht' });
       } catch (error) {

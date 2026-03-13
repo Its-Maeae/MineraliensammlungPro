@@ -51,11 +51,11 @@ export default function EditModal({
 }: EditModalProps) {
   
   const modalOverlayRef = useRef<HTMLDivElement>(null);
+  const isUndetermined = editMode === 'mineral' && !!formData.is_undetermined;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      
       if (modalOverlayRef.current && target === modalOverlayRef.current) {
         onClose();
       }
@@ -70,6 +70,28 @@ export default function EditModal({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [onClose]);
+
+  // Toggle undetermined status in edit modal
+  const handleUndeterminedToggle = (checked: boolean) => {
+    if (checked) {
+      setFormData({
+        ...formData,
+        is_undetermined: true,
+        name: 'Unbestimmtes Mineral',
+        color: '',
+        description: '',
+        location: '',
+        purchase_location: '',
+        rock_type: ''
+      });
+    } else {
+      setFormData({
+        ...formData,
+        is_undetermined: false,
+        name: ''
+      });
+    }
+  };
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +144,6 @@ export default function EditModal({
         setFormData({});
         
         if (editMode === 'mineral') {
-          
           if (clearCaches) {
             clearCaches('mineral', formData.id);
           }
@@ -226,13 +247,45 @@ export default function EditModal({
         <form onSubmit={handleUpdateSubmit}>
           {editMode === 'mineral' && (
             <>
+              {/* ── Unbestimmt-Schalter im EditModal ── */}
+              <div className="undetermined-toggle-card" style={{ marginBottom: '16px' }}>
+                <div className="undetermined-toggle-content">
+                  <div className="undetermined-toggle-icon">❓</div>
+                  <div className="undetermined-toggle-text">
+                    <span className="undetermined-toggle-label">Unbestimmtes Mineral</span>
+                    <span className="undetermined-toggle-hint">
+                      {isUndetermined
+                        ? 'Mineral ist als unbestimmt markiert.'
+                        : 'Als unbestimmt markieren – sperrt alle Felder außer Regal, Koordinate und Bild.'}
+                    </span>
+                  </div>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={isUndetermined}
+                    onChange={(e) => handleUndeterminedToggle(e.target.checked)}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+
+              {isUndetermined && (
+                <div className="undetermined-info-banner" style={{ marginBottom: '16px' }}>
+                  <span>⚠️</span>
+                  <span>Nur Regal, Koordinate und Bild können bearbeitet werden.</span>
+                </div>
+              )}
+
               <div className="form-group">
                 <label>Name des Minerals</label>
                 <input
                   type="text"
-                  value={formData.name || ''}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={isUndetermined ? 'Unbestimmtes Mineral' : (formData.name || '')}
+                  onChange={(e) => !isUndetermined && setFormData({...formData, name: e.target.value})}
                   required
+                  disabled={isUndetermined}
+                  className={isUndetermined ? 'input-disabled' : ''}
                 />
               </div>
               <div className="form-group">
@@ -244,28 +297,31 @@ export default function EditModal({
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
                 <label>Farbe</label>
                 <input
                   type="text"
-                  value={formData.color || ''}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  value={isUndetermined ? '' : (formData.color || '')}
+                  onChange={(e) => !isUndetermined && setFormData({...formData, color: e.target.value})}
+                  disabled={isUndetermined}
                 />
               </div>
-              <div className="form-group">
+              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
                 <label>Beschreibung</label>
                 <textarea
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  value={isUndetermined ? '' : (formData.description || '')}
+                  onChange={(e) => !isUndetermined && setFormData({...formData, description: e.target.value})}
                   rows={4}
+                  disabled={isUndetermined}
                 />
               </div>
-              <div className="form-group">
+              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
                 <label>Fundort</label>
                 <input
                   type="text"
-                  value={formData.location || ''}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
+                  value={isUndetermined ? '' : (formData.location || '')}
+                  onChange={(e) => !isUndetermined && setFormData({...formData, location: e.target.value})}
+                  disabled={isUndetermined}
                 />
               </div>
               <div className="form-group">
@@ -274,12 +330,7 @@ export default function EditModal({
                   latitude={formData.latitude}
                   longitude={formData.longitude}
                   onLocationSelect={(lat, lng) => {
-                    console.log('MapSelector coordinates changed:', lat, lng);
-                    setFormData({
-                      ...formData, 
-                      latitude: lat, 
-                      longitude: lng
-                    });
+                    setFormData({ ...formData, latitude: lat, longitude: lng });
                   }}
                 />
                 {formData.latitude && formData.longitude && formData.latitude !== 0 && formData.longitude !== 0 && (
@@ -288,22 +339,25 @@ export default function EditModal({
                   </div>
                 )}
               </div>
-              <div className="form-group">
+              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
                 <label>Kaufort</label>
                 <input
                   type="text"
-                  value={formData.purchase_location || ''}
-                  onChange={(e) => setFormData({...formData, purchase_location: e.target.value})}
+                  value={isUndetermined ? '' : (formData.purchase_location || '')}
+                  onChange={(e) => !isUndetermined && setFormData({...formData, purchase_location: e.target.value})}
+                  disabled={isUndetermined}
                 />
               </div>
-              <div className="form-group">
+              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
                 <label>Gesteinsart</label>
                 <input
                   type="text"
-                  value={formData.rock_type || ''}
-                  onChange={(e) => setFormData({...formData, rock_type: e.target.value})}
+                  value={isUndetermined ? '' : (formData.rock_type || '')}
+                  onChange={(e) => !isUndetermined && setFormData({...formData, rock_type: e.target.value})}
+                  disabled={isUndetermined}
                 />
               </div>
+              {/* Regal immer editierbar */}
               <div className="form-group">
                 <label>Box</label>
                 <ShelfSelector
@@ -408,7 +462,7 @@ export default function EditModal({
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end', marginTop: 'var(--space-6)' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end', marginTop: 'var(--space-6)', flexWrap: 'wrap' }}>
             <button 
               type="button" 
               className="btn btn-secondary"

@@ -173,7 +173,8 @@ export default function CollectionPage({
       rock_type: mineral.rock_type || '',
       shelf_id: mineral.shelf_id || '',
       latitude: mineral.latitude || null,
-      longitude: mineral.longitude || null  
+      longitude: mineral.longitude || null,
+      is_undetermined: (mineral as any).is_undetermined || false
     });
     setEditMode('mineral');
     setEditImage(null);
@@ -186,29 +187,19 @@ export default function CollectionPage({
       shelf: 'Möchten Sie dieses Regal wirklich löschen? Alle zugeordneten Mineralien werden nicht gelöscht, aber ihre Regal-Zuordnung entfernt!'
     };
 
-    if (!confirm(confirmMessage[type])) {
-      return;
-    }
+    if (!confirm(confirmMessage[type])) return;
 
     try {
       setLoading(true);
       
       let url = '';
       switch (type) {
-        case 'mineral':
-          url = `/api/minerals/${id}`;
-          break;
-        case 'showcase':
-          url = `/api/showcases/${id}`;
-          break;
-        case 'shelf':
-          url = `/api/shelves/${id}`;
-          break;
+        case 'mineral': url = `/api/minerals/${id}`; break;
+        case 'showcase': url = `/api/showcases/${id}`; break;
+        case 'shelf': url = `/api/shelves/${id}`; break;
       }
 
-      const response = await fetch(url, {
-        method: 'DELETE'
-      });
+      const response = await fetch(url, { method: 'DELETE' });
 
       if (response.ok) {
         if (type === 'mineral') {
@@ -220,12 +211,7 @@ export default function CollectionPage({
         setPage(1);
         loadMinerals(1, false);
 
-        const entityNames = {
-          mineral: 'Mineral',
-          showcase: 'Vitrine',
-          shelf: 'Regal'
-        };
-
+        const entityNames = { mineral: 'Mineral', showcase: 'Vitrine', shelf: 'Regal' };
         alert(`${entityNames[type]} erfolgreich gelöscht!`);
       } else {
         const responseData = await response.text();
@@ -243,7 +229,7 @@ export default function CollectionPage({
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
           const nextPage = page + 1;
           setPage(nextPage);
           loadMinerals(nextPage, true);
@@ -252,17 +238,12 @@ export default function CollectionPage({
       { threshold: 0.1 }
     );
 
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
     }
 
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore, isLoadingMore, loading, page, loadMinerals]);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, page, loadMinerals]);
 
   useEffect(() => {
     loadFilterOptions();
@@ -275,10 +256,8 @@ export default function CollectionPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
-
   useEffect(() => {
     if (reloadTrigger !== undefined && reloadTrigger > 0) {
-      console.log('=== RELOAD NACH BEARBEITUNG (via Trigger) ===');
       setMinerals([]);
       setPage(1);
       setHasMore(true);
@@ -401,27 +380,39 @@ export default function CollectionPage({
               <div className="loading">Keine Mineralien gefunden</div>
             ) : (
               <>
-                {minerals.map(mineral => (
-                  <div 
-                    key={mineral.id} 
-                    className="mineral-card" 
-                    onClick={() => openMineralDetails(mineral.id)}
-                  >
-                    <div className="mineral-image">
-                      {mineral.image_path ? (
-                        <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
-                      ) : (
-                        <div className="placeholder">📸</div>
-                      )}
+                {minerals.map(mineral => {
+                  const undetermined = !!(mineral as any).is_undetermined;
+                  return (
+                    <div 
+                      key={mineral.id} 
+                      className={`mineral-card ${undetermined ? 'mineral-card-undetermined' : ''}`}
+                      onClick={() => openMineralDetails(mineral.id)}
+                    >
+                      <div className="mineral-image">
+                        {mineral.image_path ? (
+                          <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} />
+                        ) : (
+                          <div className="placeholder">{undetermined ? '❓' : '📸'}</div>
+                        )}
+                        {undetermined && (
+                          <div className="undetermined-card-badge">Unbestimmt</div>
+                        )}
+                      </div>
+                      <div className="mineral-info">
+                        <h3>
+                          {mineral.name}
+                        </h3>
+                        <p><strong>Nummer:</strong> {mineral.number}</p>
+                        {undetermined ? (
+                          <p className="undetermined-card-note">⚠ Noch nicht identifiziert</p>
+                        ) : (
+                          <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
+                        )}
+                        <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : 'Nicht zugeordnet'}</p>
+                      </div>
                     </div>
-                    <div className="mineral-info">
-                      <h3>{mineral.name}</h3>
-                      <p><strong>Nummer:</strong> {mineral.number}</p>
-                      <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
-                      <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : 'Nicht zugeordnet'}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             )}
           </div>
@@ -486,19 +477,13 @@ export default function CollectionPage({
           setShowcases={() => {}}
           loadStats={loadStats}
           loadMinerals={async () => {
-            console.log('=== RELOAD NACH BEARBEITUNG ===');
             if (clearCaches && editFormData.id) {
               clearCaches('mineral', editFormData.id);
             }
-            console.log('Setze Minerals auf []');
             setMinerals([]);
-            console.log('Setze Page auf 1');
             setPage(1);
-            console.log('Setze HasMore auf true');
             setHasMore(true);
-            console.log('Lade Seite 1 mit loadMinerals');
             await loadMinerals(1, false);
-            console.log('=== RELOAD FERTIG ===');
           }}
           clearCaches={clearCaches}
         />

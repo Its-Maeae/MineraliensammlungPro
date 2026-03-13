@@ -22,9 +22,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: {
-    fileSize: 40 * 1024 * 1024 // 40MB
-  },
+  limits: { fileSize: 40 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -34,7 +32,6 @@ const upload = multer({
   }
 });
 
-// Multer Middleware für Next.js
 function runMiddleware(req: any, res: any, fn: any) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result: any) => {
@@ -46,10 +43,8 @@ function runMiddleware(req: any, res: any, fn: any) {
   });
 }
 
-// Funktion zum Invalidieren des Chart-Caches
 function invalidateChartCache() {
   try {
-    // Dynamischer Import der Invalidierungs-Funktion
     const chartDataModule = require('../chart-data');
     if (chartDataModule.invalidateChartCache) {
       chartDataModule.invalidateChartCache();
@@ -108,7 +103,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         params.push(rock_type);
       }
       
-      // Sortierung
       switch (sort) {
         case 'number':
           sql += ` ORDER BY CAST(m.number AS INTEGER)`;
@@ -120,7 +114,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           sql += ` ORDER BY m.name`;
       }
       
-      // Pagination
       sql += ` LIMIT ? OFFSET ?`;
       params.push(limitNum, offset);
       
@@ -133,7 +126,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'POST') {
     return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
       try {
-        // Multer Middleware ausführen
         await runMiddleware(req, res, upload.single('image'));
         
         const {
@@ -146,10 +138,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           rock_type,
           shelf_id,
           latitude,
-          longitude
+          longitude,
+          is_undetermined
         } = (req as any).body;
         
         const image = (req as any).file;
+        const undetermined = is_undetermined === 'true' || is_undetermined === true ? 1 : 0;
         
         // Prüfen ob Steinnummer bereits existiert
         const existingMineral = await database.get(
@@ -164,26 +158,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const result = await database.run(
           `INSERT INTO minerals (
             name, number, color, description, location, 
-            purchase_location, rock_type, shelf_id, image_path, latitude, longitude
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            purchase_location, rock_type, shelf_id, image_path, latitude, longitude, is_undetermined
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            name,
+            undetermined ? 'Unbestimmtes Mineral' : name,
             number,
-            color,
-            description,
-            location,
-            purchase_location,
-            rock_type,
+            undetermined ? null : (color || null),
+            undetermined ? null : (description || null),
+            undetermined ? null : (location || null),
+            undetermined ? null : (purchase_location || null),
+            undetermined ? null : (rock_type || null),
             shelf_id || null,
             image ? image.filename : null,
             latitude ? parseFloat(latitude) : null,
-            longitude ? parseFloat(longitude) : null
+            longitude ? parseFloat(longitude) : null,
+            undetermined
           ]
         );
         
-        // Chart-Cache invalidieren nach erfolgreichem Hinzufügen
         invalidateChartCache();
-        console.log('Chart-Cache invalidiert nach Mineral-Hinzufügung');
         
         res.status(201).json({ id: result.id, message: 'Mineral erfolgreich hinzugefügt' });
       } catch (error) {

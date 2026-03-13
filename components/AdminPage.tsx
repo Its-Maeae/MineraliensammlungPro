@@ -20,6 +20,7 @@ interface MineralFormData {
   shelf_id: string;
   latitude: number | null;
   longitude: number | null;
+  is_undetermined: boolean;
 }
 
 interface ShelfOption {
@@ -95,7 +96,7 @@ export default function AdminPage({ isAuthenticated, onSuccess, showPage }: Admi
   return (
     <section className="page active">
       <div className="container">
-        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <div className="admin-page-header">
           <div>
             <h1 className="page-title">Verwaltung</h1>
             <p className="page-description">Neue Mineralien zur Sammlung hinzufügen</p>
@@ -104,7 +105,6 @@ export default function AdminPage({ isAuthenticated, onSuccess, showPage }: Admi
             onClick={handleLogout}
             disabled={loggingOut}
             className="btn btn-secondary"
-            style={{ height: 'fit-content' }}
           >
             {loggingOut ? 'Wird abgemeldet...' : 'Abmelden'}
           </button>
@@ -123,13 +123,15 @@ function SimpleAutocomplete({
   onChange, 
   existingValues,
   id,
-  placeholder
+  placeholder,
+  disabled
 }: { 
   value: string; 
   onChange: (value: string) => void; 
   existingValues: string[];
   id: string;
   placeholder: string;
+  disabled?: boolean;
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
@@ -182,12 +184,13 @@ function SimpleAutocomplete({
         }}
         onBlur={handleBlur}
         placeholder={placeholder}
-        required
+        required={!disabled}
+        disabled={disabled}
         autoComplete="off"
         style={{ width: '100%' }}
       />
       
-      {showSuggestions && filteredSuggestions.length > 0 && (
+      {!disabled && showSuggestions && filteredSuggestions.length > 0 && (
         <div className="autocomplete-dropdown">
           {filteredSuggestions.map((suggestion, index) => (
             <div
@@ -210,11 +213,13 @@ function SimpleAutocomplete({
 function RockTypeAutocomplete({ 
   value, 
   onChange, 
-  existingRockTypes 
+  existingRockTypes,
+  disabled
 }: { 
   value: string; 
   onChange: (value: string) => void; 
-  existingRockTypes: string[] 
+  existingRockTypes: string[];
+  disabled?: boolean;
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<Array<{type: string, source: string}>>([]);
@@ -278,12 +283,13 @@ function RockTypeAutocomplete({
         }}
         onBlur={handleBlur}
         placeholder="z.B. magmatisch, sedimentär, metamorph"
-        required
+        required={!disabled}
+        disabled={disabled}
         autoComplete="off"
         style={{ width: '100%' }}
       />
       
-      {showSuggestions && filteredSuggestions.length > 0 && (
+      {!disabled && showSuggestions && filteredSuggestions.length > 0 && (
         <div className="autocomplete-dropdown">
           {filteredSuggestions.map((suggestion, index) => (
             <div
@@ -328,7 +334,8 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       rock_type: '',
       shelf_id: '',
       latitude: null,
-      longitude: null
+      longitude: null,
+      is_undetermined: false
     };
   };
 
@@ -346,6 +353,8 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
   const [numberExists, setNumberExists] = useState(false);
   const [checkingNumber, setCheckingNumber] = useState(false);
   const [numberCheckTimeout, setNumberCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const isUndetermined = formData.is_undetermined;
 
   useEffect(() => {
     loadShelves();
@@ -371,6 +380,28 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       sessionStorage.setItem(IMAGE_STORAGE_KEY, imageName);
     }
   }, [imageName]);
+
+  // When toggling undetermined, clear all non-essential fields
+  const handleUndeterminedToggle = (checked: boolean) => {
+    if (checked) {
+      setFormData(prev => ({
+        ...prev,
+        name: 'Unbestimmtes Mineral',
+        color: '',
+        description: '',
+        location: '',
+        purchase_location: '',
+        rock_type: '',
+        is_undetermined: true
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        name: '',
+        is_undetermined: false
+      }));
+    }
+  };
 
   const loadShelves = async () => {
     try {
@@ -506,7 +537,8 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       rock_type: '',
       shelf_id: '',
       latitude: null,
-      longitude: null
+      longitude: null,
+      is_undetermined: false
     };
     setFormData(emptyData);
     setImage(null);
@@ -523,33 +555,23 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('=== SESSION DEBUG START ===');
-    
     try {
       const sessionCheck = await fetch('/api/auth/check', {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers: { 'Content-Type': 'application/json' }
       });
       
-      console.log('Session Check Status:', sessionCheck.status);
       const sessionData = await sessionCheck.json();
-      console.log('Session Check Response:', sessionData);
       
       if (!sessionCheck.ok) {
         alert('Session ist nicht gültig! Bitte melden Sie sich erneut an.\n\nDetails: ' + JSON.stringify(sessionData));
         return;
       }
     } catch (error) {
-      console.error('Session Check Error:', error);
       alert('Fehler beim Prüfen der Session. Bitte neu anmelden.');
       return;
     }
-    
-    console.log('Session ist gültig!');
-    console.log('Cookies:', document.cookie);
     
     if (numberExists) {
       alert('Diese Steinnummer existiert bereits. Bitte wählen Sie eine andere Nummer.');
@@ -574,45 +596,32 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         form.append('image', image);
       }
 
-      console.log('Sende Request zu /api/minerals...');
-      console.log('FormData Felder:', Array.from(form.keys()));
-
       const response = await fetch('/api/minerals', {
         method: 'POST',
         body: form,
         credentials: 'include',
       });
 
-      console.log('Response Status:', response.status);
-      console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
-
       if (response.ok) {
         const result = await response.json();
-        console.log('Erfolg:', result);
         clearFormData();
         onSuccess();
         alert('Mineral erfolgreich hinzugefügt!');
       } else {
         const errorText = await response.text();
-        console.error('Fehler Response:', errorText);
-        
         let errorData;
         try {
           errorData = JSON.parse(errorText);
         } catch {
           errorData = { error: errorText };
         }
-        
         alert('Fehler beim Hinzufügen:\n\n' + JSON.stringify(errorData, null, 2));
       }
     } catch (error) {
-      console.error('Exception beim Hinzufügen des Minerals:', error);
       alert('Fehler beim Hinzufügen des Minerals: ' + error);
     } finally {
       setLoading(false);
     }
-    
-    console.log('=== SESSION DEBUG END ===');
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -665,18 +674,53 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
 
   return (
     <form onSubmit={handleSubmit}>
+
+      {/* ── Unbestimmt-Schalter ── */}
+      <div className="undetermined-toggle-card">
+        <div className="undetermined-toggle-content">
+          <div className="undetermined-toggle-icon">❓</div>
+          <div className="undetermined-toggle-text">
+            <span className="undetermined-toggle-label">Unbestimmtes Mineral</span>
+            <span className="undetermined-toggle-hint">
+              {isUndetermined
+                ? 'Nur Steinnummer, Regal, Koordinate und Bild werden gespeichert.'
+                : 'Schalten Sie ein, wenn das Mineral noch nicht identifiziert wurde.'}
+            </span>
+          </div>
+        </div>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={isUndetermined}
+            onChange={(e) => handleUndeterminedToggle(e.target.checked)}
+          />
+          <span className="toggle-slider"></span>
+        </label>
+      </div>
+
+      {isUndetermined && (
+        <div className="undetermined-info-banner">
+          <span>⚠️</span>
+          <span>Im unbestimmten Modus sind Name, Farbe, Beschreibung, Fundort, Kaufort und Gesteinsart deaktiviert. Sie können Steinnummer, Regal, Koordinate und Bild hinzufügen.</span>
+        </div>
+      )}
+
+      {/* ── Name ── */}
       <div className="form-group">
         <label htmlFor="name">Name des Minerals</label>
         <input
           type="text"
           id="name"
-          value={formData.name}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, name: e.target.value }))}
+          value={isUndetermined ? 'Unbestimmtes Mineral' : formData.name}
+          onChange={(e) => !isUndetermined && setFormData(prevData => ({ ...prevData, name: e.target.value }))}
           placeholder="z.B. Quarz, Pyrit, Amethyst"
           required
+          disabled={isUndetermined}
+          className={isUndetermined ? 'input-disabled' : ''}
         />
       </div>
 
+      {/* ── Steinnummer ── */}
       <div className="form-group">
         <label htmlFor="number">Steinnummer</label>
         <div className="number-input-container">
@@ -698,107 +742,116 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
               </span>
             )}
             {!checkingNumber && formData.number.trim() && numberExists && (
-              <span className="error-indicator">
-                Diese Nummer existiert bereits
-              </span>
+              <span className="error-indicator">Diese Nummer existiert bereits</span>
             )}
             {!checkingNumber && formData.number.trim() && !numberExists && (
-              <span className="success-indicator">
-                Nummer verfügbar
-              </span>
+              <span className="success-indicator">Nummer verfügbar</span>
             )}
           </div>
         </div>
       </div>
 
-      <div className="form-group">
+      {/* ── Farbe ── */}
+      <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
         <label htmlFor="color">Farbe</label>
         <SimpleAutocomplete
           id="color"
-          value={formData.color}
+          value={isUndetermined ? '' : formData.color}
           onChange={(value) => setFormData(prevData => ({ ...prevData, color: value }))}
           existingValues={existingColors}
           placeholder="Hauptfarbe des Minerals"
+          disabled={isUndetermined}
         />
       </div>
 
-     <div className="form-group">
+      {/* ── Beschreibung ── */}
+      <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
         <label htmlFor="description">Beschreibung</label>
         <textarea
           id="description"
-          value={formData.description}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, description: e.target.value }))}
+          value={isUndetermined ? '' : formData.description}
+          onChange={(e) => !isUndetermined && setFormData(prevData => ({ ...prevData, description: e.target.value }))}
           placeholder="Detaillierte Beschreibung, Besonderheiten, chemische Formel..."
-          required
+          required={!isUndetermined}
+          disabled={isUndetermined}
         />
-        <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '4px 8px' }}
-            onClick={() => setFormData(prevData => ({ 
-              ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner) '
-            }))}
-          >
-            Quelle: Hochleitner
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '4px 8px' }}
-            onClick={() => setFormData(prevData => ({ 
-              ...prevData, 
-              description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros)'
-            }))}
-          >
-            Quelle: Svenek/Pros
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ fontSize: '11px', padding: '4px 8px' }}
-            onClick={generateAIDescription}
-            disabled={!formData.name.trim() || generatingAI}
-          >
-            {generatingAI ? 'Generiere...' : 'KI-Beschreibung'}
-          </button>
-        </div>
+        {!isUndetermined && (
+          <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ fontSize: '11px', padding: '4px 8px' }}
+              onClick={() => setFormData(prevData => ({ 
+                ...prevData, 
+                description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner) '
+              }))}
+            >
+              Quelle: Hochleitner
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ fontSize: '11px', padding: '4px 8px' }}
+              onClick={() => setFormData(prevData => ({ 
+                ...prevData, 
+                description: prevData.description + (prevData.description ? '\n\n' : '') + 'Quelle: Buch: Minerale Arthia (Jaroslav Svenek und Ladislav Pros)'
+              }))}
+            >
+              Quelle: Svenek/Pros
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ fontSize: '11px', padding: '4px 8px' }}
+              onClick={generateAIDescription}
+              disabled={!formData.name.trim() || generatingAI}
+            >
+              {generatingAI ? 'Generiere...' : 'KI-Beschreibung'}
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="form-group">
+      {/* ── Fundort (Text) ── */}
+      <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
         <label htmlFor="location">Fundort (Text)</label>
         <SimpleAutocomplete
           id="location"
-          value={formData.location}
+          value={isUndetermined ? '' : formData.location}
           onChange={(value) => setFormData(prevData => ({ ...prevData, location: value }))}
           existingValues={existingLocations}
           placeholder="Geographische Herkunft"
+          disabled={isUndetermined}
         />
       </div>
 
-      <div className="form-group">
+      {/* ── Kaufort ── */}
+      <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
         <label htmlFor="purchase_location">Kaufort</label>
         <input
           type="text"
           id="purchase_location"
-          value={formData.purchase_location}
-          onChange={(e) => setFormData(prevData => ({ ...prevData, purchase_location: e.target.value }))}
+          value={isUndetermined ? '' : formData.purchase_location}
+          onChange={(e) => !isUndetermined && setFormData(prevData => ({ ...prevData, purchase_location: e.target.value }))}
           placeholder="Wo wurde es erworben?"
-          required
+          required={!isUndetermined}
+          disabled={isUndetermined}
           autoComplete='off'
         />
       </div>
 
-      <div className="form-group">
+      {/* ── Gesteinsart ── */}
+      <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
         <label htmlFor="rock_type">Gesteinsart</label>
         <RockTypeAutocomplete
-          value={formData.rock_type}
+          value={isUndetermined ? '' : formData.rock_type}
           onChange={(value) => setFormData(prevData => ({ ...prevData, rock_type: value }))}
           existingRockTypes={existingRockTypes}
+          disabled={isUndetermined}
         />
       </div>
 
+      {/* ── Regal ── (always enabled) */}
       <div className="form-group">
         <label htmlFor="shelf_id">Regal</label>
         <ShelfSelector
@@ -808,6 +861,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         />
       </div>
 
+      {/* ── Koordinate ── (always enabled) */}
       <div className="form-group">
         <label>Fundort auf Karte markieren (optional)</label>
         <MapSelector
@@ -822,6 +876,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         )}
       </div>
 
+      {/* ── Bild ── (always enabled) */}
       <div className="form-group">
         <label htmlFor="image">Bild hochladen</label>
         <div 
@@ -863,7 +918,8 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         />
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      {/* ── Aktions-Buttons ── */}
+      <div className="admin-action-buttons">
         <button 
           type="submit" 
           disabled={loading || numberExists || checkingNumber || !formData.number.trim()} 
@@ -884,11 +940,8 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         <button 
           type="button"
           onClick={() => {
-            console.log('Security Button clicked, showPage:', showPage);
             if (showPage) {
               showPage('security');
-            } else {
-              alert('showPage function nicht verfügbar!');
             }
           }}
           className="btn btn-secondary btn-large"
