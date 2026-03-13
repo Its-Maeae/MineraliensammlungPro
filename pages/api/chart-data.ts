@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const nameData = await database.query(`
           SELECT name as label, COUNT(*) as count
           FROM minerals
-          WHERE name IS NOT NULL AND name != ''
+          WHERE name IS NOT NULL AND name != '' AND name != '-'
           GROUP BY name
           ORDER BY count DESC, name ASC
           LIMIT 20
@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const rockTypeData = await database.query(`
           SELECT rock_type as label, COUNT(*) as count
           FROM minerals
-          WHERE rock_type IS NOT NULL AND rock_type != ''
+          WHERE rock_type IS NOT NULL AND rock_type != '' AND rock_type != '-'
           GROUP BY rock_type
           ORDER BY count DESC, rock_type ASC
           LIMIT 20
@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const colorData = await database.query(`
           SELECT color as label, COUNT(*) as count
           FROM minerals
-          WHERE color IS NOT NULL AND color != ''
+          WHERE color IS NOT NULL AND color != '' AND color != '-'
           GROUP BY color
           ORDER BY count DESC, color ASC
           LIMIT 20
@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const locationData = await database.query(`
           SELECT location as label, COUNT(*) as count
           FROM minerals
-          WHERE location IS NOT NULL AND location != ''
+          WHERE location IS NOT NULL AND location != '' AND location != '-'
           GROUP BY location
           ORDER BY count DESC, location ASC
           LIMIT 20
