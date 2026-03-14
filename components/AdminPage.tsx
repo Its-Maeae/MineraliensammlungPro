@@ -528,7 +528,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
             placeholder="z.B. Quarz, Pyrit, Amethyst – noch unsicher"
             autoComplete="off"
           />
-          <p className="form-hint">Wird auf der Karte und im Detail als Hinweis angezeigt.</p>
         </div>
       )}
 

@@ -270,12 +270,6 @@ export default function EditModal({
                 </label>
               </div>
 
-              {isUndetermined && (
-                <div className="undetermined-info-banner" style={{ marginBottom: '16px' }}>
-                  <span>Im unbestimmten Modus sind nur Regal, Koordinate und Bild verfügbar.</span>
-                </div>
-              )}
-
               {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
               {isUndetermined && (
                 <div className="form-group suspected-name-group">
@@ -287,7 +281,6 @@ export default function EditModal({
                     placeholder="z.B. Quarz, Pyrit, Amethyst – noch unsicher"
                     autoComplete="off"
                   />
-                  <p className="form-hint">Wird auf der Karte und im Detail als Hinweis angezeigt.</p>
                 </div>
               )}
 
