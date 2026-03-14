@@ -24,6 +24,9 @@ interface CollectionPageProps {
   setRockTypeFilter: (type: string) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
+  // ── Von index.tsx nach unten gereicht ──
+  showUndetermined: 'all' | 'only' | 'hide';
+  setShowUndetermined: (val: 'all' | 'only' | 'hide') => void;
   filterOptions: FilterOptions;
   setFilterOptions: (options: FilterOptions) => void;
   hasActiveFilters: boolean;
@@ -46,7 +49,7 @@ interface CollectionPageProps {
   reloadTrigger?: number;
 }
 
-export default function CollectionPage({ 
+export default function CollectionPage({
   minerals,
   setMinerals,
   loading,
@@ -61,6 +64,8 @@ export default function CollectionPage({
   setRockTypeFilter,
   sortBy,
   setSortBy,
+  showUndetermined,
+  setShowUndetermined,
   filterOptions,
   setFilterOptions,
   hasActiveFilters,
@@ -80,28 +85,26 @@ export default function CollectionPage({
   loadStats,
   showPage,
   clearCaches,
-  reloadTrigger
+  reloadTrigger,
 }: CollectionPageProps) {
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [showUndetermined, setShowUndetermined] = useState<'all' | 'only' | 'hide'>('all');
   const observerTarget = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
 
+  // Ref damit append-Aufrufe immer den aktuellen minerals-Array sehen
   const mineralsRef = useRef<Mineral[]>(minerals);
   useEffect(() => { mineralsRef.current = minerals; }, [minerals]);
 
-  const setLoadingRef = useRef(setLoading);
-  useEffect(() => { setLoadingRef.current = setLoading; }, [setLoading]);
-
-  const setMineralsRef = useRef(setMinerals);
-  useEffect(() => { setMineralsRef.current = setMinerals; }, [setMinerals]);
-
+  // loadMinerals baut seinen fetch aus den Props auf.
+  // Da showUndetermined jetzt ein Prop ist, wird loadMinerals bei jeder
+  // Änderung eines Filters (inkl. showUndetermined) neu erstellt,
+  // und der useEffect darunter feuert dann den neuen Fetch.
   const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
     if (append) setIsLoadingMore(true);
-    else setLoadingRef.current(true);
+    else setLoading(true);
 
     try {
       const params = new URLSearchParams({
@@ -118,16 +121,18 @@ export default function CollectionPage({
       const response = await fetch(`/api/minerals?${params}`);
       if (response.ok) {
         const data = await response.json();
-        if (append) setMineralsRef.current([...mineralsRef.current, ...data]);
-        else setMineralsRef.current(data);
+        if (append) setMinerals([...mineralsRef.current, ...data]);
+        else setMinerals(data);
         setHasMore(data.length === ITEMS_PER_PAGE);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Mineralien:', error);
     } finally {
       if (append) setIsLoadingMore(false);
-      else setLoadingRef.current(false);
+      else setLoading(false);
     }
+  // setLoading / setMinerals sind stabile Props-Referenzen aus useState
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined]);
 
   const loadFilterOptions = async () => {
@@ -164,7 +169,7 @@ export default function CollectionPage({
       shelf_id: mineral.shelf_id || '',
       latitude: mineral.latitude || null,
       longitude: mineral.longitude || null,
-      is_undetermined: (mineral as any).is_undetermined || false
+      is_undetermined: (mineral as any).is_undetermined || false,
     });
     setEditMode('mineral');
     setEditImage(null);
@@ -174,18 +179,25 @@ export default function CollectionPage({
     const confirmMessage = {
       mineral: 'Möchten Sie dieses Mineral wirklich löschen?',
       showcase: 'Möchten Sie diese Vitrine wirklich löschen? Alle zugehörigen Regale werden ebenfalls gelöscht!',
-      shelf: 'Möchten Sie dieses Regal wirklich löschen? Alle zugeordneten Mineralien werden nicht gelöscht, aber ihre Regal-Zuordnung entfernt!'
+      shelf: 'Möchten Sie dieses Regal wirklich löschen? Alle zugeordneten Mineralien werden nicht gelöscht, aber ihre Regal-Zuordnung entfernt!',
     };
 
     if (!confirm(confirmMessage[type])) return;
 
     try {
       setLoading(true);
-      const urls = { mineral: `/api/minerals/${id}`, showcase: `/api/showcases/${id}`, shelf: `/api/shelves/${id}` };
+      const urls = {
+        mineral: `/api/minerals/${id}`,
+        showcase: `/api/showcases/${id}`,
+        shelf: `/api/shelves/${id}`,
+      };
       const response = await fetch(urls[type], { method: 'DELETE' });
 
       if (response.ok) {
-        if (type === 'mineral') { setShowMineralModal(false); setSelectedMineral(null); }
+        if (type === 'mineral') {
+          setShowMineralModal(false);
+          setSelectedMineral(null);
+        }
         loadStats();
         setPage(1);
         loadMinerals(1, false);
@@ -201,7 +213,7 @@ export default function CollectionPage({
     }
   };
 
-  // Intersection Observer für Infinite Scroll
+  // Infinite Scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -219,12 +231,15 @@ export default function CollectionPage({
 
   useEffect(() => { loadFilterOptions(); }, []);
 
+  // Dieser Effect feuert bei JEDER Filteränderung – inkl. showUndetermined,
+  // weil loadMinerals als useCallback von allen Filterwerten abhängt.
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     loadMinerals(1, false);
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined, loadMinerals]);
+  }, [loadMinerals]);
 
+  // Nach externem Reload (z.B. nach Bearbeiten eines Minerals)
   useEffect(() => {
     if (reloadTrigger !== undefined && reloadTrigger > 0) {
       setMinerals([]);
@@ -234,9 +249,6 @@ export default function CollectionPage({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reloadTrigger]);
-
-  // Zeige "Unbestimmt" in aktive Filter
-  const undeterminedFilterActive = showUndetermined !== 'all';
 
   return (
     <>
@@ -249,14 +261,19 @@ export default function CollectionPage({
                 <p className="page-description">Durchsuchen und filtern Sie die komplette Sammlung</p>
               </div>
               {showPage ? (
-                <button className="btn btn-secondary btn-large" onClick={() => showPage('statistics')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  className="btn btn-secondary btn-large"
+                  onClick={() => showPage('statistics')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
                   <span></span><span>Statistiken anzeigen</span>
                 </button>
               ) : (
-                <button className="btn btn-primary btn-large"
+                <button
+                  className="btn btn-primary btn-large"
                   onClick={() => window.location.href = '/?page=statistics'}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
                   <span></span><span>Statistiken anzeigen</span>
                 </button>
               )}
@@ -277,20 +294,38 @@ export default function CollectionPage({
 
             <div className="filter-section">
               <h3>Filter</h3>
-              <select className="filter-select" value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
+              <select
+                className="filter-select"
+                value={colorFilter}
+                onChange={(e) => setColorFilter(e.target.value)}
+              >
                 <option value="">Alle Farben</option>
-                {filterOptions.colors.map(color => <option key={color} value={color}>{color}</option>)}
+                {filterOptions.colors.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
               </select>
-              <select className="filter-select" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
+              <select
+                className="filter-select"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+              >
                 <option value="">Alle Fundorte</option>
-                {filterOptions.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                {filterOptions.locations.map(loc => (
+                  <option key={loc} value={loc}>{loc}</option>
+                ))}
               </select>
-              <select className="filter-select" value={rockTypeFilter} onChange={(e) => setRockTypeFilter(e.target.value)}>
+              <select
+                className="filter-select"
+                value={rockTypeFilter}
+                onChange={(e) => setRockTypeFilter(e.target.value)}
+              >
                 <option value="">Alle Gesteinsarten</option>
-                {filterOptions.rock_types.map(type => <option key={type} value={type}>{type}</option>)}
+                {filterOptions.rock_types.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
 
-              {/* ── Unbestimmt-Filter ── */}
+              {/* Unbestimmt-Filter als Checkbox – an/abwählbar */}
               <div className="undetermined-filter-group">
                 <label className="undetermined-filter-option">
                   <input
@@ -304,7 +339,8 @@ export default function CollectionPage({
             </div>
           </div>
 
-          {(hasActiveFilters || undeterminedFilterActive) && (
+          {/* Aktive-Filter-Leiste – hasActiveFilters ist true wenn showUndetermined !== 'all' */}
+          {hasActiveFilters && (
             <div className="filter-info show">
               <strong>Aktive Filter:</strong>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -312,13 +348,15 @@ export default function CollectionPage({
                 {colorFilter && <span className="filter-tag">Farbe: {colorFilter}</span>}
                 {locationFilter && <span className="filter-tag">Fundort: {locationFilter}</span>}
                 {rockTypeFilter && <span className="filter-tag">Gesteinsart: {rockTypeFilter}</span>}
-                {showUndetermined === 'only' && <span className="filter-tag filter-tag-undetermined">Nur unbestimmte</span>}
-                {showUndetermined === 'hide' && <span className="filter-tag filter-tag-undetermined">Unbestimmte ausgeblendet</span>}
+                {showUndetermined === 'only' && (
+                  <span className="filter-tag filter-tag-undetermined">Nur unbestimmte</span>
+                )}
+                {showUndetermined === 'hide' && (
+                  <span className="filter-tag filter-tag-undetermined">Unbestimmte ausgeblendet</span>
+                )}
               </div>
-              <button className="clear-filters" onClick={() => {
-                clearFilters();
-                setShowUndetermined('all');
-              }}>
+              {/* clearFilters() setzt in index.tsx auch showUndetermined auf 'all' zurück */}
+              <button className="clear-filters" onClick={clearFilters}>
                 Filter zurücksetzen
               </button>
             </div>
@@ -354,7 +392,9 @@ export default function CollectionPage({
                         ) : (
                           <div className="placeholder">{undetermined ? '❓' : '📸'}</div>
                         )}
-                        {undetermined && <div className="undetermined-card-badge">Unbestimmt</div>}
+                        {undetermined && (
+                          <div className="undetermined-card-badge">Unbestimmt</div>
+                        )}
                       </div>
                       <div className="mineral-info">
                         <h3>{mineral.name}</h3>
@@ -364,7 +404,12 @@ export default function CollectionPage({
                         ) : (
                           <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
                         )}
-                        <p><strong>Regal:</strong> {mineral.shelf_code ? `${mineral.showcase_code}-${mineral.shelf_code}` : 'Nicht zugeordnet'}</p>
+                        <p>
+                          <strong>Regal:</strong>{' '}
+                          {mineral.shelf_code
+                            ? `${mineral.showcase_code}-${mineral.shelf_code}`
+                            : 'Nicht zugeordnet'}
+                        </p>
                       </div>
                     </div>
                   );
@@ -376,13 +421,20 @@ export default function CollectionPage({
           {hasMore && (
             <div ref={observerTarget} style={{ height: '20px', margin: '20px 0' }}>
               {isLoadingMore && (
-                <div className="loading" style={{ gridColumn: '1 / -1' }}>Lade weitere Mineralien...</div>
+                <div className="loading" style={{ gridColumn: '1 / -1' }}>
+                  Lade weitere Mineralien...
+                </div>
               )}
             </div>
           )}
 
           {!hasMore && minerals.length > 0 && (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
+            <div style={{
+              textAlign: 'center',
+              padding: '20px',
+              color: 'var(--gray-500)',
+              fontSize: 'var(--font-size-sm)',
+            }}>
               Alle Mineralien geladen ({minerals.length} gesamt)
             </div>
           )}

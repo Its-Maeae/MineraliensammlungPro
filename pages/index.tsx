@@ -39,6 +39,8 @@ export default function Home() {
   const [locationFilter, setLocationFilter] = useState('');
   const [rockTypeFilter, setRockTypeFilter] = useState('');
   const [sortBy, setSortBy] = useState('name');
+  // ── Unbestimmt-Filter hier oben verwaltet ──
+  const [showUndetermined, setShowUndetermined] = useState<'all' | 'only' | 'hide'>('all');
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     colors: [],
     locations: [],
@@ -64,18 +66,14 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
-  // Cache Refs für verschiedene Seiten
   const mineralCache = useRef<Map<number, Mineral>>(new Map());
   const showcaseCache = useRef<Map<number, Showcase>>(new Map());
   const shelfCache = useRef<Map<number, { shelfInfo: any; minerals: Mineral[] }>>(new Map());
 
-  // Clear Cache Funktion
   const clearCaches = useCallback((type: 'showcase' | 'shelf' | 'mineral', id: number) => {
     console.log('Clearing cache for', type, id);
-    
     if (type === 'showcase') {
       showcaseCache.current.delete(id);
-      // Alle Shelf-Caches löschen, da wir nicht wissen welche zu dieser Showcase gehören
       shelfCache.current.clear();
     } else if (type === 'shelf') {
       shelfCache.current.delete(id);
@@ -84,7 +82,6 @@ export default function Home() {
     }
   }, []);
 
-  // QR-Code Handling
   useEffect(() => {
     if (router.isReady) {
       const { shelf } = router.query;
@@ -97,26 +94,17 @@ export default function Home() {
   const handleQRCodeScan = async (shelfId: number) => {
     try {
       console.log('QR-Code gescannt für Regal ID:', shelfId);
-      
-      // Zuerst zur Vitrinen-Seite wechseln
       setCurrentPage('vitrines');
-      
-      // Showcases laden falls noch nicht geladen
       if (showcases.length === 0) {
         await loadShowcases();
       }
-      
-      // Regal-Details laden und anzeigen
       setLoading(true);
       const response = await fetch(`/api/shelves/${shelfId}/minerals`);
       const responseData = await response.json();
-      
       if (response.ok) {
         setSelectedShelf(responseData.shelfInfo);
         setShelfMinerals(responseData.minerals);
         setShowShelfMineralsModal(true);
-        
-        // URL-Parameter entfernen
         router.replace('/', undefined, { shallow: true });
       } else {
         console.error('Fehler beim Laden des Regals:', responseData);
@@ -132,7 +120,6 @@ export default function Home() {
     }
   };
 
-  // Define functions before useEffect hooks
   const loadStats = async () => {
     try {
       const response = await fetch('/api/stats');
@@ -145,6 +132,7 @@ export default function Home() {
     }
   };
 
+  // Wird nur noch für nicht-CollectionPage Kontexte genutzt (z.B. EditModal auf anderen Seiten)
   const loadMinerals = async () => {
     setLoading(true);
     try {
@@ -153,9 +141,9 @@ export default function Home() {
         color: colorFilter,
         location: locationFilter,
         rock_type: rockTypeFilter,
-        sort: sortBy
+        sort: sortBy,
+        undetermined: showUndetermined,
       });
-      
       const response = await fetch(`/api/minerals?${params}`);
       if (response.ok) {
         const data = await response.json();
@@ -218,17 +206,20 @@ export default function Home() {
     }
   };
 
+  // clearFilters setzt jetzt auch showUndetermined zurück
   const clearFilters = () => {
     setSearchTerm('');
     setColorFilter('');
     setLocationFilter('');
     setRockTypeFilter('');
+    setShowUndetermined('all');
   };
 
-  // Calculate hasActiveFilters as boolean
-  const hasActiveFilters = Boolean(searchTerm || colorFilter || locationFilter || rockTypeFilter);
+  // hasActiveFilters berücksichtigt jetzt auch showUndetermined
+  const hasActiveFilters = Boolean(
+    searchTerm || colorFilter || locationFilter || rockTypeFilter || showUndetermined !== 'all'
+  );
 
-  // useEffect hooks
   useEffect(() => {
     loadStats();
     loadShelves();
@@ -237,18 +228,11 @@ export default function Home() {
 
   useEffect(() => {
     if (currentPage === 'collection') {
-      loadMinerals();
       loadFilterOptions();
     } else if (currentPage === 'vitrines') {
       loadShowcases();
     }
   }, [currentPage]);
-
-  useEffect(() => {
-    if (currentPage === 'collection') {
-      loadMinerals();
-    }
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -270,12 +254,9 @@ export default function Home() {
     }
     setCurrentPage(page);
     setMobileMenuOpen(false);
-    
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Keyboard Shortcut Handlers
   const handleOpenSearch = () => {
     if (currentPage === 'collection') {
       const searchInput = document.querySelector('.search-input') as HTMLInputElement;
@@ -312,7 +293,6 @@ export default function Home() {
   };
 
   const handleEscape = () => {
-    // Priorisierte Reihenfolge: Wichtigste Modals zuerst
     if (editMode) {
       setEditMode(null);
       setEditImage(null);
@@ -343,7 +323,6 @@ export default function Home() {
         <meta name="description" content="Entdecken Sie die Sammlung seltener Mineralien und Gesteine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="../public/picture/icon.png" />
-        {/* QR-Code Library */}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
       </Head>
 
@@ -359,7 +338,6 @@ export default function Home() {
         showPage={showPage}
       />
 
-      {/* Keyboard Shortcuts - IMMER aktiv */}
       <KeyboardShortcuts
         showPage={showPage}
         currentPage={currentPage}
@@ -396,6 +374,8 @@ export default function Home() {
             setRockTypeFilter={setRockTypeFilter}
             sortBy={sortBy}
             setSortBy={setSortBy}
+            showUndetermined={showUndetermined}
+            setShowUndetermined={setShowUndetermined}
             filterOptions={filterOptions}
             setFilterOptions={setFilterOptions}
             hasActiveFilters={hasActiveFilters}
