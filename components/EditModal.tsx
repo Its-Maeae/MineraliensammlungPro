@@ -105,6 +105,9 @@ export default function EditModal({
         if (key !== 'id' && formData[key] !== undefined) {
           if ((key === 'latitude' || key === 'longitude') && formData[key] === 0) {
             formDataToSend.append(key, '');
+          } else if (key === 'color') {
+            // Farbe immer senden (auch als leerer String), damit sie korrekt gespeichert wird
+            formDataToSend.append(key, formData[key] ?? '');
           } else if (formData[key] !== null) {
             formDataToSend.append(key, formData[key].toString());
           }
