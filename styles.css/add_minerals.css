@@ -1,0 +1,235 @@
+/* ========================================
+   ADD MINERALS TO BOX - MODAL STYLES
+   ======================================== */
+
+/* Overlay stacking - über BoxModal */
+.add-minerals-overlay {
+  z-index: 10000;
+}
+
+.add-minerals-modal {
+  max-width: 560px;
+}
+
+/* Liste der Einträge */
+.add-minerals-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+/* Einzelne Zeile */
+.add-mineral-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px auto 28px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.add-mineral-row.status-success {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.add-mineral-row.status-error {
+  border-color: var(--error-color);
+  background: #fef2f2;
+}
+
+.add-mineral-row.status-already_assigned {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.add-mineral-row.status-loading {
+  border-color: var(--primary-color);
+  background: var(--gray-50);
+}
+
+/* Zeilennummer */
+.row-index {
+  font-size: var(--font-size-xs);
+  color: var(--gray-400);
+  font-weight: 600;
+  text-align: center;
+  min-width: 20px;
+}
+
+/* Input */
+.add-mineral-input-wrap {
+  flex: 1;
+}
+
+.add-mineral-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--gray-900);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.add-mineral-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+/* Status Icons */
+.add-mineral-status {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-spinner {
+  color: var(--primary-color);
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  font-size: var(--font-size-base);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status-ok {
+  color: #22c55e;
+  font-size: var(--font-size-base);
+}
+
+.status-err {
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+}
+
+/* Mineral Name / Fehlermeldung Vorschau */
+.add-mineral-info {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mineral-preview-name {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: #16a34a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.mineral-preview-error {
+  font-size: var(--font-size-xs);
+  color: var(--error-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.add-mineral-row.status-already_assigned .mineral-preview-error {
+  color: #d97706;
+}
+
+/* Zeile entfernen Button */
+.remove-row-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--gray-300);
+  background: var(--white);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--gray-500);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  line-height: 1;
+  padding: 0;
+}
+
+.remove-row-btn:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+  color: var(--white);
+}
+
+/* Zeile hinzufügen */
+.add-row-btn {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--primary-color);
+  background: transparent;
+  border: 1px dashed var(--primary-color);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  opacity: 0.8;
+}
+
+.add-row-btn:hover {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: var(--white);
+  border-style: solid;
+  opacity: 1;
+}
+
+/* Globale Meldung */
+.add-minerals-message {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-align: center;
+}
+
+.add-minerals-message.success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.add-minerals-message.error {
+  background: #fef2f2;
+  color: var(--error-color);
+  border: 1px solid #fecaca;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .add-mineral-row {
+    grid-template-columns: 20px 1fr 24px auto 24px;
+    gap: var(--space-1);
+    padding: var(--space-2);
+  }
+
+  .add-minerals-modal {
+    border-radius: var(--radius-xl);
+  }
+}
