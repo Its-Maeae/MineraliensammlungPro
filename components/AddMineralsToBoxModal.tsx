@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Mineral } from '../types';
 
+const genId = (): string =>
+  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+
 interface AddMineralsToBoxModalProps {
   shelf: any;
   onClose: () => void;
@@ -17,7 +22,7 @@ interface MineralEntry {
 
 export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded }: AddMineralsToBoxModalProps) {
   const [entries, setEntries] = useState<MineralEntry[]>([
-    { id: crypto.randomUUID(), number: '', status: 'idle' }
+    { id: genId(), number: '', status: 'idle' }
   ]);
   const [isSaving, setIsSaving] = useState(false);
   const [globalMessage, setGlobalMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -97,14 +102,14 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded 
   };
 
   const addRow = () => {
-    setEntries(prev => [...prev, { id: crypto.randomUUID(), number: '', status: 'idle' }]);
+    setEntries(prev => [...prev, { id: genId(), number: '', status: 'idle' }]);
     setTimeout(() => lastInputRef.current?.focus(), 50);
   };
 
   const removeRow = (id: string) => {
     setEntries(prev => {
       const filtered = prev.filter(e => e.id !== id);
-      return filtered.length === 0 ? [{ id: crypto.randomUUID(), number: '', status: 'idle' }] : filtered;
+      return filtered.length === 0 ? [{ id: genId(), number: '', status: 'idle' }] : filtered;
     });
   };
 
