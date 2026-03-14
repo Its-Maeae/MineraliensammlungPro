@@ -190,14 +190,37 @@ export default function MapPage({
         });
         const marker = window.L.marker([mineral.latitude, mineral.longitude], { icon })
           .addTo(mapInstance.current);
+
+        const imgHtml = mineral.image_path
+          ? `<img class="mp-popup-img" src="/uploads/${mineral.image_path}" alt="${mineral.name}" />`
+          : `<div class="mp-popup-img mp-popup-img--placeholder">💎</div>`;
+
+        const colorHtml = mineral.color
+          ? `<div class="mp-popup-row">
+               <span class="mp-popup-swatch" style="background:${col}"></span>
+               <span class="mp-popup-row-text">${mineral.color}</span>
+             </div>`
+          : '';
+
+        const locationHtml = mineral.location
+          ? `<div class="mp-popup-row">
+               <span class="mp-popup-icon">📍</span>
+               <span class="mp-popup-row-text">${mineral.location}</span>
+             </div>`
+          : '';
+
         marker.bindPopup(`
           <div class="mp-popup">
-            <p class="mp-popup-name">${mineral.name}</p>
-            <p class="mp-popup-meta">Nr. ${mineral.number}${mineral.location ? ` · ${mineral.location}` : ''}</p>
-            ${mineral.color ? `<p class="mp-popup-meta">${mineral.color}</p>` : ''}
-            <button class="mp-popup-btn" onclick="window.openMineralDetails(${mineral.id})">Details ansehen →</button>
+            ${imgHtml}
+            <div class="mp-popup-body">
+              <p class="mp-popup-name">${mineral.name}</p>
+              <p class="mp-popup-nr">Nr. ${mineral.number}</p>
+              ${colorHtml}
+              ${locationHtml}
+              <button class="mp-popup-btn" onclick="window.openMineralDetails(${mineral.id})">Details ansehen</button>
+            </div>
           </div>
-        `);
+        `, { maxWidth: 220 });
         markersRef.current.push(marker);
       } catch {}
     });
@@ -335,22 +358,85 @@ export default function MapPage({
           transition: transform 0.12s ease;
         }
         .mp-dot:hover { transform: scale(1.4); }
+
+        /* ── Popup shell ── */
         .mp-popup {
-          font-family: var(--font-family, sans-serif);
-          min-width: 160px;
+          font-family: var(--font-family, system-ui, sans-serif);
+          width: 200px;
+          overflow: hidden;
+        }
+
+        /* ── Preview image ── */
+        .mp-popup-img {
+          display: block;
+          width: 100%;
+          height: 110px;
+          object-fit: cover;
+          border-radius: 6px 6px 0 0;
+          margin: -12px -14px 0;
+          width: calc(100% + 28px);
+        }
+        .mp-popup-img--placeholder {
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          background: #f1f5f9;
+          border-radius: 6px 6px 0 0;
+          margin: -12px -14px 0;
+          width: calc(100% + 28px);
+        }
+
+        /* ── Body ── */
+        .mp-popup-body {
+          padding-top: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
         }
         .mp-popup-name {
           font-size: 14px; font-weight: 700;
-          color: var(--gray-900, #0f172a);
-          margin: 0 0 4px;
+          color: #0f172a;
+          margin: 0;
+          line-height: 1.3;
         }
-        .mp-popup-meta {
-          font-size: 12px; color: var(--gray-500, #64748b);
-          margin: 2px 0;
+        .mp-popup-nr {
+          font-size: 11px;
+          color: #94a3b8;
+          margin: 0;
+          font-weight: 500;
         }
+
+        /* ── Row: color + location ── */
+        .mp-popup-row {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 12px;
+          color: #475569;
+        }
+        .mp-popup-swatch {
+          width: 12px; height: 12px;
+          border-radius: 3px;
+          border: 1px solid rgba(0,0,0,0.12);
+          flex-shrink: 0;
+        }
+        .mp-popup-icon {
+          font-size: 11px;
+          flex-shrink: 0;
+          line-height: 1;
+        }
+        .mp-popup-row-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* ── Button ── */
         .mp-popup-btn {
-          margin-top: 10px; width: 100%;
-          padding: 6px 0;
+          margin-top: 8px; width: 100%;
+          padding: 7px 0;
           background: linear-gradient(135deg, #1e40af, #3b82f6);
           color: #fff; border: none;
           border-radius: 6px; cursor: pointer;
