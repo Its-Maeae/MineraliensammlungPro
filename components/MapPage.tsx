@@ -45,15 +45,15 @@ export default function MapPage({
   currentPage,
 }: MapPageProps) {
 
-  const [mapMinerals, setMapMinerals]   = useState<Mineral[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [mapError, setMapError]         = useState<string | null>(null);
+  const [mapMinerals, setMapMinerals]       = useState<Mineral[]>([]);
+  const [loading, setLoading]               = useState(true);
+  const [mapError, setMapError]             = useState<string | null>(null);
   const [mapInitialized, setMapInitialized] = useState(false);
-  const [visible, setVisible]           = useState(false);
+  const [visible, setVisible]               = useState(false);
 
-  const mapRef        = useRef<HTMLDivElement>(null);
-  const mapInstance   = useRef<any>(null);
-  const markersRef    = useRef<any[]>([]);
+  const mapRef         = useRef<HTMLDivElement>(null);
+  const mapInstance    = useRef<any>(null);
+  const markersRef     = useRef<any[]>([]);
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isMapVisible = currentPage === 'map';
@@ -62,9 +62,9 @@ export default function MapPage({
   const loadAllMinerals = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/minerals?limit=999999');
-      if (response.ok) {
-        const data = await response.json();
+      const r = await fetch('/api/minerals?limit=999999');
+      if (r.ok) {
+        const data = await r.json();
         setMapMinerals(data.filter((m: Mineral) => m.latitude && m.longitude));
       }
     } catch {
@@ -89,7 +89,7 @@ export default function MapPage({
   }, [isMapVisible]);
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80);
+    const t = setTimeout(() => setVisible(true), 60);
     return () => {
       clearTimeout(t);
       cleanupMap();
@@ -110,10 +110,7 @@ export default function MapPage({
         document.head.appendChild(css);
       }
       const existing = document.querySelector('script[src*="leaflet"]');
-      if (existing) {
-        const wait = () => window.L ? resolve() : setTimeout(wait, 100);
-        wait(); return;
-      }
+      if (existing) { const w = () => window.L ? resolve() : setTimeout(w, 100); w(); return; }
       const s = document.createElement('script');
       s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       s.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
@@ -146,13 +143,12 @@ export default function MapPage({
     if (!mapRef.current || !window.L || mapInstance.current) return;
     try {
       cleanupMap();
-      const container = mapRef.current;
-      const map = window.L.map(container, {
+      const map = window.L.map(mapRef.current, {
         center: [51.1657, 10.4515], zoom: 6,
-        zoomControl: true, attributionControl: true, preferCanvas: false,
+        zoomControl: true, attributionControl: true,
       });
       window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
       mapInstance.current = map;
@@ -165,53 +161,48 @@ export default function MapPage({
   }, [cleanupMap]);
 
   /* ── Markers ── */
-  const getColorForMineral = (color?: string) => {
-    const map: Record<string, string> = {
-      rot: '#ef4444', blau: '#3b82f6', grün: '#22c55e', gelb: '#eab308',
-      schwarz: '#374151', weiß: '#e2e8f0', braun: '#92400e',
-      violett: '#7c3aed', grau: '#6b7280', orange: '#f97316',
-      rosa: '#ec4899', silber: '#94a3b8',
-    };
-    return map[color?.toLowerCase() ?? ''] ?? '#1e40af';
+  const colorMap: Record<string, string> = {
+    rot:'#ef4444', blau:'#3b82f6', grün:'#22c55e', gelb:'#eab308',
+    schwarz:'#374151', weiß:'#f1f5f9', braun:'#92400e',
+    violett:'#7c3aed', grau:'#6b7280', orange:'#f97316',
+    rosa:'#ec4899', silber:'#94a3b8',
   };
+  const getColor = (c?: string) => colorMap[c?.toLowerCase() ?? ''] ?? '#1e40af';
 
   const updateMarkers = useCallback(() => {
     if (!mapInstance.current || !window.L) return;
-    try {
-      markersRef.current.forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
-      markersRef.current = [];
+    markersRef.current.forEach(m => { try { mapInstance.current.removeLayer(m); } catch {} });
+    markersRef.current = [];
 
-      mapMinerals.forEach(mineral => {
-        if (!mineral.latitude || !mineral.longitude) return;
-        try {
-          const col = getColorForMineral(mineral.color);
-          const icon = window.L.divIcon({
-            className: 'mp-marker',
-            html: `<div class="mp-marker-dot" style="background:${col}">💎</div>`,
-            iconSize: [22, 22], iconAnchor: [11, 11],
-          });
-          const marker = window.L.marker([mineral.latitude, mineral.longitude], { icon })
-            .addTo(mapInstance.current);
-          marker.bindPopup(`
-            <div class="mp-popup">
-              <p class="mp-popup-name">${mineral.name}</p>
-              <p class="mp-popup-row"><span>Nr.</span> ${mineral.number}</p>
-              <p class="mp-popup-row"><span>Farbe</span> ${mineral.color || '—'}</p>
-              <p class="mp-popup-row"><span>Fundort</span> ${mineral.location || '—'}</p>
-              <button class="mp-popup-btn" onclick="window.openMineralDetails(${mineral.id})">Details</button>
-            </div>
-          `);
-          markersRef.current.push(marker);
-        } catch {}
-      });
+    mapMinerals.forEach(mineral => {
+      if (!mineral.latitude || !mineral.longitude) return;
+      try {
+        const col = getColor(mineral.color);
+        const icon = window.L.divIcon({
+          className: '',
+          html: `<div class="mp-dot" style="--c:${col}"></div>`,
+          iconSize: [14, 14], iconAnchor: [7, 7],
+        });
+        const marker = window.L.marker([mineral.latitude, mineral.longitude], { icon })
+          .addTo(mapInstance.current);
+        marker.bindPopup(`
+          <div class="mp-popup">
+            <p class="mp-popup-name">${mineral.name}</p>
+            <p class="mp-popup-meta">Nr. ${mineral.number}${mineral.location ? ` · ${mineral.location}` : ''}</p>
+            ${mineral.color ? `<p class="mp-popup-meta">${mineral.color}</p>` : ''}
+            <button class="mp-popup-btn" onclick="window.openMineralDetails(${mineral.id})">Details ansehen →</button>
+          </div>
+        `);
+        markersRef.current.push(marker);
+      } catch {}
+    });
 
-      window.openMineralDetails = async (id: number) => {
-        try {
-          const r = await fetch(`/api/minerals/${id}`);
-          if (r.ok) { setSelectedMineral(await r.json()); setShowMineralModal(true); }
-        } catch {}
-      };
-    } catch {}
+    window.openMineralDetails = async (id: number) => {
+      try {
+        const r = await fetch(`/api/minerals/${id}`);
+        if (r.ok) { setSelectedMineral(await r.json()); setShowMineralModal(true); }
+      } catch {}
+    };
   }, [mapMinerals, setSelectedMineral, setShowMineralModal]);
 
   /* ── Edit / Delete ── */
@@ -236,118 +227,85 @@ export default function MapPage({
         await loadAllMinerals();
         const all = await fetch('/api/minerals?limit=999999');
         if (all.ok) setMinerals(await all.json());
-        loadStats();
-        alert('Mineral erfolgreich gelöscht!');
-      } else {
-        alert('Fehler beim Löschen: ' + await r.text());
-      }
+        loadStats(); alert('Mineral erfolgreich gelöscht!');
+      } else { alert('Fehler beim Löschen: ' + await r.text()); }
     } catch { alert('Fehler beim Löschen.'); }
   };
 
-  /* ── Loading state ── */
-  if (loading) {
-    return (
-      <section className="page active">
-        <div className="mp-loading-screen">
-          <div className="mp-loading-spinner" />
-          <p className="mp-loading-text">Lade Mineralien…</p>
-        </div>
-      </section>
-    );
-  }
+  /* ── States ── */
+  if (loading) return (
+    <section className="page active mp-root mp-visible">
+      <div className="mp-state-screen">
+        <div className="mp-spinner" />
+        <span>Lade Mineralien…</span>
+      </div>
+    </section>
+  );
 
-  /* ── Error state ── */
-  if (mapError) {
-    return (
-      <section className="page active">
-        <div className="mp-loading-screen">
-          <p className="mp-error-text">{mapError}</p>
-          <button className="hp-btn hp-btn--primary" onClick={() => {
-            setMapError(null); setMapInitialized(false); initializeLeafletAndMap();
-          }}>
-            Erneut versuchen
-          </button>
-        </div>
-      </section>
-    );
-  }
+  if (mapError) return (
+    <section className="page active mp-root mp-visible">
+      <div className="mp-state-screen">
+        <span className="mp-state-error">{mapError}</span>
+        <button className="btn btn-primary" onClick={() => {
+          setMapError(null); setMapInitialized(false); initializeLeafletAndMap();
+        }}>Erneut versuchen</button>
+      </div>
+    </section>
+  );
 
-  /* ── Main render ── */
+  /* ── Main ── */
   return (
     <>
       <section className={`page active mp-root ${visible ? 'mp-visible' : ''}`}>
 
-        {/* ── Header bar ── */}
-        <div className="mp-header">
-          <div className="mp-header-inner container">
-            <div className="mp-header-text">
-              <div className="hp-section-tag">Interaktiv</div>
-              <h1 className="mp-title">Fundorte der Mineralien</h1>
-              <p className="mp-subtitle">
-                {mapMinerals.length} Mineral{mapMinerals.length !== 1 ? 'ien' : ''} mit
-                verorteten Fundorten · Klick auf einen Marker für Details
-              </p>
-            </div>
+        {/* ── Thin top bar ── */}
+        <div className="mp-topbar">
+          {/* Geo-deco: subtle SVG lines left side */}
+          <svg className="mp-topbar-deco" viewBox="0 0 120 48" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <polygon points="8,40 28,8 48,40"    stroke="rgba(30,64,175,0.22)" strokeWidth="1" fill="rgba(30,64,175,0.05)" />
+            <polygon points="52,36 66,14 80,36"  stroke="rgba(14,165,233,0.18)" strokeWidth="0.8" fill="none" />
+            <polygon points="84,42 96,22 108,42" stroke="rgba(30,64,175,0.14)" strokeWidth="0.7" fill="none" />
+            <line x1="0" y1="44" x2="120" y2="44" stroke="rgba(30,64,175,0.08)" strokeWidth="0.8" />
+          </svg>
 
-            {/* Stats pills */}
-            <div className="mp-pills">
-              <div className="mp-pill">
-                <span className="mp-pill-value">{mapMinerals.length}</span>
-                <span className="mp-pill-label">Verortete Funde</span>
-              </div>
-              <div className="mp-pill">
-                <span className="mp-pill-value">
-                  {new Set(mapMinerals.map(m => m.location).filter(Boolean)).size}
-                </span>
-                <span className="mp-pill-label">Fundorte</span>
-              </div>
-              <div className="mp-pill">
-                <span className="mp-pill-value">
-                  {new Set(mapMinerals.map(m => m.name)).size}
-                </span>
-                <span className="mp-pill-label">Mineralarten</span>
-              </div>
+          <div className="mp-topbar-center">
+            <h1 className="mp-topbar-title">Fundortkarte</h1>
+            <div className="mp-topbar-stats">
+              <span className="mp-stat-chip">
+                <span className="mp-stat-dot" style={{ background: 'var(--primary-light)' }} />
+                {mapMinerals.length} Fundorte
+              </span>
+              <span className="mp-stat-divider" />
+              <span className="mp-stat-chip">
+                {new Set(mapMinerals.map(m => m.name)).size} Mineralarten
+              </span>
             </div>
           </div>
 
-          {/* Decorative crystal shapes */}
-          <div className="mp-header-deco" aria-hidden>
-            <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <polygon points="340,10 370,55 340,100 310,55" stroke="rgba(30,64,175,0.18)" strokeWidth="1.2" fill="rgba(30,64,175,0.05)" />
-              <polygon points="370,5 390,30 370,55 350,30" stroke="rgba(14,165,233,0.14)" strokeWidth="1" fill="rgba(14,165,233,0.04)" />
-              <polygon points="280,60 305,85 280,110 255,85" stroke="rgba(30,64,175,0.12)" strokeWidth="1" fill="rgba(30,64,175,0.03)" />
-              <line x1="330" y1="0" x2="320" y2="120" stroke="rgba(30,64,175,0.1)" strokeWidth="1" strokeDasharray="5 8" />
-            </svg>
-          </div>
+          {/* Geo-deco right side (mirrored) */}
+          <svg className="mp-topbar-deco mp-topbar-deco--right" viewBox="0 0 120 48" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <polygon points="112,40 92,8 72,40"  stroke="rgba(30,64,175,0.22)" strokeWidth="1" fill="rgba(30,64,175,0.05)" />
+            <polygon points="68,36 54,14 40,36"  stroke="rgba(14,165,233,0.18)" strokeWidth="0.8" fill="none" />
+            <polygon points="36,42 24,22 12,42"  stroke="rgba(30,64,175,0.14)" strokeWidth="0.7" fill="none" />
+            <line x1="0" y1="44" x2="120" y2="44" stroke="rgba(30,64,175,0.08)" strokeWidth="0.8" />
+          </svg>
         </div>
 
-        {/* ── Map area ── */}
-        <div className="mp-map-wrapper">
-
-          {/* Initializing overlay */}
-          {!mapInitialized && !mapError && (
-            <div className="mp-map-overlay-init">
-              <div className="mp-loading-spinner" />
-              <p className="mp-loading-text">Karte wird initialisiert…</p>
+        {/* ── Map ── */}
+        <div className="mp-map-area">
+          {!mapInitialized && (
+            <div className="mp-map-init">
+              <div className="mp-spinner" />
+              <span>Karte wird initialisiert…</span>
             </div>
           )}
-
-          {/* Hint badge */}
-          {mapInitialized && (
-            <div className="mp-hint-badge">
-              <span>📍</span>
-              <span>Marker anklicken für Details</span>
-            </div>
-          )}
-
           <div ref={mapRef} className="mp-map-canvas" />
         </div>
 
-        {/* ── Footer note ── */}
-        <div className="mp-footer-note">
-          <span>Kartendaten © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-Mitwirkende</span>
-          <span className="mp-footer-dot">·</span>
-          <span>Einige Fundorte können ungenau sein</span>
+        {/* ── Attribution strip ── */}
+        <div className="mp-attribution">
+          © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
+          &nbsp;·&nbsp;Einige Fundorte können ungenau sein
         </div>
 
       </section>
@@ -363,43 +321,39 @@ export default function MapPage({
       )}
 
       <style>{`
-        .mp-marker-dot {
-          width: 22px; height: 22px;
-          border: 2.5px solid white;
+        .mp-dot {
+          width: 14px; height: 14px;
+          background: var(--c, #1e40af);
+          border: 2px solid rgba(255,255,255,0.9);
           border-radius: 50%;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 11px;
-          transition: transform 0.15s ease;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.28);
+          transition: transform 0.12s ease;
         }
-        .mp-marker-dot:hover { transform: scale(1.25); }
+        .mp-dot:hover { transform: scale(1.4); }
         .mp-popup {
           font-family: var(--font-family, sans-serif);
-          min-width: 180px;
-          padding: 4px 0;
+          min-width: 160px;
         }
         .mp-popup-name {
-          font-size: 15px; font-weight: 700;
-          color: #0f172a; margin-bottom: 8px;
-          border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;
+          font-size: 14px; font-weight: 700;
+          color: var(--gray-900, #0f172a);
+          margin: 0 0 4px;
         }
-        .mp-popup-row {
-          font-size: 13px; color: #475569;
-          margin: 3px 0; display: flex; gap: 6px;
-        }
-        .mp-popup-row span {
-          font-weight: 600; color: #1e40af; min-width: 56px;
+        .mp-popup-meta {
+          font-size: 12px; color: var(--gray-500, #64748b);
+          margin: 2px 0;
         }
         .mp-popup-btn {
           margin-top: 10px; width: 100%;
-          padding: 7px 0;
-          background: linear-gradient(135deg,#1e40af,#3b82f6);
-          color: white; border: none;
+          padding: 6px 0;
+          background: linear-gradient(135deg, #1e40af, #3b82f6);
+          color: #fff; border: none;
           border-radius: 6px; cursor: pointer;
-          font-size: 13px; font-weight: 600;
+          font-size: 12px; font-weight: 600;
+          letter-spacing: 0.01em;
           transition: opacity 0.15s;
         }
-        .mp-popup-btn:hover { opacity: 0.88; }
+        .mp-popup-btn:hover { opacity: 0.85; }
       `}</style>
     </>
   );
