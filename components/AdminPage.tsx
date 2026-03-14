@@ -20,6 +20,7 @@ interface MineralFormData {
   latitude: number | null;
   longitude: number | null;
   is_undetermined: boolean;
+  suspected_name: string;
 }
 
 interface ShelfOption {
@@ -198,7 +199,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
     return {
       name: '', number: '', color: '', description: '', location: '',
       purchase_location: '', rock_type: '', shelf_id: '',
-      latitude: null, longitude: null, is_undetermined: false
+      latitude: null, longitude: null, is_undetermined: false, suspected_name: ''
     };
   };
 
@@ -263,9 +264,10 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         color: '', description: '', location: '',
         purchase_location: '', rock_type: '',
         is_undetermined: true
+        // suspected_name intentionally kept as-is – user may have already typed something
       }));
     } else {
-      setFormData(prev => ({ ...prev, name: '', is_undetermined: false }));
+      setFormData(prev => ({ ...prev, name: '', is_undetermined: false, suspected_name: '' }));
     }
   };
 
@@ -310,7 +312,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
     setFormData({
       name: '', number: '', color: '', description: '', location: '',
       purchase_location: '', rock_type: '', shelf_id: '',
-      latitude: null, longitude: null, is_undetermined: false
+      latitude: null, longitude: null, is_undetermined: false, suspected_name: ''
     });
     setImage(null); setImageName(''); setImagePreview(null); setNumberExists(false);
     if (typeof window !== 'undefined') {
@@ -586,6 +588,22 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </label>
         <span className="undetermined-toggle-row-label">Unbestimmtes Mineral</span>
       </div>
+
+      {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
+      {isUndetermined && (
+        <div className="form-group suspected-name-group">
+          <label htmlFor="suspected_name">Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
+          <input
+            type="text"
+            id="suspected_name"
+            value={formData.suspected_name}
+            onChange={(e) => setFormData((prev: MineralFormData) => ({ ...prev, suspected_name: e.target.value }))}
+            placeholder="z.B. Quarz, Pyrit, Amethyst – noch unsicher"
+            autoComplete="off"
+          />
+          <p className="form-hint">Wird auf der Karte und im Detail als Hinweis angezeigt.</p>
+        </div>
+      )}
 
     </form>
   );

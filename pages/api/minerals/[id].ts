@@ -96,7 +96,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           shelf_id,
           latitude,
           longitude,
-          is_undetermined
+          is_undetermined,
+          suspected_name
         } = (req as any).body;
 
         const image = (req as any).file;
@@ -133,15 +134,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const finalLocation = undetermined ? null : (location || null);
         const finalPurchaseLocation = undetermined ? null : (purchase_location || null);
         const finalRockType = undetermined ? null : (rock_type || null);
+        // suspected_name only makes sense when undetermined; clear it when toggling off
+        const finalSuspectedName = undetermined ? (suspected_name || null) : null;
 
         let sql = `UPDATE minerals SET 
                   name = ?, number = ?, color = ?, description = ?, location = ?,
                   purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?,
-                  is_undetermined = ?`;
+                  is_undetermined = ?, suspected_name = ?`;
         let params: any[] = [
           finalName, number, finalColor, finalDescription, finalLocation,
           finalPurchaseLocation, finalRockType, shelf_id || null,
-          parsedLatitude, parsedLongitude, undetermined
+          parsedLatitude, parsedLongitude, undetermined, finalSuspectedName
         ];
 
         if (image) {

@@ -83,12 +83,14 @@ export default function EditModal({
         location: '',
         purchase_location: '',
         rock_type: ''
+        // suspected_name is kept intentionally
       });
     } else {
       setFormData({
         ...formData,
         is_undetermined: false,
-        name: ''
+        name: '',
+        suspected_name: ''
       });
     }
   };
@@ -272,6 +274,21 @@ export default function EditModal({
               {isUndetermined && (
                 <div className="undetermined-info-banner" style={{ marginBottom: '16px' }}>
                   <span>Nur Regal, Koordinate und Bild können bearbeitet werden.</span>
+                </div>
+              )}
+
+              {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
+              {isUndetermined && (
+                <div className="form-group suspected-name-group">
+                  <label>Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={formData.suspected_name || ''}
+                    onChange={(e) => setFormData({ ...formData, suspected_name: e.target.value })}
+                    placeholder="z.B. Quarz, Pyrit, Amethyst – noch unsicher"
+                    autoComplete="off"
+                  />
+                  <p className="form-hint">Wird auf der Karte und im Detail als Hinweis angezeigt.</p>
                 </div>
               )}
 

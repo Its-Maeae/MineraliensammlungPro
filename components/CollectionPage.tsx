@@ -170,6 +170,7 @@ export default function CollectionPage({
       latitude: mineral.latitude || null,
       longitude: mineral.longitude || null,
       is_undetermined: (mineral as any).is_undetermined || false,
+      suspected_name: (mineral as any).suspected_name || '',
     });
     setEditMode('mineral');
     setEditImage(null);
@@ -400,7 +401,15 @@ export default function CollectionPage({
                         <h3>{mineral.name}</h3>
                         <p><strong>Nummer:</strong> {mineral.number}</p>
                         {undetermined ? (
-                          <p className="undetermined-card-note">Noch nicht identifiziert</p>
+                          <>
+                            {(mineral as any).suspected_name ? (
+                              <p className="undetermined-card-note">
+                                Vermutlich: <strong>{(mineral as any).suspected_name}</strong>
+                              </p>
+                            ) : (
+                              <p className="undetermined-card-note">Noch nicht identifiziert</p>
+                            )}
+                          </>
                         ) : (
                           <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
                         )}

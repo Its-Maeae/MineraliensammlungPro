@@ -205,7 +205,72 @@ select:disabled {
   }
 }
 
-/* ── Admin-Seite: Header + Buttons ── */
+.undetermined-modal-banner p.undetermined-modal-suspicion {
+  color: #92400e;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin: 4px 0 0;
+}
+
+/* ── Suspected Name – Detail-Block im Modal ── */
+.suspected-name-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-3);
+}
+
+.suspected-name-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+.suspected-name-value {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #78350f;
+}
+
+/* ── Suspected Name – Formulargruppe ── */
+.suspected-name-group {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  animation: fadeInDown 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.suspected-name-group label {
+  color: #92400e !important;
+}
+
+.label-optional {
+  font-weight: 400;
+  color: var(--gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.form-hint {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  margin-top: var(--space-2);
+}
+
+/* ── Karte: Vermutung als Zusatz ── */
+.undetermined-card-note strong {
+  color: #78350f;
+}
 .admin-page-header {
   display: flex;
   justify-content: space-between;

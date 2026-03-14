@@ -129,7 +129,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const {
           name, number, color, description, location,
-          purchase_location, rock_type, shelf_id, latitude, longitude, is_undetermined
+          purchase_location, rock_type, shelf_id, latitude, longitude, is_undetermined,
+          suspected_name
         } = (req as any).body;
 
         const image = (req as any).file;
@@ -141,8 +142,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const result = await database.run(
           `INSERT INTO minerals (
             name, number, color, description, location,
-            purchase_location, rock_type, shelf_id, image_path, latitude, longitude, is_undetermined
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            purchase_location, rock_type, shelf_id, image_path, latitude, longitude, is_undetermined, suspected_name
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             undetermined ? 'Unbestimmtes Mineral' : name,
             number,
@@ -155,7 +156,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             image ? image.filename : null,
             latitude ? parseFloat(latitude) : null,
             longitude ? parseFloat(longitude) : null,
-            undetermined
+            undetermined,
+            undetermined ? (suspected_name || null) : null
           ]
         );
 
