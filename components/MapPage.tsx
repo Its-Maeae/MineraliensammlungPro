@@ -143,7 +143,12 @@ export default function MapPage({
     if (!mapRef.current || !window.L || mapInstance.current) return;
     try {
       cleanupMap();
-      const map = window.L.map(mapRef.current, {
+      const container = mapRef.current;
+      // Leaflet needs a non-zero height at init time
+      if (!container.clientHeight) {
+        container.style.height = `${window.innerHeight - 80 - 56}px`;
+      }
+      const map = window.L.map(container, {
         center: [51.1657, 10.4515], zoom: 6,
         zoomControl: true, attributionControl: true,
       });
@@ -299,7 +304,7 @@ export default function MapPage({
               <span>Karte wird initialisiert…</span>
             </div>
           )}
-          <div ref={mapRef} className="mp-map-canvas" />
+          <div ref={mapRef} className="mp-map-canvas" style={{ height: '100%', minHeight: 400 }} />
         </div>
 
         {/* ── Attribution strip ── */}
