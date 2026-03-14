@@ -139,19 +139,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <span className="close-button" onClick={onClose}>&times;</span>
 
-          {/* ── Unbestimmt-Banner ── */}
-          {isUndetermined && (
-            <div className="undetermined-modal-banner">
-              <div>
-                {(mineral as any).suspected_name && (
-                  <p className="undetermined-modal-suspicion">
-                    Vermutlich: <strong>{(mineral as any).suspected_name}</strong>
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
           <h2>
             {mineral.name}
             {isUndetermined && (
