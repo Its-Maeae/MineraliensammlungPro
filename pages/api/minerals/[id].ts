@@ -127,9 +127,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!isNaN(lng)) parsedLongitude = lng;
         }
 
-        // When undetermined, clear non-essential fields
+        // When undetermined, clear non-essential fields (Farbe bleibt erhalten)
         const finalName = undetermined ? 'Unbestimmtes Mineral' : name;
-        const finalColor = undetermined ? null : (color || null);
+        const finalColor = color || null;               // Farbe auch bei unbestimmten speichern
         const finalDescription = undetermined ? null : (description || null);
         const finalLocation = undetermined ? null : (location || null);
         const finalPurchaseLocation = undetermined ? null : (purchase_location || null);

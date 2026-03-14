@@ -147,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           [
             undetermined ? 'Unbestimmtes Mineral' : name,
             number,
-            undetermined ? null : (color || null),
+            color || null,                              // Farbe auch bei unbestimmten speichern
             undetermined ? null : (description || null),
             undetermined ? null : (location || null),
             undetermined ? null : (purchase_location || null),

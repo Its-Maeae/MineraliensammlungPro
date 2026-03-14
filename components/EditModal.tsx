@@ -78,12 +78,11 @@ export default function EditModal({
         ...formData,
         is_undetermined: true,
         name: 'Unbestimmtes Mineral',
-        color: '',
         description: '',
         location: '',
         purchase_location: '',
         rock_type: ''
-        // suspected_name is kept intentionally
+        // color und suspected_name werden bewusst beibehalten
       });
     } else {
       setFormData({
@@ -313,17 +312,15 @@ export default function EditModal({
                   required
                 />
               </div>
-              {/* ── Farbe (versteckt wenn unbestimmt) ── */}
-              {!isUndetermined && (
-                <div className="form-group">
-                  <label>Farbe</label>
-                  <input
-                    type="text"
-                    value={formData.color || ''}
-                    onChange={(e) => setFormData({...formData, color: e.target.value})}
-                  />
-                </div>
-              )}
+              {/* ── Farbe (immer sichtbar, auch bei unbestimmten Mineralien) ── */}
+              <div className="form-group">
+                <label>Farbe</label>
+                <input
+                  type="text"
+                  value={formData.color || ''}
+                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                />
+              </div>
               {/* ── Beschreibung (versteckt wenn unbestimmt) ── */}
               {!isUndetermined && (
                 <div className="form-group">

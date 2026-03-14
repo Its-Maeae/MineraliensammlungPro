@@ -139,6 +139,21 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <span className="close-button" onClick={onClose}>&times;</span>
 
+          {/* ── Unbestimmt-Banner ── */}
+          {isUndetermined && (
+            <div className="undetermined-modal-banner">
+              <div>
+                <strong>Unbestimmtes Mineral</strong>
+                <p>Dieses Mineral wurde noch nicht identifiziert.</p>
+                {(mineral as any).suspected_name && (
+                  <p className="undetermined-modal-suspicion">
+                    Vermutlich: <strong>{(mineral as any).suspected_name}</strong>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           <h2>
             {mineral.name}
             {isUndetermined && (
@@ -188,6 +203,14 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               </>
             )}
 
+            {/* Farbe auch bei unbestimmten Mineralien anzeigen */}
+            {isUndetermined && mineral.color && (
+              <div className="detail-item">
+                <span className="detail-label">Farbe:</span>
+                <span className="detail-value">{mineral.color}</span>
+              </div>
+            )}
+
             <div className="detail-item">
               <span className="detail-label">Regal:</span>
               <span className="detail-value">
@@ -210,6 +233,12 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               <p style={{ marginTop: '10px', color: '#555', lineHeight: '1.6' }}>
                 {mineral.description || 'Keine Beschreibung verfügbar.'}
               </p>
+            </div>
+          )}
+
+          {isUndetermined && (
+            <div className="undetermined-note">
+              <span>Sobald das Mineral bestimmt wurde, kann es im Bearbeiten-Dialog identifiziert werden.</span>
             </div>
           )}
 

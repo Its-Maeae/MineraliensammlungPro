@@ -261,10 +261,10 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       setFormData(prev => ({
         ...prev,
         name: 'Unbestimmtes Mineral',
-        color: '', description: '', location: '',
+        description: '', location: '',
         purchase_location: '', rock_type: '',
         is_undetermined: true
-        // suspected_name intentionally kept as-is – user may have already typed something
+        // color und suspected_name werden bewusst beibehalten
       }));
     } else {
       setFormData(prev => ({ ...prev, name: '', is_undetermined: false, suspected_name: '' }));
@@ -416,19 +416,17 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       </div>
 
-      {/* ── Farbe (versteckt wenn unbestimmt) ── */}
-      {!isUndetermined && (
-        <div className="form-group">
-          <label htmlFor="color">Farbe</label>
-          <SimpleAutocomplete
-            id="color"
-            value={formData.color}
-            onChange={(v) => setFormData(prev => ({ ...prev, color: v }))}
-            existingValues={existingColors}
-            placeholder="Hauptfarbe des Minerals"
-          />
-        </div>
-      )}
+      {/* ── Farbe (immer sichtbar, auch bei unbestimmten Mineralien) ── */}
+      <div className="form-group">
+        <label htmlFor="color">Farbe</label>
+        <SimpleAutocomplete
+          id="color"
+          value={formData.color}
+          onChange={(v) => setFormData(prev => ({ ...prev, color: v }))}
+          existingValues={existingColors}
+          placeholder="Hauptfarbe des Minerals"
+        />
+      </div>
 
       {/* ── Beschreibung (versteckt wenn unbestimmt) ── */}
       {!isUndetermined && (
