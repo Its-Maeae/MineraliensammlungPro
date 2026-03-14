@@ -239,7 +239,6 @@ select:disabled {
 
 /* ── Suspected Name – Formulargruppe ── */
 .suspected-name-group {
-  background: #fffbeb;
   border: 1px solid #fde68a;
   border-radius: var(--radius-lg);
   padding: var(--space-4);
