@@ -13,7 +13,11 @@ export interface Mineral {
   image_path?: string;
   created_at: string;
   shelf_code?: string;
+  shelf_name?: string;
   showcase_code?: string;
+  showcase_name?: string;
+  is_undetermined?: number | boolean;
+  suspected_name?: string;
 }
 
 export interface Showcase {
