@@ -143,8 +143,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
           {isUndetermined && (
             <div className="undetermined-modal-banner">
               <div>
-                <strong>Unbestimmtes Mineral</strong>
-                <p>Dieses Mineral wurde noch nicht identifiziert.</p>
                 {(mineral as any).suspected_name && (
                   <p className="undetermined-modal-suspicion">
                     Vermutlich: <strong>{(mineral as any).suspected_name}</strong>
@@ -225,12 +223,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               <p style={{ marginTop: '10px', color: '#555', lineHeight: '1.6' }}>
                 {mineral.description || 'Keine Beschreibung verfügbar.'}
               </p>
-            </div>
-          )}
-
-          {isUndetermined && (
-            <div className="undetermined-note">
-              <span>Sobald das Mineral bestimmt wurde, kann es im Bearbeiten-Dialog identifiziert werden.</span>
             </div>
           )}
 
