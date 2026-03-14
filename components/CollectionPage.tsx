@@ -93,9 +93,15 @@ export default function CollectionPage({
   const mineralsRef = useRef<Mineral[]>(minerals);
   useEffect(() => { mineralsRef.current = minerals; }, [minerals]);
 
+  const setLoadingRef = useRef(setLoading);
+  useEffect(() => { setLoadingRef.current = setLoading; }, [setLoading]);
+
+  const setMineralsRef = useRef(setMinerals);
+  useEffect(() => { setMineralsRef.current = setMinerals; }, [setMinerals]);
+
   const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
     if (append) setIsLoadingMore(true);
-    else setLoading(true);
+    else setLoadingRef.current(true);
 
     try {
       const params = new URLSearchParams({
@@ -112,17 +118,17 @@ export default function CollectionPage({
       const response = await fetch(`/api/minerals?${params}`);
       if (response.ok) {
         const data = await response.json();
-        if (append) setMinerals([...mineralsRef.current, ...data]);
-        else setMinerals(data);
+        if (append) setMineralsRef.current([...mineralsRef.current, ...data]);
+        else setMineralsRef.current(data);
         setHasMore(data.length === ITEMS_PER_PAGE);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Mineralien:', error);
     } finally {
       if (append) setIsLoadingMore(false);
-      else setLoading(false);
+      else setLoadingRef.current(false);
     }
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined, setLoading, setMinerals]);
+  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined]);
 
   const loadFilterOptions = async () => {
     try {
@@ -217,8 +223,7 @@ export default function CollectionPage({
     setPage(1);
     setHasMore(true);
     loadMinerals(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined]);
+  }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined, loadMinerals]);
 
   useEffect(() => {
     if (reloadTrigger !== undefined && reloadTrigger > 0) {
@@ -289,10 +294,9 @@ export default function CollectionPage({
               <div className="undetermined-filter-group">
                 <label className="undetermined-filter-option">
                   <input
-                    type="radio"
-                    name="undetermined"
+                    type="checkbox"
                     checked={showUndetermined === 'only'}
-                    onChange={() => setShowUndetermined('only')}
+                    onChange={(e) => setShowUndetermined(e.target.checked ? 'only' : 'all')}
                   />
                   Nur unbestimmte
                 </label>
