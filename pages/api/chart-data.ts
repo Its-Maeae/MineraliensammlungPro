@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT name as label, COUNT(*) as count
           FROM minerals
           WHERE name IS NOT NULL AND name != '' AND name != '-'
+            AND (is_undetermined = 0 OR is_undetermined IS NULL)
           GROUP BY name
           ORDER BY count DESC, name ASC
           LIMIT 20
@@ -40,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT rock_type as label, COUNT(*) as count
           FROM minerals
           WHERE rock_type IS NOT NULL AND rock_type != '' AND rock_type != '-'
+            AND (is_undetermined = 0 OR is_undetermined IS NULL)
           GROUP BY rock_type
           ORDER BY count DESC, rock_type ASC
           LIMIT 20
@@ -53,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT color as label, COUNT(*) as count
           FROM minerals
           WHERE color IS NOT NULL AND color != '' AND color != '-'
+            AND (is_undetermined = 0 OR is_undetermined IS NULL)
           GROUP BY color
           ORDER BY count DESC, color ASC
           LIMIT 20
@@ -66,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT location as label, COUNT(*) as count
           FROM minerals
           WHERE location IS NOT NULL AND location != '' AND location != '-'
+            AND (is_undetermined = 0 OR is_undetermined IS NULL)
           GROUP BY location
           ORDER BY count DESC, location ASC
           LIMIT 20
