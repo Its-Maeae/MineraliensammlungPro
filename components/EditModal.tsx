@@ -257,7 +257,7 @@ export default function EditModal({
                     <span className="undetermined-toggle-hint">
                       {isUndetermined
                         ? 'Mineral ist als unbestimmt markiert.'
-                        : 'Als unbestimmt markieren – sperrt alle Felder außer Regal, Koordinate und Bild.'}
+                        : 'Als unbestimmt markieren – blendet alle inhaltlichen Felder aus.'}
                     </span>
                   </div>
                 </div>
@@ -273,7 +273,7 @@ export default function EditModal({
 
               {isUndetermined && (
                 <div className="undetermined-info-banner" style={{ marginBottom: '16px' }}>
-                  <span>Nur Regal, Koordinate und Bild können bearbeitet werden.</span>
+                  <span>Im unbestimmten Modus sind nur Regal, Koordinate und Bild verfügbar.</span>
                 </div>
               )}
 
@@ -292,17 +292,18 @@ export default function EditModal({
                 </div>
               )}
 
-              <div className="form-group">
-                <label>Name des Minerals</label>
-                <input
-                  type="text"
-                  value={isUndetermined ? 'Unbestimmtes Mineral' : (formData.name || '')}
-                  onChange={(e) => !isUndetermined && setFormData({...formData, name: e.target.value})}
-                  required
-                  disabled={isUndetermined}
-                  className={isUndetermined ? 'input-disabled' : ''}
-                />
-              </div>
+              {/* ── Name (versteckt wenn unbestimmt) ── */}
+              {!isUndetermined && (
+                <div className="form-group">
+                  <label>Name des Minerals</label>
+                  <input
+                    type="text"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
+                  />
+                </div>
+              )}
               <div className="form-group">
                 <label>Steinnummer</label>
                 <input
@@ -312,33 +313,39 @@ export default function EditModal({
                   required
                 />
               </div>
-              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
-                <label>Farbe</label>
-                <input
-                  type="text"
-                  value={isUndetermined ? '' : (formData.color || '')}
-                  onChange={(e) => !isUndetermined && setFormData({...formData, color: e.target.value})}
-                  disabled={isUndetermined}
-                />
-              </div>
-              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
-                <label>Beschreibung</label>
-                <textarea
-                  value={isUndetermined ? '' : (formData.description || '')}
-                  onChange={(e) => !isUndetermined && setFormData({...formData, description: e.target.value})}
-                  rows={4}
-                  disabled={isUndetermined}
-                />
-              </div>
-              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
-                <label>Fundort</label>
-                <input
-                  type="text"
-                  value={isUndetermined ? '' : (formData.location || '')}
-                  onChange={(e) => !isUndetermined && setFormData({...formData, location: e.target.value})}
-                  disabled={isUndetermined}
-                />
-              </div>
+              {/* ── Farbe (versteckt wenn unbestimmt) ── */}
+              {!isUndetermined && (
+                <div className="form-group">
+                  <label>Farbe</label>
+                  <input
+                    type="text"
+                    value={formData.color || ''}
+                    onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  />
+                </div>
+              )}
+              {/* ── Beschreibung (versteckt wenn unbestimmt) ── */}
+              {!isUndetermined && (
+                <div className="form-group">
+                  <label>Beschreibung</label>
+                  <textarea
+                    value={formData.description || ''}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    rows={4}
+                  />
+                </div>
+              )}
+              {/* ── Fundort (versteckt wenn unbestimmt) ── */}
+              {!isUndetermined && (
+                <div className="form-group">
+                  <label>Fundort</label>
+                  <input
+                    type="text"
+                    value={formData.location || ''}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                  />
+                </div>
+              )}
               <div className="form-group">
                 <label>Fundort auf Karte</label>
                 <MapSelector
@@ -354,24 +361,28 @@ export default function EditModal({
                   </div>
                 )}
               </div>
-              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
-                <label>Kaufort</label>
-                <input
-                  type="text"
-                  value={isUndetermined ? '' : (formData.purchase_location || '')}
-                  onChange={(e) => !isUndetermined && setFormData({...formData, purchase_location: e.target.value})}
-                  disabled={isUndetermined}
-                />
-              </div>
-              <div className={`form-group ${isUndetermined ? 'form-group-disabled' : ''}`}>
-                <label>Gesteinsart</label>
-                <input
-                  type="text"
-                  value={isUndetermined ? '' : (formData.rock_type || '')}
-                  onChange={(e) => !isUndetermined && setFormData({...formData, rock_type: e.target.value})}
-                  disabled={isUndetermined}
-                />
-              </div>
+              {/* ── Kaufort (versteckt wenn unbestimmt) ── */}
+              {!isUndetermined && (
+                <div className="form-group">
+                  <label>Kaufort</label>
+                  <input
+                    type="text"
+                    value={formData.purchase_location || ''}
+                    onChange={(e) => setFormData({...formData, purchase_location: e.target.value})}
+                  />
+                </div>
+              )}
+              {/* ── Gesteinsart (versteckt wenn unbestimmt) ── */}
+              {!isUndetermined && (
+                <div className="form-group">
+                  <label>Gesteinsart</label>
+                  <input
+                    type="text"
+                    value={formData.rock_type || ''}
+                    onChange={(e) => setFormData({...formData, rock_type: e.target.value})}
+                  />
+                </div>
+              )}
               {/* Regal immer editierbar */}
               <div className="form-group">
                 <label>Box</label>

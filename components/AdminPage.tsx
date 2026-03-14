@@ -371,17 +371,19 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* ── Name ── */}
-      <div className="form-group">
-        <label htmlFor="name">Name des Minerals</label>
-        <input
-          type="text" id="name"
-          value={isUndetermined ? 'Unbestimmtes Mineral' : formData.name}
-          onChange={(e) => !isUndetermined && setFormData(prev => ({ ...prev, name: e.target.value }))}
-          placeholder="z.B. Quarz, Pyrit, Amethyst"
-          required disabled={isUndetermined}
-        />
-      </div>
+      {/* ── Name (versteckt wenn unbestimmt) ── */}
+      {!isUndetermined && (
+        <div className="form-group">
+          <label htmlFor="name">Name des Minerals</label>
+          <input
+            type="text" id="name"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="z.B. Quarz, Pyrit, Amethyst"
+            required
+          />
+        </div>
+      )}
 
       {/* ── Steinnummer ── */}
       <div className="form-group">
@@ -409,31 +411,31 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       </div>
 
-      {/* ── Farbe ── */}
-      <div className="form-group">
-        <label htmlFor="color">Farbe</label>
-        <SimpleAutocomplete
-          id="color"
-          value={isUndetermined ? '' : formData.color}
-          onChange={(v) => setFormData(prev => ({ ...prev, color: v }))}
-          existingValues={existingColors}
-          placeholder="Hauptfarbe des Minerals"
-          disabled={isUndetermined}
-        />
-      </div>
+      {/* ── Farbe (versteckt wenn unbestimmt) ── */}
+      {!isUndetermined && (
+        <div className="form-group">
+          <label htmlFor="color">Farbe</label>
+          <SimpleAutocomplete
+            id="color"
+            value={formData.color}
+            onChange={(v) => setFormData(prev => ({ ...prev, color: v }))}
+            existingValues={existingColors}
+            placeholder="Hauptfarbe des Minerals"
+          />
+        </div>
+      )}
 
-      {/* ── Beschreibung ── */}
-      <div className="form-group">
-        <label htmlFor="description">Beschreibung</label>
-        <textarea
-          id="description"
-          value={isUndetermined ? '' : formData.description}
-          onChange={(e) => !isUndetermined && setFormData(prev => ({ ...prev, description: e.target.value }))}
-          placeholder="Detaillierte Beschreibung, Besonderheiten, chemische Formel..."
-          required={!isUndetermined}
-          disabled={isUndetermined}
-        />
-        {!isUndetermined && (
+      {/* ── Beschreibung (versteckt wenn unbestimmt) ── */}
+      {!isUndetermined && (
+        <div className="form-group">
+          <label htmlFor="description">Beschreibung</label>
+          <textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Detaillierte Beschreibung, Besonderheiten, chemische Formel..."
+            required
+          />
           <div style={{ marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }}
               onClick={() => setFormData(prev => ({
@@ -457,46 +459,49 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
               {generatingAI ? 'Generiere...' : 'KI-Beschreibung'}
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* ── Fundort ── */}
-      <div className="form-group">
-        <label htmlFor="location">Fundort</label>
-        <SimpleAutocomplete
-          id="location"
-          value={isUndetermined ? '' : formData.location}
-          onChange={(v) => setFormData(prev => ({ ...prev, location: v }))}
-          existingValues={existingLocations}
-          placeholder="Geographische Herkunft"
-          disabled={isUndetermined}
-        />
-      </div>
+      {/* ── Fundort (versteckt wenn unbestimmt) ── */}
+      {!isUndetermined && (
+        <div className="form-group">
+          <label htmlFor="location">Fundort</label>
+          <SimpleAutocomplete
+            id="location"
+            value={formData.location}
+            onChange={(v) => setFormData(prev => ({ ...prev, location: v }))}
+            existingValues={existingLocations}
+            placeholder="Geographische Herkunft"
+          />
+        </div>
+      )}
 
-      {/* ── Kaufort ── */}
-      <div className="form-group">
-        <label htmlFor="purchase_location">Kaufort</label>
-        <input
-          type="text" id="purchase_location"
-          value={isUndetermined ? '' : formData.purchase_location}
-          onChange={(e) => !isUndetermined && setFormData(prev => ({ ...prev, purchase_location: e.target.value }))}
-          placeholder="Wo wurde es erworben?"
-          required={!isUndetermined}
-          disabled={isUndetermined}
-          autoComplete="off"
-        />
-      </div>
+      {/* ── Kaufort (versteckt wenn unbestimmt) ── */}
+      {!isUndetermined && (
+        <div className="form-group">
+          <label htmlFor="purchase_location">Kaufort</label>
+          <input
+            type="text" id="purchase_location"
+            value={formData.purchase_location}
+            onChange={(e) => setFormData(prev => ({ ...prev, purchase_location: e.target.value }))}
+            placeholder="Wo wurde es erworben?"
+            required
+            autoComplete="off"
+          />
+        </div>
+      )}
 
-      {/* ── Gesteinsart ── */}
-      <div className="form-group">
-        <label htmlFor="rock_type">Gesteinsart</label>
-        <RockTypeAutocomplete
-          value={isUndetermined ? '' : formData.rock_type}
-          onChange={(v) => setFormData(prev => ({ ...prev, rock_type: v }))}
-          existingRockTypes={existingRockTypes}
-          disabled={isUndetermined}
-        />
-      </div>
+      {/* ── Gesteinsart (versteckt wenn unbestimmt) ── */}
+      {!isUndetermined && (
+        <div className="form-group">
+          <label htmlFor="rock_type">Gesteinsart</label>
+          <RockTypeAutocomplete
+            value={formData.rock_type}
+            onChange={(v) => setFormData(prev => ({ ...prev, rock_type: v }))}
+            existingRockTypes={existingRockTypes}
+          />
+        </div>
+      )}
 
       {/* ── Regal ── */}
       <div className="form-group">
