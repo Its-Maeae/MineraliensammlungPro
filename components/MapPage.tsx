@@ -172,7 +172,7 @@ export default function MapPage({
     violett:'#7c3aed', grau:'#6b7280', orange:'#f97316',
     rosa:'#ec4899', silber:'#94a3b8',
   };
-  const getColor = (c?: string) => colorMap[c?.toLowerCase() ?? ''] ?? '#1e40af';
+  const getColor = (c?: string) => colorMap[c?.toLowerCase() ?? ''] ?? '#32353f';
 
   const updateMarkers = useCallback(() => {
     if (!mapInstance.current || !window.L) return;
