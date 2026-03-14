@@ -341,7 +341,12 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
 
       const res = await fetch('/api/minerals', { method: 'POST', body: form, credentials: 'include' });
       if (res.ok) {
+        const wasUndetermined = formData.is_undetermined;
         clearFormData();
+        // Schalter-Zustand wiederherstellen
+        if (wasUndetermined) {
+          setFormData(prev => ({ ...prev, is_undetermined: true, name: 'Unbestimmtes Mineral' }));
+        }
         onSuccess();
         alert('Mineral erfolgreich hinzugefügt!');
       } else {
@@ -563,22 +568,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
           style={{ display: 'none' }} />
       </div>
 
-      {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
-      {isUndetermined && (
-        <div className="form-group suspected-name-group">
-          <label htmlFor="suspected_name">Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
-          <input
-            type="text"
-            id="suspected_name"
-            value={formData.suspected_name}
-            onChange={(e) => setFormData((prev: MineralFormData) => ({ ...prev, suspected_name: e.target.value }))}
-            placeholder="z.B. Quarz, Pyrit, Amethyst – noch unsicher"
-            autoComplete="off"
-          />
-          <p className="form-hint">Wird auf der Karte und im Detail als Hinweis angezeigt.</p>
-        </div>
-      )}
-
       {/* ── Aktions-Buttons ── */}
       <div className="admin-action-buttons">
         <button
@@ -609,6 +598,22 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </label>
         <span className="undetermined-toggle-row-label">Unbestimmtes Mineral</span>
       </div>
+
+      {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
+      {isUndetermined && (
+        <div className="form-group suspected-name-group">
+          <label htmlFor="suspected_name">Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
+          <input
+            type="text"
+            id="suspected_name"
+            value={formData.suspected_name}
+            onChange={(e) => setFormData((prev: MineralFormData) => ({ ...prev, suspected_name: e.target.value }))}
+            placeholder="z.B. Quarz, Pyrit, Amethyst – noch unsicher"
+            autoComplete="off"
+          />
+          <p className="form-hint">Wird auf der Karte und im Detail als Hinweis angezeigt.</p>
+        </div>
+      )}
 
     </form>
   );
