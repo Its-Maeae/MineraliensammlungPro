@@ -28,6 +28,8 @@ export default function BoxModal({
 }: BoxModalProps) {
   const [showQRGenerator, setShowQRGenerator] = useState(false);
   const [showAddMinerals, setShowAddMinerals] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
+  const [removingId, setRemovingId] = useState<number | null>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
   
   // Lazy Loading States
@@ -134,11 +136,39 @@ export default function BoxModal({
   };
 
   const handleMineralsAdded = useCallback(() => {
-    // Reload from page 1
     setPage(1);
     setMinerals([]);
     loadMinerals(1, false);
   }, [loadMinerals]);
+
+  const handleRemoveMineral = useCallback(async (mineral: Mineral) => {
+    if (removingId !== null) return;
+    setRemovingId(mineral.id);
+    try {
+      const formData = new FormData();
+      formData.append('name', mineral.name);
+      formData.append('number', mineral.number);
+      formData.append('color', mineral.color || '');
+      formData.append('description', mineral.description || '');
+      formData.append('location', mineral.location || '');
+      formData.append('purchase_location', mineral.purchase_location || '');
+      formData.append('rock_type', mineral.rock_type || '');
+      formData.append('shelf_id', ''); // aus Box entfernen
+      if (mineral.latitude != null) formData.append('latitude', mineral.latitude.toString());
+      if (mineral.longitude != null) formData.append('longitude', mineral.longitude.toString());
+      formData.append('is_undetermined', (mineral as any).is_undetermined ? 'true' : 'false');
+      if ((mineral as any).suspected_name) formData.append('suspected_name', (mineral as any).suspected_name);
+
+      const res = await fetch(`/api/minerals/${mineral.id}`, { method: 'PUT', body: formData });
+      if (res.ok) {
+        setMinerals(prev => prev.filter(m => m.id !== mineral.id));
+      }
+    } catch (error) {
+      console.error('Fehler beim Entfernen des Minerals:', error);
+    } finally {
+      setRemovingId(null);
+    }
+  }, [removingId]);
 
   const totalMinerals = minerals.length;
 
@@ -197,9 +227,20 @@ export default function BoxModal({
 
             <div className="section-divider"></div>
             
-            <div className="detail-label-minimal">
-              Mineralien in dieser Box
-              {totalMinerals > 0 && ` (${totalMinerals}${hasMore ? '+' : ''})`}
+            <div className="detail-label-minimal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>
+                Mineralien in dieser Box
+                {totalMinerals > 0 && ` (${totalMinerals}${hasMore ? '+' : ''})`}
+              </span>
+              {isAuthenticated && totalMinerals > 0 && (
+                <button
+                  className={`remove-mode-toggle ${removeMode ? 'active' : ''}`}
+                  onClick={() => setRemoveMode(m => !m)}
+                  type="button"
+                >
+                  {removeMode ? '✓ Fertig' : '− Entfernen'}
+                </button>
+              )}
             </div>
             
             {loading && minerals.length === 0 ? (
@@ -210,17 +251,33 @@ export default function BoxModal({
               </div>
             ) : (
               <>
+                {removeMode && (
+                  <div className="remove-mode-hint">
+                    Klicke auf × um ein Mineral aus der Box zu entfernen. Das Mineral bleibt in der Sammlung.
+                  </div>
+                )}
                 <div className="mineralien-simple-grid">
                   {minerals.map(mineral => (
-                    <div 
-                      key={mineral.id} 
-                      className="mineral-card-simple" 
-                      onClick={() => handleMineralClick(mineral.id)}
+                    <div
+                      key={mineral.id}
+                      className={`mineral-card-simple ${removeMode ? 'remove-mode' : ''} ${removingId === mineral.id ? 'removing' : ''}`}
+                      onClick={() => !removeMode && handleMineralClick(mineral.id)}
                     >
+                      {removeMode && (
+                        <button
+                          className="mineral-remove-btn"
+                          onClick={(e) => { e.stopPropagation(); handleRemoveMineral(mineral); }}
+                          disabled={removingId !== null}
+                          type="button"
+                          title="Aus Box entfernen"
+                        >
+                          {removingId === mineral.id ? '⟳' : '×'}
+                        </button>
+                      )}
                       <div className="mineral-image-simple">
                         {mineral.image_path ? (
-                          <img 
-                            src={`/uploads/${mineral.image_path}`} 
+                          <img
+                            src={`/uploads/${mineral.image_path}`}
                             alt={mineral.name}
                             loading="lazy"
                           />

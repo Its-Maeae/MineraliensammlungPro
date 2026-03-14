@@ -233,3 +233,101 @@
     border-radius: var(--radius-xl);
   }
 }
+
+/* ========================================
+   REMOVE MODE - MINERALIEN AUS BOX ENTFERNEN
+   ======================================== */
+
+/* Toggle Button neben dem Label */
+.remove-mode-toggle {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.remove-mode-toggle:hover {
+  border-color: var(--error-color);
+  color: var(--error-color);
+}
+
+.remove-mode-toggle.active {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: var(--white);
+}
+
+.remove-mode-toggle.active:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+/* Hinweis-Banner im Entfernen-Modus */
+.remove-mode-hint {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: #854d0e;
+  line-height: 1.5;
+}
+
+/* Karte im Entfernen-Modus */
+.mineral-card-simple.remove-mode {
+  position: relative;
+  cursor: default;
+  border-color: #fca5a5;
+}
+
+.mineral-card-simple.remove-mode:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--error-color);
+}
+
+.mineral-card-simple.removing {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* × Button auf der Karte */
+.mineral-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  background: var(--error-color);
+  color: var(--white);
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+  padding: 0;
+  z-index: 2;
+}
+
+.mineral-remove-btn:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: scale(1.15);
+}
+
+.mineral-remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
