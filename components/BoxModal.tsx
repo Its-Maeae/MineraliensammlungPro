@@ -13,6 +13,7 @@ interface BoxModalProps {
   onDelete: (type: 'shelf', id: number) => void;
   onOpenMineralDetails: (id: number) => void;
   setShowShelfMineralsModal: (show: boolean) => void;
+  onMineralCountChanged?: (shelfId: number, delta: number) => void;
 }
 
 export default function BoxModal({ 
@@ -24,7 +25,8 @@ export default function BoxModal({
   onEdit, 
   onDelete, 
   onOpenMineralDetails,
-  setShowShelfMineralsModal 
+  setShowShelfMineralsModal,
+  onMineralCountChanged
 }: BoxModalProps) {
   const [showQRGenerator, setShowQRGenerator] = useState(false);
   const [showAddMinerals, setShowAddMinerals] = useState(false);
@@ -139,7 +141,10 @@ export default function BoxModal({
     setPage(1);
     setMinerals([]);
     loadMinerals(1, false);
-  }, [loadMinerals]);
+    // Notify parent to refresh the mineral count on the showcase cards
+    // We don't know the exact delta here, so reload the showcases entirely
+    onMineralCountChanged?.(shelf.id, 0);
+  }, [loadMinerals, onMineralCountChanged, shelf.id]);
 
   const handleRemoveMineral = useCallback(async (mineral: Mineral) => {
     if (removingId !== null) return;
@@ -162,6 +167,7 @@ export default function BoxModal({
       const res = await fetch(`/api/minerals/${mineral.id}`, { method: 'PUT', body: formData });
       if (res.ok) {
         setMinerals(prev => prev.filter(m => m.id !== mineral.id));
+        onMineralCountChanged?.(shelf.id, -1);
       }
     } catch (error) {
       console.error('Fehler beim Entfernen des Minerals:', error);

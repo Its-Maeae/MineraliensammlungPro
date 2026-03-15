@@ -539,6 +539,44 @@ export default function VitrinesPage({
   }, [setLoading, setShowMineralModal, setSelectedMineral, setShowShowcaseModal, setSelectedShowcase, 
       handleCloseShelfModal, loadStats, loadShowcases, openShowcaseDetails, selectedShowcase]);
 
+  const handleMineralCountChanged = useCallback((shelfId: number, delta: number) => {
+    if (delta === 0) {
+      // Bulk add: unbekannte Menge -> Showcase vom Server neu laden
+      const affected = showcases.find((sc: Showcase) =>
+        sc.shelves?.some((s: any) => s.id === shelfId)
+      );
+      if (affected) {
+        fetch(`/api/showcases/${affected.id}`)
+          .then((r: Response) => r.ok ? r.json() : null)
+          .then((data: Showcase | null) => {
+            if (data) {
+              showcaseCache.current.set(affected.id, data);
+              setShowcases(showcases.map((sc: Showcase) => sc.id === affected.id ? data : sc));
+            }
+          })
+          .catch(() => {});
+      }
+      return;
+    }
+
+    // Entfernen: optimistisch -1 im State
+    const updated: Showcase[] = showcases.map((showcase: Showcase) => {
+      if (!showcase.shelves) return showcase;
+      const hasShelf = showcase.shelves.some((s: any) => s.id === shelfId);
+      if (!hasShelf) return showcase;
+
+      const newShelves = showcase.shelves.map((s: any) =>
+        s.id === shelfId
+          ? { ...s, mineral_count: Math.max(0, (s.mineral_count || 0) + delta) }
+          : s
+      );
+      const newMineralCount = Math.max(0, (showcase.mineral_count || 0) + delta);
+      showcaseCache.current.delete(showcase.id);
+      return { ...showcase, shelves: newShelves, mineral_count: newMineralCount };
+    });
+    setShowcases(updated);
+  }, [showcases, setShowcases]);
+
   const showcasesList = useMemo(() => {
     return showcases.map(showcase => (
       <RegalCard 
@@ -629,6 +667,7 @@ export default function VitrinesPage({
           onDelete={handleDelete}
           onOpenMineralDetails={openMineralDetails}
           setShowShelfMineralsModal={setShowShelfMineralsModal}
+          onMineralCountChanged={handleMineralCountChanged}
         />
       )}
 
