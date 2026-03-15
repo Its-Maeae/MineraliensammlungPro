@@ -257,11 +257,6 @@ export default function BoxModal({
               </div>
             ) : (
               <>
-                {removeMode && (
-                  <div className="remove-mode-hint">
-                    Klicke auf × um ein Mineral aus der Box zu entfernen. Das Mineral bleibt in der Sammlung.
-                  </div>
-                )}
                 <div className="mineralien-simple-grid">
                   {minerals.map(mineral => (
                     <div
