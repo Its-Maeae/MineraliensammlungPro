@@ -62,25 +62,26 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
           
           <div className="sources-content">
             <div className="sources-section">
-              <h2>📚 Hauptliteratur</h2>
+              <h2>Hauptliteratur</h2>
               <ul className="sources-list">
                 <li>Mineralien Bestimmen, Kennenlernen, Sammeln (Rupert Hochleitner) </li>
                 <li>Minerale Arthia (Jaroslav Svenek und Ladislav Pros)</li>
-                <li>Fehlt noch!</li>
+                <li>Gesteinsbestimmungsbuch (Rudolf Jubelt und Peter Schreiter)</li>
+                <li>Minerale Sammeln und Bestimmen (Rolf Seim)</li>
               </ul>
             </div>
             
             <div className="sources-section">
-              <h2>🌐 Online-Ressourcen</h2>
+              <h2>Online-Ressourcen</h2>
               <ul className="sources-list">
                 <li><a href="https://www.mindat.org" target="_blank" rel="noopener noreferrer">Mindat.org - Mineraldatenbank</a></li>
-                <li><a href="https://rruff.info" target="_blank" rel="noopener noreferrer">RRUFF Project - Mineraldatenbank</a></li>
+                <li><a href="https://www.seilnacht.com" target="_blank" rel="noopener noreferrer">Seilnacht Mineralien</a></li>
                 <li><a href="https://www.mineralienatlas.de/" target="_blank" rel="noopener noreferrer">Mineralienatlas - Mineralogischer Atlas</a></li>
               </ul>
             </div>
             
             <div className="sources-section">
-              <h2>🔬 Technische Ausstattung</h2>
+              <h2>Technische Ausstattung</h2>
               <ul className="sources-list">
                 <li>S25 Ultra für Kameraufnamhmen</li>
                 <li>Raspberry Pi mit Immich für Cloud Syncronisation</li>
@@ -89,7 +90,7 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
             </div>
             
             <div className="sources-section">
-              <h2>🎓 Mitwirkende Personen</h2>
+              <h2>Mitwirkende Personen</h2>
               <ul className="sources-list">
                 <li><strong>Marius Schmieder</strong> - Webentwicklung und Datenbank, Bestimmung, Fotografie, Digitalisierung</li>
                 <li><strong>Charlie Espig</strong> - Bestimmung, Digitalisierung und Fotografie</li>
@@ -116,31 +117,31 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
           <div className="contact-content">
             <div className="contact-grid">
               <div className="contact-card">
-                <h3>🏫 Schuladresse</h3>
+                <h3>Schuladresse</h3>
                 <p><strong>Samuel von Pufendorf Gymnasium Flöha</strong></p>
                 <p>Turnerstraße 16<br/>
                   09557 Flöha<br/>
                   Deutschland</p>
-                <p>📞 <strong>03726 58160</strong></p>
+                <p><strong>03726 58160</strong></p>
               </div>
               
               <div className="contact-card">
-                <h3>👤 Ansprechpartner</h3>
+                <h3>Ansprechpartner</h3>
                 <p><strong>Frau Barthel</strong><br/>
                   Fachbereich Geologie</p>
-                <p>📧 manuela-barthel@gymnasium-floeha.lernsax.de</p>
+                <p>manuela-barthel@gymnasium-floeha.lernsax.de</p>
               </div>
               
               <div className="contact-card">
-                <h3>💻 Technischer Support</h3>
+                <h3>Technischer Support</h3>
                 <p><strong>Marius Schmieder</strong><br/>
                   Schüler Klasse 10c</p>
-                <p>📧 marius-schmieder@gymnasium-floeha.lernsax.de</p>
-                <p>🔧 Bei technischen Problemen mit der Website</p>
+                <p>marius-schmieder@gymnasium-floeha.lernsax.de</p>
+                <p>Bei technischen Problemen mit der Website</p>
               </div>
               
               <div className="contact-card">
-                <h3>🌐 Online</h3>
+                <h3>Online</h3>
                 <p><strong>Website:</strong><br/>
                   <a href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
                     gymnasium-floeha.de
@@ -151,18 +152,18 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
             </div>
             
             <div className="contact-info">
-              <h2>ℹ️ Wichtige Informationen</h2>
+              <h2>Wichtige Informationen</h2>
               <div className="info-grid">
                 <div className="info-item">
-                  <h4>🔍 Inhalt</h4>
+                  <h4>Inhalt</h4>
                   <p>Für inhaltliche Richtigkeit übernehmen wir keine Verantwortung. Diese Sammlung dient nur der Ausstellung der Mineraliensammlung.</p>
                 </div>
                 <div className="info-item">
-                  <h4>📖 Bildungsnutzung</h4>
+                  <h4>Bildungsnutzung</h4>
                   <p>Diese Sammlung steht für Bildungszwecke zur Verfügung und für die Verwendung im Unterricht.</p>
                 </div>
                 <div className="info-item">
-                  <h4>💝 Spenden</h4>
+                  <h4>Spenden</h4>
                   <p>Mineralspenden zur Erweiterung der Sammlung werden gerne entgegengenommen.</p>
                 </div>
               </div>
