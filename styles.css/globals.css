@@ -763,7 +763,7 @@ main {
 }
 
 .sources-list li::before {
-    content: "📚";
+    content: "•";
     margin-right: var(--space-3);
 }
 
