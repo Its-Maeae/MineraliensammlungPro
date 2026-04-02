@@ -75,8 +75,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const params: any[] = [];
 
       if (search) {
-        sql += ` AND (m.name LIKE ? OR m.number LIKE ?)`;
-        params.push(`%${search}%`, `%${search}%`);
+        // Suche auch in suspected_name für unbestimmte Mineralien
+        sql += ` AND (m.name LIKE ? OR m.number LIKE ? OR m.suspected_name LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
 
       if (color) {
@@ -147,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           [
             undetermined ? 'Unbestimmtes Mineral' : name,
             number,
-            color || null,                              // Farbe auch bei unbestimmten speichern
+            color || null,
             undetermined ? null : (description || null),
             undetermined ? null : (location || null),
             undetermined ? null : (purchase_location || null),

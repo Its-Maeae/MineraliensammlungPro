@@ -287,7 +287,7 @@ export default function CollectionPage({
               <input
                 type="text"
                 className="search-input"
-                placeholder="Nach Name oder Steinnummer suchen..."
+                placeholder="Nach Name, Vermutung oder Steinnummer suchen..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -398,7 +398,11 @@ export default function CollectionPage({
                         )}
                       </div>
                       <div className="mineral-info">
-                        <h3>{mineral.name}</h3>
+                        <h3>
+                          {undetermined
+                            ? ((mineral as any).suspected_name || 'Unbekanntes Mineral')
+                            : mineral.name}
+                        </h3>
                         <p><strong>Nummer:</strong> {mineral.number}</p>
                         {undetermined ? (
                           <>
