@@ -199,12 +199,12 @@ export default function BoxModal({
               </div>
             )}
 
-            <div className="stats-minimal">
+            {/* <div className="stats-minimal">
               <div className="stat-minimal">
                 <span className="stat-value-minimal">{totalMinerals}</span>
                 <span className="stat-label-minimal">Mineralien geladen</span>
               </div>
-            </div>
+            </div> */}
 
             {shelf.description && (
               <div style={{ marginTop: 'var(--space-4)' }}>
