@@ -404,19 +404,6 @@ export default function CollectionPage({
                             : mineral.name}
                         </h3>
                         <p><strong>Nummer:</strong> {mineral.number}</p>
-                        {undetermined ? (
-                          <>
-                            {(mineral as any).suspected_name ? (
-                              <p className="undetermined-card-note">
-                                Vermutlich: <strong>{(mineral as any).suspected_name}</strong>
-                              </p>
-                            ) : (
-                              <p className="undetermined-card-note">Noch nicht identifiziert</p>
-                            )}
-                          </>
-                        ) : (
-                          <p><strong>Farbe:</strong> {mineral.color || 'Nicht angegeben'}</p>
-                        )}
                         <p>
                           <strong>Regal:</strong>{' '}
                           {mineral.shelf_code
