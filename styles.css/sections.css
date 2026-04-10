@@ -20,14 +20,6 @@
   gap: var(--space-4);
 }
 
-/* Rotating color palette for tiles */
-.section-tile:nth-child(6n+1) { --tile-color: #6366f1; --tile-color-dark: #4f46e5; }
-.section-tile:nth-child(6n+2) { --tile-color: #0ea5e9; --tile-color-dark: #0284c7; }
-.section-tile:nth-child(6n+3) { --tile-color: #10b981; --tile-color-dark: #059669; }
-.section-tile:nth-child(6n+4) { --tile-color: #f59e0b; --tile-color-dark: #d97706; }
-.section-tile:nth-child(6n+5) { --tile-color: #ec4899; --tile-color-dark: #db2777; }
-.section-tile:nth-child(6n+6) { --tile-color: #8b5cf6; --tile-color-dark: #7c3aed; }
-
 .section-tile {
   position: relative;
   background: linear-gradient(135deg, var(--tile-color), var(--tile-color-dark));
