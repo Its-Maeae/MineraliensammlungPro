@@ -87,6 +87,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'Sektions-Code bereits in dieser Box vorhanden' });
         }
 
+        // Prüfen ob dies die erste Sektion in dieser Box ist (vor dem Insert!)
+        const existingSectionCount = await database.get(
+          'SELECT COUNT(*) as count FROM shelf_sections WHERE shelf_id = ?',
+          [shelf_id]
+        );
+        const isFirstSection = existingSectionCount.count === 0;
+
         const result = await database.run(
           `INSERT INTO shelf_sections (shelf_id, name, code, description, position_order, image_path)
            VALUES (?, ?, ?, ?, ?, ?)`,
@@ -100,7 +107,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ]
         );
 
-        return res.status(201).json({ id: result.id, message: 'Sektion erfolgreich hinzugefügt' });
+        const newSectionId = result.id;
+
+        // Wenn dies die erste Sektion ist: alle bisher direkt in der Box
+        // liegenden Mineralien (section_id = NULL) automatisch in diese Sektion verschieben.
+        let movedMineralCount = 0;
+        if (isFirstSection) {
+          const moveResult = await database.run(
+            `UPDATE minerals
+             SET section_id = ?
+             WHERE shelf_id = ? AND (section_id IS NULL OR section_id = 0)`,
+            [newSectionId, shelf_id]
+          );
+          movedMineralCount = moveResult.changes ?? 0;
+        }
+
+        return res.status(201).json({
+          id: newSectionId,
+          message: 'Sektion erfolgreich hinzugefügt',
+          ...(isFirstSection && movedMineralCount > 0 && {
+            movedMinerals: movedMineralCount,
+            movedMineralsMessage: `${movedMineralCount} Mineral${movedMineralCount !== 1 ? 'ien' : ''} wurde${movedMineralCount !== 1 ? 'n' : ''} automatisch in diese Sektion verschoben`,
+          }),
+        });
       } catch (error) {
         console.error('Fehler beim Erstellen der Sektion:', error);
         return res.status(500).json({ error: 'Fehler beim Erstellen der Sektion' });

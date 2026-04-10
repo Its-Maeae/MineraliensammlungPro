@@ -184,7 +184,7 @@ export default function BoxModal({
           {/* Header */}
           <div className="modal-header-minimal">
             <h2 className="modal-title-minimal">
-              Box {shelf.shelf_name || shelf.name}
+              {shelf.shelf_name || shelf.name}
               <span className="regal-code-badge">{shelf.full_code}</span>
             </h2>
             <div className="modal-subtitle-minimal">{shelf.showcase_name}</div>
@@ -222,6 +222,7 @@ export default function BoxModal({
                 isAuthenticated={isAuthenticated}
                 onSectionsChanged={onSectionsChanged}
                 onSectionClick={section => setOpenSectionModal({ section })}
+                refreshKey={sectionsRefreshKey}
               />
             </>
 

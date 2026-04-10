@@ -6,6 +6,8 @@ interface BoxSectionManagerProps {
   isAuthenticated: boolean;
   onSectionsChanged: () => void;
   onSectionClick: (section: ShelfSection) => void;
+  /** Increment this value from the parent to trigger a reload of sections. */
+  refreshKey?: number;
 }
 
 export interface SectionFormData {
@@ -22,6 +24,7 @@ export default function BoxSectionManager({
   isAuthenticated,
   onSectionsChanged,
   onSectionClick,
+  refreshKey,
 }: BoxSectionManagerProps) {
   const [sections, setSections] = useState<ShelfSection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +51,7 @@ export default function BoxSectionManager({
     }
   }, [shelf.id]);
 
-  useEffect(() => { loadSections(); }, [loadSections]);
+  useEffect(() => { loadSections(); }, [loadSections, refreshKey]);
 
   const openAdd = () => {
     setEditingSection(null);
