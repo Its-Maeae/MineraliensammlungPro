@@ -2,7 +2,6 @@
    BOX-SEKTIONEN STYLES
    ======================================== */
 
-/* ── Section Manager ── */
 .section-manager {
   margin-top: var(--space-2);
 }
@@ -14,146 +13,122 @@
   margin-bottom: var(--space-3);
 }
 
-/* ── Empty state ── */
-.sections-empty {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-4) 0;
+/* ── Tiles Grid ── */
+.sections-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--space-3);
 }
 
-.sections-empty-box {
-  text-align: center;
-  color: var(--gray-400);
-  font-size: var(--font-size-sm);
-}
-
-.sections-empty-box p {
-  margin: var(--space-2) 0 0;
-}
-
-/* ── Section list ── */
-.section-order-btn {
-  width: 22px;
-  height: 22px;
-  border: 1px solid var(--gray-300);
+.section-tile {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 110px;
   background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+  overflow: hidden;
+}
+
+.section-tile:hover {
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.section-tile-code {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--gray-800);
+  letter-spacing: 0.5px;
+  transition: color var(--transition-fast);
+  line-height: 1;
+}
+
+.section-tile:hover .section-tile-code {
+  color: var(--white);
+}
+
+.section-tile-name {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  font-weight: 500;
+  text-align: center;
+  transition: color var(--transition-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.section-tile:hover .section-tile-name {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.section-tile-count {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--primary-color);
+  transition: color var(--transition-fast);
+  line-height: 1;
+  margin-top: var(--space-1);
+}
+
+.section-tile:hover .section-tile-count {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* ── Reorder buttons (appear on hover) ── */
+.section-tile-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.section-tile:hover .section-tile-actions {
+  opacity: 1;
+}
+
+.section-order-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.25);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 12px;
-  color: var(--gray-600);
+  font-size: 11px;
+  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   transition: all var(--transition-fast);
   line-height: 1;
+  backdrop-filter: blur(4px);
 }
 
 .section-order-btn:hover:not(:disabled) {
-  background: var(--primary-color);
-  color: var(--white);
-  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .section-order-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.25;
   cursor: not-allowed;
-}
-
-/* ── Section list ── */
-.sections-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.section-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-lg);
-  transition: border-color var(--transition-fast);
-}
-
-.section-list-item:hover {
-  border-color: var(--primary-color);
-}
-
-.section-list-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  cursor: pointer;
-  flex: 1;
-  min-width: 0;
-}
-
-.section-list-code {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--white);
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  border-radius: var(--radius-md);
-  padding: 2px 8px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.section-list-name {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--gray-800);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.section-list-count {
-  font-size: var(--font-size-xs);
-  color: var(--gray-500);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.section-list-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.section-edit-btn,
-.section-delete-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--gray-300);
-  background: var(--white);
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: all var(--transition-fast);
-  line-height: 1;
-  color: var(--gray-600);
-}
-
-.section-edit-btn:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: var(--white);
-}
-
-.section-delete-btn:hover {
-  background: var(--error-color);
-  border-color: var(--error-color);
-  color: var(--white);
 }
 
 /* ── Section Form Modal ── */
@@ -174,7 +149,7 @@
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-2xl);
-  max-width: 480px;
+  max-width: 420px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -218,7 +193,7 @@
   align-items: center;
 }
 
-/* ── Box Square badge for section indicator ── */
+/* ── Box Square badge ── */
 .box-has-sections-badge {
   display: block;
   font-size: 9px;
@@ -235,17 +210,15 @@
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
-  .section-list-item {
-    flex-wrap: wrap;
-    gap: var(--space-2);
+  .sections-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   }
 
-  .section-list-actions {
-    width: 100%;
-    justify-content: flex-end;
+  .section-tile {
+    min-height: 90px;
   }
 
-  .box-visual-section-controls {
+  .section-tile-actions {
     opacity: 1;
   }
 }

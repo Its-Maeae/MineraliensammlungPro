@@ -45,8 +45,8 @@ export default function BoxSectionManager({
         const data = await res.json();
         setSections(data);
       }
-    } catch (e) {
-      setError('Sektionen konnten nicht geladen werden');
+    } catch {
+      setError('Fehler beim Laden');
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,6 @@ export default function BoxSectionManager({
 
   useEffect(() => { loadSections(); }, [loadSections]);
 
-  // Open edit form when parent triggers it (e.g. from section-view admin buttons)
   useEffect(() => {
     if (externalEditSection) {
       openEdit(externalEditSection);
@@ -85,7 +84,6 @@ export default function BoxSectionManager({
     e.preventDefault();
     setSaving(true);
     setError(null);
-
     try {
       const fd = new FormData();
       fd.append('name', formData.name);
@@ -97,14 +95,10 @@ export default function BoxSectionManager({
 
       const url = editingSection ? `/api/sections/${editingSection.id}` : '/api/sections';
       const method = editingSection ? 'PUT' : 'POST';
-
       const res = await fetch(url, { method, body: fd });
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error || 'Fehler beim Speichern');
-        return;
-      }
+      if (!res.ok) { setError(data.error || 'Fehler beim Speichern'); return; }
 
       setShowForm(false);
       setEditingSection(null);
@@ -121,19 +115,11 @@ export default function BoxSectionManager({
 
   const handleDelete = async (section: ShelfSection) => {
     if (!confirm(`Sektion "${section.name}" (${section.full_code}) wirklich löschen?`)) return;
-
     try {
       const res = await fetch(`/api/sections/${section.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        await loadSections();
-        onSectionsChanged();
-      } else {
-        const d = await res.json();
-        setError(d.error || 'Fehler beim Löschen');
-      }
-    } catch {
-      setError('Verbindungsfehler');
-    }
+      if (res.ok) { await loadSections(); onSectionsChanged(); }
+      else { const d = await res.json(); setError(d.error || 'Fehler beim Löschen'); }
+    } catch { setError('Verbindungsfehler'); }
   };
 
   const handleSwap = async (sectionA: ShelfSection, sectionB: ShelfSection) => {
@@ -144,33 +130,49 @@ export default function BoxSectionManager({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ swap_with: sectionB.id }),
       });
-      if (res.ok) {
-        await loadSections();
-      }
-    } catch {
-      setError('Fehler beim Tauschen');
-    } finally {
-      setSwapping(null);
-    }
+      if (res.ok) await loadSections();
+    } catch { setError('Fehler beim Tauschen'); }
+    finally { setSwapping(null); }
   };
 
-  const moveUp = (idx: number) => {
-    if (idx === 0) return;
-    handleSwap(sections[idx], sections[idx - 1]);
-  };
+  const moveUp = (idx: number) => { if (idx > 0) handleSwap(sections[idx], sections[idx - 1]); };
+  const moveDown = (idx: number) => { if (idx < sections.length - 1) handleSwap(sections[idx], sections[idx + 1]); };
 
-  const moveDown = (idx: number) => {
-    if (idx === sections.length - 1) return;
-    handleSwap(sections[idx], sections[idx + 1]);
-  };
+  // Don't render while loading
+  if (loading) return null;
+
+  // No sections: only admins see the "+ Sektion" button, no empty state message
+  if (sections.length === 0) {
+    if (!isAuthenticated) return null;
+    return (
+      <div className="section-manager">
+        <div className="section-manager-header">
+          <div className="detail-label-minimal">Sektionen</div>
+          <button className="btn-minimal primary" onClick={openAdd} type="button"
+            style={{ padding: '4px 12px', fontSize: 'var(--font-size-xs)' }}>
+            + Sektion
+          </button>
+        </div>
+        {showForm && (
+          <SectionFormModal
+            editingSection={editingSection}
+            formData={formData}
+            setFormData={setFormData}
+            saving={saving}
+            error={error}
+            shelf={shelf}
+            onSubmit={handleSubmit}
+            onClose={() => setShowForm(false)}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="section-manager">
-      {/* Header */}
       <div className="section-manager-header">
-        <div className="detail-label-minimal">
-          Box-Sektionen {sections.length > 0 && `(${sections.length})`}
-        </div>
+        <div className="detail-label-minimal">Sektionen</div>
         {isAuthenticated && (
           <button className="btn-minimal primary" onClick={openAdd} type="button"
             style={{ padding: '4px 12px', fontSize: 'var(--font-size-xs)' }}>
@@ -186,152 +188,131 @@ export default function BoxSectionManager({
         </div>
       )}
 
-      {/* Grafische Anzeige der Sektionen */}
-      {loading ? (
-        <div style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)', padding: 'var(--space-4)' }}>
-          Lade Sektionen...
-        </div>
-      ) : sections.length === 0 ? (
-        <div className="sections-empty">
-          <div className="sections-empty-box">
-            <span style={{ fontSize: 24, opacity: 0.4 }}>▭</span>
-            <p>Keine Sektionen – Box ist ungeteilt</p>
+      <div className="sections-tiles">
+        {sections.map((section, idx) => (
+          <div
+            key={section.id}
+            className="section-tile"
+            onClick={() => onSectionClick(section)}
+          >
+            <div className="section-tile-code">{section.code}</div>
+            <div className="section-tile-name">{section.name}</div>
+            <div className="section-tile-count">{section.mineral_count || 0}</div>
             {isAuthenticated && (
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-400)' }}>
-                Klicke auf „+ Sektion" um Unterteilungen hinzuzufügen
-              </p>
+              <div className="section-tile-actions" onClick={e => e.stopPropagation()}>
+                <button
+                  className="section-order-btn"
+                  onClick={() => moveUp(idx)}
+                  disabled={idx === 0 || swapping !== null}
+                  title="Nach oben"
+                >↑</button>
+                <button
+                  className="section-order-btn"
+                  onClick={() => moveDown(idx)}
+                  disabled={idx === sections.length - 1 || swapping !== null}
+                  title="Nach unten"
+                >↓</button>
+              </div>
             )}
           </div>
-        </div>
-      ) : (
-        <div className="sections-list">
-          {sections.map((section, idx) => (
-            <div key={section.id} className="section-list-item">
-              <div className="section-list-left" onClick={() => onSectionClick(section)}>
-                <span className="section-list-code">{section.full_code}</span>
-                <span className="section-list-name">{section.name}</span>
-                <span className="section-list-count">{section.mineral_count || 0} Mineralien</span>
-              </div>
-              {isAuthenticated && (
-                <div className="section-list-actions">
-                  <button
-                    className="section-order-btn"
-                    onClick={() => moveUp(idx)}
-                    disabled={idx === 0 || swapping !== null}
-                    title="Nach oben"
-                  >↑</button>
-                  <button
-                    className="section-order-btn"
-                    onClick={() => moveDown(idx)}
-                    disabled={idx === sections.length - 1 || swapping !== null}
-                    title="Nach unten"
-                  >↓</button>
-                  <button
-                    className="section-edit-btn"
-                    onClick={() => openEdit(section)}
-                    title="Bearbeiten"
-                  >✎</button>
-                  <button
-                    className="section-delete-btn"
-                    onClick={() => handleDelete(section)}
-                    title="Löschen"
-                  >×</button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
-      {/* Formular: Sektion hinzufügen / bearbeiten */}
       {showForm && (
-        <div className="section-form-overlay" onClick={() => setShowForm(false)}>
-          <div className="section-form-modal" onClick={e => e.stopPropagation()}>
-            <button className="modal-close-minimal" onClick={() => setShowForm(false)}>×</button>
-
-            <div className="modal-header-minimal">
-              <h3 className="modal-title-minimal" style={{ fontSize: 'var(--font-size-lg)' }}>
-                {editingSection ? 'Sektion bearbeiten' : 'Neue Sektion hinzufügen'}
-              </h3>
-              <div className="modal-subtitle-minimal">
-                Box: {shelf.full_code} – {shelf.name || shelf.shelf_name}
-              </div>
-            </div>
-
-            <div className="modal-body-minimal">
-              <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label htmlFor="sec-name">Sektionsname</label>
-                  <input
-                    id="sec-name"
-                    type="text"
-                    value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="z.B. Oben, Unten, Links, Rechts"
-                    required
-                    autoFocus
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="sec-code">Sektions-Code</label>
-                  <input
-                    id="sec-code"
-                    type="text"
-                    value={formData.code}
-                    onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    placeholder="z.B. A, B, 01, O, U"
-                    required
-                    maxLength={10}
-                  />
-                  <small style={{ color: 'var(--gray-600)', fontSize: 'var(--font-size-xs)', marginTop: 4, display: 'block' }}>
-                    Vollständiger Code: {shelf.full_code}-{formData.code || '?'}
-                  </small>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="sec-desc">Beschreibung</label>
-                  <textarea
-                    id="sec-desc"
-                    value={formData.description}
-                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Optionale Beschreibung der Sektion"
-                    rows={2}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="sec-img">Bild (optional)</label>
-                  <input
-                    id="sec-img"
-                    type="file"
-                    accept="image/*"
-                    onChange={e => setFormImage(e.target.files?.[0] || null)}
-                  />
-                  {formImage && (
-                    <small style={{ color: 'var(--gray-600)', marginTop: 4, display: 'block' }}>
-                      {formImage.name}
-                    </small>
-                  )}
-                </div>
-
-                {error && (
-                  <div className="add-minerals-message error">{error}</div>
-                )}
-
-                <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
-                  <button type="button" className="btn-minimal" onClick={() => setShowForm(false)} style={{ flex: 1 }}>
-                    Abbrechen
-                  </button>
-                  <button type="submit" className="btn-minimal primary" disabled={saving} style={{ flex: 1 }}>
-                    {saving ? 'Speichern...' : editingSection ? 'Speichern' : 'Hinzufügen'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <SectionFormModal
+          editingSection={editingSection}
+          formData={formData}
+          setFormData={setFormData}
+          saving={saving}
+          error={error}
+          shelf={shelf}
+          onSubmit={handleSubmit}
+          onClose={() => setShowForm(false)}
+        />
       )}
+    </div>
+  );
+}
+
+// ── Form Modal ────────────────────────────────────────────────────────────────
+interface SectionFormModalProps {
+  editingSection: any;
+  formData: SectionFormData;
+  setFormData: (d: SectionFormData) => void;
+  saving: boolean;
+  error: string | null;
+  shelf: any;
+  onSubmit: (e: React.FormEvent) => void;
+  onClose: () => void;
+}
+
+function SectionFormModal({ editingSection, formData, setFormData, saving, error, shelf, onSubmit, onClose }: SectionFormModalProps) {
+  return (
+    <div className="section-form-overlay" onClick={onClose}>
+      <div className="section-form-modal" onClick={e => e.stopPropagation()}>
+        <button className="modal-close-minimal" onClick={onClose}>×</button>
+
+        <div className="modal-header-minimal">
+          <h3 className="modal-title-minimal" style={{ fontSize: 'var(--font-size-lg)' }}>
+            {editingSection ? 'Sektion bearbeiten' : 'Neue Sektion'}
+          </h3>
+          <div className="modal-subtitle-minimal">{shelf.full_code} – {shelf.name || shelf.shelf_name}</div>
+        </div>
+
+        <div className="modal-body-minimal">
+          <form onSubmit={onSubmit}>
+            <div className="form-group">
+              <label htmlFor="sec-name">Name</label>
+              <input
+                id="sec-name"
+                type="text"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                placeholder="z.B. Oben, Unten, Links, Rechts"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="sec-code">Code</label>
+              <input
+                id="sec-code"
+                type="text"
+                value={formData.code}
+                onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                placeholder="z.B. A, B, O, U"
+                required
+                maxLength={10}
+              />
+              <small style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-xs)', marginTop: 4, display: 'block' }}>
+                Code: {shelf.full_code}-{formData.code || '?'}
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="sec-desc">
+                Beschreibung <span style={{ color: 'var(--gray-400)', fontWeight: 400 }}>(optional)</span>
+              </label>
+              <textarea
+                id="sec-desc"
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                rows={2}
+              />
+            </div>
+
+            {error && <div className="add-minerals-message error">{error}</div>}
+
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
+              <button type="button" className="btn-minimal" onClick={onClose} style={{ flex: 1 }}>Abbrechen</button>
+              <button type="submit" className="btn-minimal primary" disabled={saving} style={{ flex: 1 }}>
+                {saving ? 'Speichern...' : editingSection ? 'Speichern' : 'Hinzufügen'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
