@@ -17,6 +17,7 @@ interface MineralFormData {
   purchase_location: string;
   rock_type: string;
   shelf_id: string;
+  section_id: string;
   latitude: number | null;
   longitude: number | null;
   is_undetermined: boolean;
@@ -198,7 +199,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
     }
     return {
       name: '', number: '', color: '', description: '', location: '',
-      purchase_location: '', rock_type: '', shelf_id: '',
+      purchase_location: '', rock_type: '', shelf_id: '', section_id: '',
       latitude: null, longitude: null, is_undetermined: false, suspected_name: ''
     };
   };
@@ -311,7 +312,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
   const clearFormData = () => {
     setFormData({
       name: '', number: '', color: '', description: '', location: '',
-      purchase_location: '', rock_type: '', shelf_id: '',
+      purchase_location: '', rock_type: '', shelf_id: '', section_id: '',
       latitude: null, longitude: null, is_undetermined: false, suspected_name: ''
     });
     setImage(null); setImageName(''); setImagePreview(null); setNumberExists(false);
@@ -512,7 +513,12 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         <ShelfSelector
           shelves={shelves}
           selectedShelfId={formData.shelf_id}
-          onChange={(shelfId) => setFormData(prev => ({ ...prev, shelf_id: shelfId }))}
+          selectedSectionId={formData.section_id}
+          onChange={(value) => setFormData(prev => ({
+            ...prev,
+            shelf_id: value.shelf_id,
+            section_id: value.section_id,
+          }))}
         />
       </div>
 
