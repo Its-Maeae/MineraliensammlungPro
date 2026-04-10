@@ -180,7 +180,14 @@ export default function EditModal({
             if (clearCaches) clearCaches('showcase', formData.showcase_id);
             try {
               const r = await fetch(`/api/showcases/${formData.showcase_id}`);
-              if (r.ok) setSelectedShowcase(await r.json());
+              if (r.ok) {
+                const updatedShowcase = await r.json();
+                setSelectedShowcase(updatedShowcase);
+                // Showcase im Array aktualisieren damit Boxen sofort sichtbar sind
+                setShowcases(prev => prev.map(sc =>
+                  sc.id === updatedShowcase.id ? updatedShowcase : sc
+                ));
+              }
             } catch {}
           }
           setShowShelfMineralsModal(false);
