@@ -21,6 +21,17 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
 
   const isUndetermined = !!(mineral as any).is_undetermined;
 
+  // ── Standort-Code berechnen ───────────────────────────────────────────────
+  // V01-01-A  wenn Sektion vorhanden
+  // V01-01    wenn nur Box
+  // Nicht zugeordnet
+  const locationCode = (() => {
+    if (!mineral.shelf_code) return 'Nicht zugeordnet';
+    const base = `${mineral.showcase_code}-${mineral.shelf_code}`;
+    if ((mineral as any).section_code) return `${base}-${(mineral as any).section_code}`;
+    return base;
+  })();
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -28,11 +39,9 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
         onClose();
       }
     };
-
     const timeoutId = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
     }, 100);
-
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
@@ -145,12 +154,12 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               <span className="undetermined-badge-inline">Unbestimmt</span>
             )}
           </h2>
-          
+
           {mineral.image_path && (
             <div className="detail-image">
               <div>
-                <img 
-                  src={`/uploads/${mineral.image_path}`} 
+                <img
+                  src={`/uploads/${mineral.image_path}`}
                   alt={mineral.name}
                   onClick={() => setIsImageMaximized(true)}
                   style={{ cursor: 'pointer' }}
@@ -160,7 +169,7 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               </div>
             </div>
           )}
-          
+
           <div className="detail-info">
             <div className="detail-item">
               <span className="detail-label">Steinnummer:</span>
@@ -196,14 +205,26 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               </div>
             )}
 
+            {/* ── Standort: V01-01 oder V01-01-A ── */}
             <div className="detail-item">
-              <span className="detail-label">Regal:</span>
-              <span className="detail-value">
-                {mineral.shelf_code 
-                  ? `${mineral.showcase_code}-${mineral.shelf_code}` 
-                  : 'Nicht zugeordnet'}
+              <span className="detail-label">Standort:</span>
+              <span className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span>{locationCode}</span>
+                {(mineral as any).section_code && (
+                  <span style={{
+                    fontSize: 'var(--font-size-xs)',
+                    background: 'var(--gray-100)',
+                    color: 'var(--gray-600)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '1px 6px',
+                    fontWeight: 500
+                  }}>
+                    Sektion
+                  </span>
+                )}
               </span>
             </div>
+
             <div className="detail-item">
               <span className="detail-label">Hinzugefügt:</span>
               <span className="detail-value">
@@ -211,7 +232,7 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               </span>
             </div>
           </div>
-          
+
           {!isUndetermined && (
             <div style={{ marginTop: '20px' }}>
               <h3>Beschreibung</h3>
@@ -243,7 +264,7 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
 
       {/* Maximiertes Bild mit Zoom */}
       {isImageMaximized && mineral.image_path && (
-        <div 
+        <div
           ref={containerRef}
           className="image-maximized-overlay"
           onWheel={handleWheel}
@@ -254,19 +275,19 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ 
+          style={{
             cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
             touchAction: 'none'
           }}
         >
-          <button 
+          <button
             className="image-maximized-close"
             onClick={() => setIsImageMaximized(false)}
             aria-label="Schließen"
           >
             ✕
           </button>
-          
+
           <div className="zoom-controls">
             <button className="zoom-btn" onClick={(e) => { e.stopPropagation(); handleZoomIn(); }} disabled={zoom >= 5} title="Vergrößern">+</button>
             <button className="zoom-btn" onClick={(e) => { e.stopPropagation(); handleZoomOut(); }} disabled={zoom <= 1} title="Verkleinern">−</button>
@@ -274,9 +295,9 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
             <span className="zoom-indicator">{Math.round(zoom * 100)}%</span>
           </div>
 
-          <img 
+          <img
             ref={imageRef}
-            src={`/uploads/${mineral.image_path}`} 
+            src={`/uploads/${mineral.image_path}`}
             alt={mineral.name}
             className="image-maximized"
             style={{
@@ -287,11 +308,11 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
             onClick={(e) => e.stopPropagation()}
             draggable={false}
           />
-          
+
           {zoom > 1 && (
             <div className="zoom-hint">
-              {window.innerWidth > 768 
-                ? 'Mausrad zum Zoomen • Ziehen zum Verschieben' 
+              {window.innerWidth > 768
+                ? 'Mausrad zum Zoomen • Ziehen zum Verschieben'
                 : 'Pinch zum Zoomen • Ziehen zum Verschieben'}
             </div>
           )}

@@ -1,0 +1,341 @@
+/* ========================================
+   BOX-SEKTIONEN STYLES
+   ======================================== */
+
+/* ── Section Manager ── */
+.section-manager {
+  margin-top: var(--space-2);
+}
+
+.section-manager-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+/* ── Empty state ── */
+.sections-empty {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4) 0;
+}
+
+.sections-empty-box {
+  text-align: center;
+  color: var(--gray-400);
+  font-size: var(--font-size-sm);
+}
+
+.sections-empty-box p {
+  margin: var(--space-2) 0 0;
+}
+
+/* ── Visual Box representation ── */
+.sections-visual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.box-visual-container {
+  padding: var(--space-2) 0;
+}
+
+.box-visual-frame {
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--gray-50);
+  position: relative;
+}
+
+.box-visual-label {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  font-size: 10px;
+  color: var(--gray-400);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+
+.box-visual-sections {
+  display: flex;
+  flex-direction: column;
+  min-height: 80px;
+  padding-top: 18px; /* space for label */
+}
+
+.box-visual-section {
+  flex: 1;
+  min-height: 48px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.box-visual-section:first-child {
+  border-top: none;
+}
+
+.box-visual-section:hover {
+  background: linear-gradient(to right, var(--gray-100), transparent);
+}
+
+.box-visual-section-code {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--gray-700);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 2px 8px;
+  letter-spacing: 0.5px;
+}
+
+.box-visual-section-count {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.box-visual-section-controls {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.box-visual-section:hover .box-visual-section-controls {
+  opacity: 1;
+}
+
+/* ── Section order buttons ── */
+.section-order-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--gray-300);
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--gray-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--transition-fast);
+  line-height: 1;
+}
+
+.section-order-btn:hover:not(:disabled) {
+  background: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-color);
+}
+
+.section-order-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Section list ── */
+.sections-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.section-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-fast);
+}
+
+.section-list-item:hover {
+  border-color: var(--primary-color);
+}
+
+.section-list-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.section-list-code {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  border-radius: var(--radius-md);
+  padding: 2px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.section-list-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.section-list-count {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.section-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.section-edit-btn,
+.section-delete-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--gray-300);
+  background: var(--white);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--transition-fast);
+  line-height: 1;
+  color: var(--gray-600);
+}
+
+.section-edit-btn:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--white);
+}
+
+.section-delete-btn:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+  color: var(--white);
+}
+
+/* ── Section Form Modal ── */
+.section-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.section-form-modal {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-2xl);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.25s ease-out;
+}
+
+/* ── Breadcrumb ── */
+.section-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.section-breadcrumb-back {
+  background: none;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  padding: 4px 12px;
+  font-size: var(--font-size-xs);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 600;
+}
+
+.section-breadcrumb-back:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-400);
+  color: var(--gray-900);
+}
+
+.section-breadcrumb-current {
+  font-size: var(--font-size-xs);
+  color: var(--gray-700);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Box Square badge for section indicator ── */
+.box-has-sections-badge {
+  display: block;
+  font-size: 9px;
+  color: var(--primary-color);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  opacity: 0.9;
+  margin-top: 1px;
+}
+
+.box-square:hover .box-has-sections-badge {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .section-list-item {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .section-list-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .box-visual-section-controls {
+    opacity: 1;
+  }
+}

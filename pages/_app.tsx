@@ -9,6 +9,7 @@ import '../styles.css/statistics.css';
 import '../styles.css/SecurityDashboard.css';
 import '../styles.css/undetermined.css';
 import '../styles.css/add_minerals.css';
+import '../styles.css/sections.css';
 import type { AppProps } from 'next/app';
 
 export default function App({ Component, pageProps }: AppProps) {

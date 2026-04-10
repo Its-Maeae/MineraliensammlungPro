@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: { fileSize: 40 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
@@ -59,14 +59,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'GET') {
     try {
       const mineral = await database.get(
-        `SELECT m.*, 
-                s.code as shelf_code, 
-                s.name as shelf_name,
+        `SELECT m.*,
+                s.code  as shelf_code,
+                s.name  as shelf_name,
                 sc.code as showcase_code,
-                sc.name as showcase_name
+                sc.name as showcase_name,
+                ss.code as section_code,
+                CASE
+                  WHEN ss.id IS NOT NULL
+                  THEN (sc.code || '-' || s.code || '-' || ss.code)
+                  WHEN s.id IS NOT NULL
+                  THEN (sc.code || '-' || s.code)
+                  ELSE NULL
+                END as full_location_code
          FROM minerals m
-         LEFT JOIN shelves s ON m.shelf_id = s.id
-         LEFT JOIN showcases sc ON s.showcase_id = sc.id
+         LEFT JOIN shelves s          ON m.shelf_id   = s.id
+         LEFT JOIN showcases sc       ON s.showcase_id = sc.id
+         LEFT JOIN shelf_sections ss  ON m.section_id  = ss.id
          WHERE m.id = ?`,
         [id]
       );
@@ -94,6 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           purchase_location,
           rock_type,
           shelf_id,
+          section_id,          // ← NEU
           latitude,
           longitude,
           is_undetermined,
@@ -113,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'Steinnummer bereits vorhanden' });
         }
 
-        // Handle coordinates
+        // Koordinaten parsen
         let parsedLatitude = null;
         let parsedLongitude = null;
 
@@ -127,24 +137,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!isNaN(lng)) parsedLongitude = lng;
         }
 
-        // When undetermined, clear non-essential fields (Farbe bleibt erhalten)
+        // section_id parsen – leer / "null" / "undefined" → NULL
+        const parsedSectionId =
+          section_id && section_id !== '' && section_id !== 'null' && section_id !== 'undefined'
+            ? parseInt(section_id)
+            : null;
+
+        // Felder für unbestimmte Mineralien
         const finalName = undetermined ? 'Unbestimmtes Mineral' : name;
-        const finalColor = color || null;               // Farbe auch bei unbestimmten speichern
+        const finalColor = color || null;
         const finalDescription = undetermined ? null : (description || null);
         const finalLocation = undetermined ? null : (location || null);
         const finalPurchaseLocation = undetermined ? null : (purchase_location || null);
         const finalRockType = undetermined ? null : (rock_type || null);
-        // suspected_name only makes sense when undetermined; clear it when toggling off
         const finalSuspectedName = undetermined ? (suspected_name || null) : null;
 
-        let sql = `UPDATE minerals SET 
+        let sql = `UPDATE minerals SET
                   name = ?, number = ?, color = ?, description = ?, location = ?,
                   purchase_location = ?, rock_type = ?, shelf_id = ?, latitude = ?, longitude = ?,
-                  is_undetermined = ?, suspected_name = ?`;
+                  is_undetermined = ?, suspected_name = ?, section_id = ?`;
         let params: any[] = [
           finalName, number, finalColor, finalDescription, finalLocation,
           finalPurchaseLocation, finalRockType, shelf_id || null,
-          parsedLatitude, parsedLongitude, undetermined, finalSuspectedName
+          parsedLatitude, parsedLongitude, undetermined, finalSuspectedName,
+          parsedSectionId
         ];
 
         if (image) {

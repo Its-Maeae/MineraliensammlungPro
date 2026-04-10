@@ -10,14 +10,32 @@ export interface Mineral {
   longitude?: number;
   rock_type?: string;
   shelf_id?: number;
+  section_id?: number;
   image_path?: string;
   created_at: string;
   shelf_code?: string;
   shelf_name?: string;
   showcase_code?: string;
   showcase_name?: string;
+  section_code?: string;
+  full_location_code?: string;
   is_undetermined?: number | boolean;
   suspected_name?: string;
+}
+
+export interface ShelfSection {
+  id: number;
+  shelf_id: number;
+  name: string;
+  code: string;
+  description?: string;
+  position_order: number;
+  image_path?: string;
+  created_at: string;
+  shelf_code?: string;
+  showcase_code?: string;
+  full_code?: string;
+  mineral_count?: number;
 }
 
 export interface Showcase {
@@ -45,6 +63,8 @@ export interface Shelf {
   showcase_name?: string;
   full_code?: string;
   mineral_count?: number;
+  sections?: ShelfSection[];
+  section_count?: number;
 }
 
 export interface Stats {

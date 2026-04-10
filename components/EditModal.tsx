@@ -1,6 +1,82 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import MapSelector from './MapSelector';
 import ShelfSelector from './ShelfSelector';
+
+// ── Inline SectionSelector ────────────────────────────────────────────────────
+// Lädt Sektionen der gewählten Box und zeigt sie als Dropdown an.
+
+interface SectionOption {
+  id: number;
+  name: string;
+  code: string;
+  full_code: string;
+  mineral_count?: number;
+}
+
+function SectionSelector({
+  shelfId,
+  selectedSectionId,
+  onChange,
+}: {
+  shelfId: string | number;
+  selectedSectionId: string | number;
+  onChange: (sectionId: string) => void;
+}) {
+  const [sections, setSections] = useState<SectionOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!shelfId) {
+      setSections([]);
+      return;
+    }
+    setLoading(true);
+    fetch(`/api/sections?shelf_id=${shelfId}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: SectionOption[]) => setSections(data))
+      .catch(() => setSections([]))
+      .finally(() => setLoading(false));
+  }, [shelfId]);
+
+  if (!shelfId) return null;
+  if (loading) return <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginTop: 4 }}>Lade Sektionen...</div>;
+  if (sections.length === 0) return null;
+
+  return (
+    <div className="form-group" style={{ marginTop: 'var(--space-3)' }}>
+      <label htmlFor="edit-section">Sektion <span style={{ fontWeight: 400, color: 'var(--gray-500)', fontSize: 'var(--font-size-xs)' }}>(optional)</span></label>
+      <select
+        id="edit-section"
+        value={selectedSectionId?.toString() || ''}
+        onChange={e => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          padding: 'var(--space-2) var(--space-3)',
+          border: '1px solid var(--gray-300)',
+          borderRadius: 'var(--radius-md)',
+          fontSize: 'var(--font-size-sm)',
+          background: 'var(--white)',
+          color: 'var(--gray-900)',
+        }}
+      >
+        <option value="">Keine Sektion (direkt in Box)</option>
+        {sections.map(s => (
+          <option key={s.id} value={s.id.toString()}>
+            {s.full_code} – {s.name}
+            {s.mineral_count !== undefined ? ` (${s.mineral_count} Mineralien)` : ''}
+          </option>
+        ))}
+      </select>
+      {selectedSectionId && (
+        <small style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-xs)', marginTop: 4, display: 'block' }}>
+          Code: {sections.find(s => s.id.toString() === selectedSectionId.toString())?.full_code}
+        </small>
+      )}
+    </div>
+  );
+}
+
+// ── EditModal ─────────────────────────────────────────────────────────────────
 
 interface EditModalProps {
   editMode: 'mineral' | 'showcase' | 'shelf';
@@ -26,14 +102,14 @@ interface EditModalProps {
   clearCaches?: (type: 'showcase' | 'shelf' | 'mineral', id: number) => void;
 }
 
-export default function EditModal({ 
-  editMode, 
-  formData, 
-  setFormData, 
-  image, 
-  setImage, 
-  shelves, 
-  loading, 
+export default function EditModal({
+  editMode,
+  formData,
+  setFormData,
+  image,
+  setImage,
+  shelves,
+  loading,
   setLoading,
   onClose,
   setEditMode,
@@ -47,9 +123,9 @@ export default function EditModal({
   setShowcases,
   loadStats,
   loadMinerals,
-  clearCaches
+  clearCaches,
 }: EditModalProps) {
-  
+
   const modalOverlayRef = useRef<HTMLDivElement>(null);
   const isUndetermined = editMode === 'mineral' && !!formData.is_undetermined;
 
@@ -60,18 +136,20 @@ export default function EditModal({
         onClose();
       }
     };
-
     const timeoutId = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
     }, 100);
-
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [onClose]);
 
-  // Toggle undetermined status in edit modal
+  // ── Wenn Box wechselt → section_id zurücksetzen ──────────────────────────
+  const handleShelfChange = useCallback((shelfId: string) => {
+    setFormData({ ...formData, shelf_id: shelfId, section_id: '' });
+  }, [formData, setFormData]);
+
   const handleUndeterminedToggle = (checked: boolean) => {
     if (checked) {
       setFormData({
@@ -81,15 +159,14 @@ export default function EditModal({
         description: '',
         location: '',
         purchase_location: '',
-        rock_type: ''
-        // color und suspected_name werden bewusst beibehalten
+        rock_type: '',
       });
     } else {
       setFormData({
         ...formData,
         is_undetermined: false,
         name: '',
-        suspected_name: ''
+        suspected_name: '',
       });
     }
   };
@@ -100,7 +177,7 @@ export default function EditModal({
 
     try {
       const formDataToSend = new FormData();
-      
+
       Object.keys(formData).forEach(key => {
         if (key !== 'id' && formData[key] !== undefined) {
           if ((key === 'latitude' || key === 'longitude') && formData[key] === 0) {
@@ -110,7 +187,13 @@ export default function EditModal({
           }
         }
       });
-      
+
+      // section_id explizit senden, auch wenn leer (damit es gecleart werden kann)
+      if (editMode === 'mineral') {
+        formDataToSend.set('section_id', formData.section_id?.toString() || '');
+        formDataToSend.set('shelf_id', formData.shelf_id?.toString() || '');
+      }
+
       if (image) {
         formDataToSend.append('image', image);
       }
@@ -132,89 +215,51 @@ export default function EditModal({
           break;
       }
 
-      const response = await fetch(url, {
-        method: 'PUT',
-        body: formDataToSend
-      });
-
+      const response = await fetch(url, { method: 'PUT', body: formDataToSend });
       const responseData = await response.json();
 
       if (response.ok) {
         setEditMode(null);
         setImage(null);
         setFormData({});
-        
+
         if (editMode === 'mineral') {
-          if (clearCaches) {
-            clearCaches('mineral', formData.id);
-          }
-          
+          if (clearCaches) clearCaches('mineral', formData.id);
           if (currentPage === 'collection') {
             if (loadMinerals) {
               await loadMinerals();
             } else {
-              const response = await fetch('/api/minerals');
-              if (response.ok) {
-                const data = await response.json();
-                setMinerals(data);
-              }
+              const r = await fetch('/api/minerals');
+              if (r.ok) setMinerals(await r.json());
             }
           }
           setShowMineralModal(false);
           setSelectedMineral(null);
         } else if (editMode === 'showcase') {
-          if (clearCaches) {
-            clearCaches('showcase', formData.id);
-          }
-          
+          if (clearCaches) clearCaches('showcase', formData.id);
           if (formData.id) {
             try {
-              const response = await fetch(`/api/showcases/${formData.id}`);
-              if (response.ok) {
-                const showcase = await response.json();
-                setSelectedShowcase(showcase);
-              }
-            } catch (error) {
-              console.error('Fehler beim Laden der Regal-Details:', error);
-            }
+              const r = await fetch(`/api/showcases/${formData.id}`);
+              if (r.ok) setSelectedShowcase(await r.json());
+            } catch {}
           }
-          
-          const loadShowcases = async () => {
-            try {
-              const response = await fetch('/api/showcases');
-              if (response.ok) {
-                const data = await response.json();
-                setShowcases(data);
-              }
-            } catch (error) {
-              console.error('Fehler beim Laden der Regale:', error);
-            }
-          };
-          await loadShowcases();
+          try {
+            const r = await fetch('/api/showcases');
+            if (r.ok) setShowcases(await r.json());
+          } catch {}
         } else if (editMode === 'shelf') {
-          if (clearCaches) {
-            clearCaches('shelf', formData.id);
-          }
-          
+          if (clearCaches) clearCaches('shelf', formData.id);
           if (formData.showcase_id) {
-            if (clearCaches) {
-              clearCaches('showcase', formData.showcase_id);
-            }
-            
+            if (clearCaches) clearCaches('showcase', formData.showcase_id);
             try {
-              const response = await fetch(`/api/showcases/${formData.showcase_id}`);
-              if (response.ok) {
-                const showcase = await response.json();
-                setSelectedShowcase(showcase);
-              }
-            } catch (error) {
-              console.error('Fehler beim Laden der Regal-Details:', error);
-            }
+              const r = await fetch(`/api/showcases/${formData.showcase_id}`);
+              if (r.ok) setSelectedShowcase(await r.json());
+            } catch {}
           }
           setShowShelfMineralsModal(false);
           setSelectedShelf(null);
         }
-        
+
         loadStats();
         alert(`${entityName} erfolgreich aktualisiert!`);
       } else {
@@ -229,26 +274,19 @@ export default function EditModal({
   };
 
   return (
-    <div 
-      ref={modalOverlayRef}
-      className="modal" 
-      style={{ display: 'flex' }}
-    >
-      <div 
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div ref={modalOverlayRef} className="modal" style={{ display: 'flex' }}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>
-          {editMode === 'mineral' ? 'Mineral bearbeiten' : 
-          editMode === 'showcase' ? 'Regal bearbeiten' : 
-          'Box bearbeiten'}
+          {editMode === 'mineral' ? 'Mineral bearbeiten' :
+            editMode === 'showcase' ? 'Regal bearbeiten' :
+              'Box bearbeiten'}
         </h2>
-        
+
         <form onSubmit={handleUpdateSubmit}>
           {editMode === 'mineral' && (
             <>
-              {/* ── Unbestimmt-Schalter im EditModal ── */}
+              {/* ── Unbestimmt-Schalter ── */}
               <div className="undetermined-toggle-card" style={{ marginBottom: '16px' }}>
                 <div className="undetermined-toggle-content">
                   <div className="undetermined-toggle-text">
@@ -270,7 +308,7 @@ export default function EditModal({
                 </label>
               </div>
 
-              {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
+              {/* ── Vermuteter Name (nur wenn unbestimmt) ── */}
               {isUndetermined && (
                 <div className="form-group suspected-name-group">
                   <label>Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
@@ -284,58 +322,60 @@ export default function EditModal({
                 </div>
               )}
 
-              {/* ── Name (versteckt wenn unbestimmt) ── */}
+              {/* ── Name ── */}
               {!isUndetermined && (
                 <div className="form-group">
                   <label>Name des Minerals</label>
                   <input
                     type="text"
                     value={formData.name || ''}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                   />
                 </div>
               )}
+
               <div className="form-group">
                 <label>Steinnummer</label>
                 <input
                   type="text"
                   value={formData.number || ''}
-                  onChange={(e) => setFormData({...formData, number: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, number: e.target.value })}
                   required
                 />
               </div>
-              {/* ── Farbe (immer sichtbar, auch bei unbestimmten Mineralien) ── */}
+
+              {/* ── Farbe (immer sichtbar) ── */}
               <div className="form-group">
                 <label>Farbe</label>
                 <input
                   type="text"
                   value={formData.color || ''}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                 />
               </div>
-              {/* ── Beschreibung (versteckt wenn unbestimmt) ── */}
+
               {!isUndetermined && (
-                <div className="form-group">
-                  <label>Beschreibung</label>
-                  <textarea
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows={4}
-                  />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label>Beschreibung</label>
+                    <textarea
+                      value={formData.description || ''}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Fundort</label>
+                    <input
+                      type="text"
+                      value={formData.location || ''}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    />
+                  </div>
+                </>
               )}
-              {/* ── Fundort (versteckt wenn unbestimmt) ── */}
-              {!isUndetermined && (
-                <div className="form-group">
-                  <label>Fundort</label>
-                  <input
-                    type="text"
-                    value={formData.location || ''}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  />
-                </div>
-              )}
+
               <div className="form-group">
                 <label>Fundort auf Karte</label>
                 <MapSelector
@@ -351,37 +391,66 @@ export default function EditModal({
                   </div>
                 )}
               </div>
-              {/* ── Kaufort (versteckt wenn unbestimmt) ── */}
+
               {!isUndetermined && (
-                <div className="form-group">
-                  <label>Kaufort</label>
-                  <input
-                    type="text"
-                    value={formData.purchase_location || ''}
-                    onChange={(e) => setFormData({...formData, purchase_location: e.target.value})}
-                  />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label>Kaufort</label>
+                    <input
+                      type="text"
+                      value={formData.purchase_location || ''}
+                      onChange={(e) => setFormData({ ...formData, purchase_location: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Gesteinsart</label>
+                    <input
+                      type="text"
+                      value={formData.rock_type || ''}
+                      onChange={(e) => setFormData({ ...formData, rock_type: e.target.value })}
+                    />
+                  </div>
+                </>
               )}
-              {/* ── Gesteinsart (versteckt wenn unbestimmt) ── */}
-              {!isUndetermined && (
-                <div className="form-group">
-                  <label>Gesteinsart</label>
-                  <input
-                    type="text"
-                    value={formData.rock_type || ''}
-                    onChange={(e) => setFormData({...formData, rock_type: e.target.value})}
-                  />
-                </div>
-              )}
-              {/* Regal immer editierbar */}
+
+              {/* ── Box-Zuordnung ── */}
               <div className="form-group">
                 <label>Box</label>
                 <ShelfSelector
                   shelves={shelves}
                   selectedShelfId={formData.shelf_id || ''}
-                  onChange={(shelfId) => setFormData({...formData, shelf_id: shelfId})}
+                  onChange={handleShelfChange}
                 />
               </div>
+
+              {/* ── Sektions-Zuordnung (erscheint automatisch wenn Box Sektionen hat) ── */}
+              <SectionSelector
+                shelfId={formData.shelf_id || ''}
+                selectedSectionId={formData.section_id || ''}
+                onChange={(sectionId) => setFormData({ ...formData, section_id: sectionId })}
+              />
+
+              {/* ── Standort-Vorschau ── */}
+              {formData.shelf_id && (
+                <div style={{
+                  marginTop: 'var(--space-2)',
+                  padding: 'var(--space-2) var(--space-3)',
+                  background: 'var(--gray-50)',
+                  border: '1px solid var(--gray-200)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--gray-600)',
+                }}>
+                  Standort-Code: {
+                    (() => {
+                      const shelf = shelves.find(s => s.id.toString() === formData.shelf_id?.toString());
+                      if (!shelf) return '–';
+                      if (formData.section_id) return `${shelf.full_code}-[Sektion]`;
+                      return shelf.full_code;
+                    })()
+                  }
+                </div>
+              )}
             </>
           )}
 
@@ -392,7 +461,7 @@ export default function EditModal({
                 <input
                   type="text"
                   value={formData.name || ''}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
@@ -401,7 +470,7 @@ export default function EditModal({
                 <input
                   type="text"
                   value={formData.code || ''}
-                  onChange={(e) => setFormData({...formData, code: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   required
                 />
               </div>
@@ -410,14 +479,14 @@ export default function EditModal({
                 <input
                   type="text"
                   value={formData.location || ''}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label>Beschreibung</label>
                 <textarea
                   value={formData.description || ''}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
                 />
               </div>
@@ -431,7 +500,7 @@ export default function EditModal({
                 <input
                   type="text"
                   value={formData.name || ''}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
@@ -440,7 +509,7 @@ export default function EditModal({
                 <input
                   type="text"
                   value={formData.code || ''}
-                  onChange={(e) => setFormData({...formData, code: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   required
                 />
               </div>
@@ -448,7 +517,7 @@ export default function EditModal({
                 <label>Beschreibung</label>
                 <textarea
                   value={formData.description || ''}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                 />
               </div>
@@ -457,7 +526,7 @@ export default function EditModal({
                 <input
                   type="number"
                   value={formData.position_order || 0}
-                  onChange={(e) => setFormData({...formData, position_order: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({ ...formData, position_order: parseInt(e.target.value) || 0 })}
                   min="0"
                 />
               </div>
@@ -479,18 +548,10 @@ export default function EditModal({
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end', marginTop: 'var(--space-6)', flexWrap: 'wrap' }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary"
-              onClick={onClose}
-            >
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
               Abbrechen
             </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={loading}
-            >
+            <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Wird gespeichert...' : 'Änderungen speichern'}
             </button>
           </div>

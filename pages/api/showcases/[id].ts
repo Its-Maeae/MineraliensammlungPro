@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: { fileSize: 40 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
@@ -57,15 +57,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: 'Vitrine nicht gefunden' });
       }
 
-      // Regale dieser Vitrine laden
+      // Regale dieser Vitrine laden – inkl. section_count pro Box
       const shelves = await database.query(`
         SELECT s.*,
                sc.code as showcase_code,
                (sc.code || '-' || s.code) as full_code,
-               COUNT(m.id) as mineral_count
+               COUNT(DISTINCT m.id)  as mineral_count,
+               COUNT(DISTINCT ss.id) as section_count
         FROM shelves s
-        LEFT JOIN showcases sc ON s.showcase_id = sc.id
-        LEFT JOIN minerals m ON s.id = m.shelf_id
+        LEFT JOIN showcases sc       ON s.showcase_id  = sc.id
+        LEFT JOIN minerals m         ON s.id           = m.shelf_id
+        LEFT JOIN shelf_sections ss  ON s.id           = ss.shelf_id
         WHERE s.showcase_id = ?
         GROUP BY s.id
         ORDER BY s.position_order, s.name
@@ -81,13 +83,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'PUT') {
     return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
       try {
-        // Multer Middleware für Bildupload
         await runMiddleware(req, res, upload.single('image'));
 
         const { name, code, location, description } = (req as any).body;
         const image = (req as any).file;
 
-        // Prüfen ob Code bereits von anderer Vitrine verwendet wird
         const existingShowcase = await database.get(
           'SELECT id FROM showcases WHERE code = ? AND id != ?',
           [code, id]
@@ -97,7 +97,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'Vitrine-Code bereits vorhanden' });
         }
 
-        // SQL für Update mit oder ohne neues Bild
         let sql = `UPDATE showcases SET name = ?, code = ?, location = ?, description = ?`;
         let params = [name, code, location || '', description || ''];
 
@@ -124,19 +123,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'DELETE') {
     return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
       try {
-        // Erst alle Mineralien von Regalen dieser Vitrine entfernen
+        // Mineralien aus Sektionen lösen
         await database.run(`
-          UPDATE minerals 
-          SET shelf_id = NULL 
-          WHERE shelf_id IN (
-            SELECT id FROM shelves WHERE showcase_id = ?
-          )
+          UPDATE minerals
+          SET section_id = NULL
+          WHERE shelf_id IN (SELECT id FROM shelves WHERE showcase_id = ?)
         `, [id]);
 
-        // Dann alle Regale der Vitrine löschen
+        // Mineralien aus Regalen lösen
+        await database.run(`
+          UPDATE minerals
+          SET shelf_id = NULL
+          WHERE shelf_id IN (SELECT id FROM shelves WHERE showcase_id = ?)
+        `, [id]);
+
+        // Sektionen der Regale löschen
+        await database.run(`
+          DELETE FROM shelf_sections
+          WHERE shelf_id IN (SELECT id FROM shelves WHERE showcase_id = ?)
+        `, [id]);
+
+        // Regale löschen
         await database.run('DELETE FROM shelves WHERE showcase_id = ?', [id]);
 
-        // Schließlich die Vitrine löschen
+        // Vitrine löschen
         const result = await database.run('DELETE FROM showcases WHERE id = ?', [id]);
 
         if (result.changes === 0) {
