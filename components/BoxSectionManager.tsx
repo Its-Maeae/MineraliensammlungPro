@@ -141,7 +141,7 @@ export default function BoxSectionManager({
         <div className="section-manager-header">
           <div className="detail-label-minimal">Sektionen</div>
           <button className="btn-minimal primary" onClick={openAdd} type="button"
-            style={{ padding: '4px 12px', fontSize: 'var(--font-size-xs)' }}>
+            style={{ padding: '4px 12px', fontSize: 'var(--font-size-xs)', maxWidth: '20px' }}>
             + Sektion
           </button>
         </div>

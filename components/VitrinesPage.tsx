@@ -8,7 +8,7 @@ import MineralModal from './MineralModal';
 
 interface VitrinesPageProps {
   showcases: Showcase[];
-  setShowcases: (showcases: Showcase[]) => void;
+  setShowcases: React.Dispatch<React.SetStateAction<Showcase[]>>;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   isAuthenticated: boolean;
@@ -149,10 +149,24 @@ const RegalCard = React.memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.showcase.id === nextProps.showcase.id &&
-    prevProps.showcase.shelf_count === nextProps.showcase.shelf_count &&
-    prevProps.showcase.mineral_count === nextProps.showcase.mineral_count &&
-    prevProps.showcase.image_path === nextProps.showcase.image_path;
+  if (prevProps.showcase.id !== nextProps.showcase.id) return false;
+  if (prevProps.showcase.shelf_count !== nextProps.showcase.shelf_count) return false;
+  if (prevProps.showcase.mineral_count !== nextProps.showcase.mineral_count) return false;
+  if (prevProps.showcase.image_path !== nextProps.showcase.image_path) return false;
+  if (prevProps.showcase.name !== nextProps.showcase.name) return false;
+  if (prevProps.showcase.code !== nextProps.showcase.code) return false;
+  // Vergleich der Boxen-Array-Referenz und -Inhalte
+  const prevShelves = prevProps.showcase.shelves ?? [];
+  const nextShelves = nextProps.showcase.shelves ?? [];
+  if (prevShelves.length !== nextShelves.length) return false;
+  for (let i = 0; i < prevShelves.length; i++) {
+    if (prevShelves[i].id !== nextShelves[i].id) return false;
+    if (prevShelves[i].name !== nextShelves[i].name) return false;
+    if (prevShelves[i].code !== nextShelves[i].code) return false;
+    if (prevShelves[i].mineral_count !== nextShelves[i].mineral_count) return false;
+    if (prevShelves[i].section_count !== nextShelves[i].section_count) return false;
+  }
+  return true;
 });
 
 // ── VitrinesPage ──────────────────────────────────────────────────────────────
@@ -295,6 +309,29 @@ export default function VitrinesPage({
     setSelectedShelf(null);
     setShelfMinerals([]);
   }, [setShowShelfMineralsModal, setSelectedShelf, setShelfMinerals]);
+
+  // Wenn selectedShelf von außen aktualisiert wird (z.B. nach einem Edit im EditModal),
+  // die entsprechende Box im showcases-Array synchron halten.
+  useEffect(() => {
+    if (!selectedShelf) return;
+    setShowcases(prev =>
+      prev.map(sc => {
+        if (!sc.shelves) return sc;
+        const idx = sc.shelves.findIndex(s => s.id === selectedShelf.id);
+        if (idx === -1) return sc;
+        const updatedShelves = [...sc.shelves];
+        updatedShelves[idx] = {
+          ...updatedShelves[idx],
+          name: selectedShelf.name || selectedShelf.shelf_name,
+          code: selectedShelf.code,
+          description: selectedShelf.description,
+          position_order: selectedShelf.position_order,
+          image_path: selectedShelf.image_path,
+        };
+        return { ...sc, shelves: updatedShelves };
+      })
+    );
+  }, [selectedShelf, setShowcases]);
 
   const openMineralDetails = useCallback(async (id: number) => {
     if (mineralCache.current.has(id)) {
