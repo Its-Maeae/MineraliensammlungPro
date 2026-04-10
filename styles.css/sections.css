@@ -16,14 +16,12 @@
 /* ── Tiles Grid ── */
 .sections-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: var(--space-3);
 }
 
 .section-tile {
   position: relative;
-  aspect-ratio: 1;
-  min-height: 110px;
   background: var(--white);
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-xl);
@@ -31,11 +29,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
+  gap: 4px;
   cursor: pointer;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-3);
+  padding: var(--space-4) var(--space-3);
   overflow: hidden;
 }
 
@@ -46,46 +44,47 @@
   box-shadow: var(--shadow-md);
 }
 
-.section-tile-code {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  color: var(--gray-800);
-  letter-spacing: 0.5px;
-  transition: color var(--transition-fast);
-  line-height: 1;
-}
-
-.section-tile:hover .section-tile-code {
-  color: var(--white);
-}
-
 .section-tile-name {
-  font-size: var(--font-size-xs);
-  color: var(--gray-500);
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--gray-800);
   text-align: center;
   transition: color var(--transition-fast);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+  line-height: 1.2;
 }
 
 .section-tile:hover .section-tile-name {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--white);
+}
+
+.section-tile-code {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--gray-400);
+  letter-spacing: 0.5px;
+  transition: color var(--transition-fast);
+  line-height: 1;
+}
+
+.section-tile:hover .section-tile-code {
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .section-tile-count {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--primary-color);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--gray-400);
   transition: color var(--transition-fast);
   line-height: 1;
-  margin-top: var(--space-1);
+  margin-top: 2px;
 }
 
 .section-tile:hover .section-tile-count {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* ── Reorder buttons (appear on hover) ── */
@@ -211,11 +210,7 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .sections-tiles {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  }
-
-  .section-tile {
-    min-height: 90px;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
 
   .section-tile-actions {

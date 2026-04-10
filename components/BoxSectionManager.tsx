@@ -195,9 +195,9 @@ export default function BoxSectionManager({
             className="section-tile"
             onClick={() => onSectionClick(section)}
           >
-            <div className="section-tile-code">{section.code}</div>
             <div className="section-tile-name">{section.name}</div>
-            <div className="section-tile-count">{section.mineral_count || 0}</div>
+            <div className="section-tile-code">{section.code}</div>
+            <div className="section-tile-count">{section.mineral_count || 0} Mineralien</div>
             {isAuthenticated && (
               <div className="section-tile-actions" onClick={e => e.stopPropagation()}>
                 <button
