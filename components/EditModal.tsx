@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Showcase } from '../types';
 import MapSelector from './MapSelector';
 import ShelfSelector from './ShelfSelector';
 
@@ -22,7 +23,7 @@ interface EditModalProps {
   setSelectedShelf: (shelf: any) => void;
   currentPage: string;
   setMinerals: (minerals: any[]) => void;
-  setShowcases: (showcases: any[]) => void;
+  setShowcases: React.Dispatch<React.SetStateAction<Showcase[]>>;
   loadStats: () => void;
   loadMinerals?: () => Promise<void>;
   clearCaches?: (type: 'showcase' | 'shelf' | 'mineral', id: number) => void;
