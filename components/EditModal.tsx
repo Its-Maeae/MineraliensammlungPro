@@ -2,80 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import MapSelector from './MapSelector';
 import ShelfSelector from './ShelfSelector';
 
-// ── Inline SectionSelector ────────────────────────────────────────────────────
-// Lädt Sektionen der gewählten Box und zeigt sie als Dropdown an.
-
-interface SectionOption {
-  id: number;
-  name: string;
-  code: string;
-  full_code: string;
-  mineral_count?: number;
-}
-
-function SectionSelector({
-  shelfId,
-  selectedSectionId,
-  onChange,
-}: {
-  shelfId: string | number;
-  selectedSectionId: string | number;
-  onChange: (sectionId: string) => void;
-}) {
-  const [sections, setSections] = useState<SectionOption[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!shelfId) {
-      setSections([]);
-      return;
-    }
-    setLoading(true);
-    fetch(`/api/sections?shelf_id=${shelfId}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((data: SectionOption[]) => setSections(data))
-      .catch(() => setSections([]))
-      .finally(() => setLoading(false));
-  }, [shelfId]);
-
-  if (!shelfId) return null;
-  if (loading) return <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginTop: 4 }}>Lade Sektionen...</div>;
-  if (sections.length === 0) return null;
-
-  return (
-    <div className="form-group" style={{ marginTop: 'var(--space-3)' }}>
-      <label htmlFor="edit-section">Sektion <span style={{ fontWeight: 400, color: 'var(--gray-500)', fontSize: 'var(--font-size-xs)' }}>(optional)</span></label>
-      <select
-        id="edit-section"
-        value={selectedSectionId?.toString() || ''}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          width: '100%',
-          padding: 'var(--space-2) var(--space-3)',
-          border: '1px solid var(--gray-300)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 'var(--font-size-sm)',
-          background: 'var(--white)',
-          color: 'var(--gray-900)',
-        }}
-      >
-        <option value="">Keine Sektion (direkt in Box)</option>
-        {sections.map(s => (
-          <option key={s.id} value={s.id.toString()}>
-            {s.full_code} – {s.name}
-            {s.mineral_count !== undefined ? ` (${s.mineral_count} Mineralien)` : ''}
-          </option>
-        ))}
-      </select>
-      {selectedSectionId && (
-        <small style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-xs)', marginTop: 4, display: 'block' }}>
-          Code: {sections.find(s => s.id.toString() === selectedSectionId.toString())?.full_code}
-        </small>
-      )}
-    </div>
-  );
-}
-
 // ── EditModal ─────────────────────────────────────────────────────────────────
 
 interface EditModalProps {
@@ -145,9 +71,9 @@ export default function EditModal({
     };
   }, [onClose]);
 
-  // ── Wenn Box wechselt → section_id zurücksetzen ──────────────────────────
-  const handleShelfChange = useCallback((shelfId: string) => {
-    setFormData({ ...formData, shelf_id: shelfId, section_id: '' });
+  // ── Wenn Box/Sektion wechselt ──────────────────────────────────────────────
+  const handleShelfChange = useCallback(({ shelf_id, section_id }: { shelf_id: string; section_id: string }) => {
+    setFormData({ ...formData, shelf_id, section_id });
   }, [formData, setFormData]);
 
   const handleUndeterminedToggle = (checked: boolean) => {
@@ -413,44 +339,16 @@ export default function EditModal({
                 </>
               )}
 
-              {/* ── Box-Zuordnung ── */}
+              {/* ── Box / Sektions-Zuordnung ── */}
               <div className="form-group">
-                <label>Box</label>
+                <label>Box / Sektion</label>
                 <ShelfSelector
                   shelves={shelves}
                   selectedShelfId={formData.shelf_id || ''}
+                  selectedSectionId={formData.section_id || ''}
                   onChange={handleShelfChange}
                 />
               </div>
-
-              {/* ── Sektions-Zuordnung (erscheint automatisch wenn Box Sektionen hat) ── */}
-              <SectionSelector
-                shelfId={formData.shelf_id || ''}
-                selectedSectionId={formData.section_id || ''}
-                onChange={(sectionId) => setFormData({ ...formData, section_id: sectionId })}
-              />
-
-              {/* ── Standort-Vorschau ── */}
-              {formData.shelf_id && (
-                <div style={{
-                  marginTop: 'var(--space-2)',
-                  padding: 'var(--space-2) var(--space-3)',
-                  background: 'var(--gray-50)',
-                  border: '1px solid var(--gray-200)',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--gray-600)',
-                }}>
-                  Standort-Code: {
-                    (() => {
-                      const shelf = shelves.find(s => s.id.toString() === formData.shelf_id?.toString());
-                      if (!shelf) return '–';
-                      if (formData.section_id) return `${shelf.full_code}-[Sektion]`;
-                      return shelf.full_code;
-                    })()
-                  }
-                </div>
-              )}
             </>
           )}
 
