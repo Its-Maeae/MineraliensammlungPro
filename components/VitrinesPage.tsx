@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useMemo, useState, useRef } from 'react';
-import { Showcase, Mineral } from '../types';
+import { Showcase, Mineral, Shelf } from '../types';
 import RegalModal from './RegalModal';
 import BoxModal from './BoxModal';
 import VitrineFormModal from './VitrineFormModal';
@@ -317,9 +317,9 @@ export default function VitrinesPage({
 
     const applyShelfUpdate = (sc: Showcase): Showcase => {
       if (!sc.shelves) return sc;
-      const idx = sc.shelves.findIndex((s: any) => s.id === selectedShelf.id);
+      const idx = sc.shelves.findIndex((s: Shelf) => s.id === selectedShelf.id);
       if (idx === -1) return sc;
-      const updatedShelves = [...sc.shelves];
+      const updatedShelves: Shelf[] = [...sc.shelves];
       updatedShelves[idx] = {
         ...updatedShelves[idx],
         name: selectedShelf.name || selectedShelf.shelf_name,
