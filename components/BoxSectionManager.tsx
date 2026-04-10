@@ -6,6 +6,8 @@ interface BoxSectionManagerProps {
   isAuthenticated: boolean;
   onSectionsChanged: () => void;
   onSectionClick: (section: ShelfSection) => void;
+  externalEditSection?: ShelfSection | null;
+  onExternalEditDone?: () => void;
 }
 
 interface SectionFormData {
@@ -22,6 +24,8 @@ export default function BoxSectionManager({
   isAuthenticated,
   onSectionsChanged,
   onSectionClick,
+  externalEditSection,
+  onExternalEditDone,
 }: BoxSectionManagerProps) {
   const [sections, setSections] = useState<ShelfSection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +53,14 @@ export default function BoxSectionManager({
   }, [shelf.id]);
 
   useEffect(() => { loadSections(); }, [loadSections]);
+
+  // Open edit form when parent triggers it (e.g. from section-view admin buttons)
+  useEffect(() => {
+    if (externalEditSection) {
+      openEdit(externalEditSection);
+      onExternalEditDone?.();
+    }
+  }, [externalEditSection]);
 
   const openAdd = () => {
     setEditingSection(null);
@@ -108,7 +120,7 @@ export default function BoxSectionManager({
   };
 
   const handleDelete = async (section: ShelfSection) => {
-    if (!confirm(`Sektion "${section.name}" (${section.full_code}) wirklich löschen?\nMineralien werden aus der Sektion gelöst, aber nicht gelöscht.`)) return;
+    if (!confirm(`Sektion "${section.name}" (${section.full_code}) wirklich löschen?`)) return;
 
     try {
       const res = await fetch(`/api/sections/${section.id}`, { method: 'DELETE' });
@@ -192,84 +204,42 @@ export default function BoxSectionManager({
           </div>
         </div>
       ) : (
-        <div className="sections-visual">
-          {/* Visuelles Box-Layout */}
-          <div className="box-visual-container">
-            <div className="box-visual-frame">
-              <div className="box-visual-label">
-                {shelf.full_code}
+        <div className="sections-list">
+          {sections.map((section, idx) => (
+            <div key={section.id} className="section-list-item">
+              <div className="section-list-left" onClick={() => onSectionClick(section)}>
+                <span className="section-list-code">{section.full_code}</span>
+                <span className="section-list-name">{section.name}</span>
+                <span className="section-list-count">{section.mineral_count || 0} Mineralien</span>
               </div>
-              <div className="box-visual-sections">
-                {sections.map((section, idx) => (
-                  <div
-                    key={section.id}
-                    className="box-visual-section"
-                    onClick={() => onSectionClick(section)}
-                    title={`${section.name} – ${section.mineral_count || 0} Mineralien`}
-                    style={{ flex: 1 }}
-                  >
-                    <div className="box-visual-section-code">{section.code}</div>
-                    <div className="box-visual-section-count">{section.mineral_count || 0}</div>
-                    {isAuthenticated && (
-                      <div className="box-visual-section-controls" onClick={e => e.stopPropagation()}>
-                        <button
-                          className="section-order-btn"
-                          onClick={() => moveUp(idx)}
-                          disabled={idx === 0 || swapping !== null}
-                          title="Nach oben"
-                        >↑</button>
-                        <button
-                          className="section-order-btn"
-                          onClick={() => moveDown(idx)}
-                          disabled={idx === sections.length - 1 || swapping !== null}
-                          title="Nach unten"
-                        >↓</button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Sektionsliste mit Details */}
-          <div className="sections-list">
-            {sections.map((section, idx) => (
-              <div key={section.id} className="section-list-item">
-                <div className="section-list-left" onClick={() => onSectionClick(section)}>
-                  <span className="section-list-code">{section.full_code}</span>
-                  <span className="section-list-name">{section.name}</span>
-                  <span className="section-list-count">{section.mineral_count || 0} Mineralien</span>
+              {isAuthenticated && (
+                <div className="section-list-actions">
+                  <button
+                    className="section-order-btn"
+                    onClick={() => moveUp(idx)}
+                    disabled={idx === 0 || swapping !== null}
+                    title="Nach oben"
+                  >↑</button>
+                  <button
+                    className="section-order-btn"
+                    onClick={() => moveDown(idx)}
+                    disabled={idx === sections.length - 1 || swapping !== null}
+                    title="Nach unten"
+                  >↓</button>
+                  <button
+                    className="section-edit-btn"
+                    onClick={() => openEdit(section)}
+                    title="Bearbeiten"
+                  >✎</button>
+                  <button
+                    className="section-delete-btn"
+                    onClick={() => handleDelete(section)}
+                    title="Löschen"
+                  >×</button>
                 </div>
-                {isAuthenticated && (
-                  <div className="section-list-actions">
-                    <button
-                      className="section-order-btn"
-                      onClick={() => moveUp(idx)}
-                      disabled={idx === 0 || swapping !== null}
-                      title="Nach oben"
-                    >↑</button>
-                    <button
-                      className="section-order-btn"
-                      onClick={() => moveDown(idx)}
-                      disabled={idx === sections.length - 1 || swapping !== null}
-                      title="Nach unten"
-                    >↓</button>
-                    <button
-                      className="section-edit-btn"
-                      onClick={() => openEdit(section)}
-                      title="Bearbeiten"
-                    >✎</button>
-                    <button
-                      className="section-delete-btn"
-                      onClick={() => handleDelete(section)}
-                      title="Löschen"
-                    >×</button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 

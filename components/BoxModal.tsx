@@ -38,6 +38,8 @@ export default function BoxModal({
   const [showAddMinerals, setShowAddMinerals] = useState(false);
   const [removeMode, setRemoveMode] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [sectionToEdit, setSectionToEdit] = useState<ShelfSection | null>(null);
+  const [sectionToDelete, setSectionToDelete] = useState<ShelfSection | null>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
   // Sections state
@@ -192,6 +194,19 @@ export default function BoxModal({
     onMineralCountChanged?.(shelf.id, 0);
   }, [shelf.id, onMineralCountChanged]);
 
+  const handleSectionDeleteFromButton = useCallback(async (section: ShelfSection) => {
+    setSectionToDelete(null);
+    if (!confirm(`Sektion "${section.name}" (${section.full_code}) wirklich löschen?`)) return;
+    try {
+      const res = await fetch(`/api/sections/${section.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        switchView({ type: 'box' });
+        setSectionsRefreshKey(k => k + 1);
+        onMineralCountChanged?.(shelf.id, 0);
+      }
+    } catch {}
+  }, [shelf.id, onMineralCountChanged, switchView]);
+
   const totalMinerals = minerals.length;
 
   // ── Determine add-minerals target ─────────────────────────────────────────
@@ -274,96 +289,86 @@ export default function BoxModal({
                   isAuthenticated={isAuthenticated}
                   onSectionsChanged={onSectionsChanged}
                   onSectionClick={section => switchView({ type: 'section', section })}
+                  externalEditSection={sectionToEdit}
+                  onExternalEditDone={() => setSectionToEdit(null)}
                 />
               </>
             )}
 
-            <div className="section-divider" />
-
-            {/* ── Minerals header ── */}
-            <div className="detail-label-minimal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>
-                Mineralien {currentView.type === 'section' ? `in ${currentView.section.name}` : 'direkt in Box'}
-                {totalMinerals > 0 && ` (${totalMinerals}${hasMore ? '+' : ''})`}
-              </span>
-              {isAuthenticated && totalMinerals > 0 && (
-                <button
-                  className={`remove-mode-toggle ${removeMode ? 'active' : ''}`}
-                  onClick={() => setRemoveMode(m => !m)}
-                  type="button"
-                >
-                  {removeMode ? '✓ Fertig' : '− Entfernen'}
-                </button>
-              )}
-            </div>
-
-            {/* ── Warning when box has sections but we're on box level ── */}
-            {currentView.type === 'box' && hasSections && (
-              <div className="remove-mode-hint" style={{ marginTop: 'var(--space-2)' }}>
-                Diese Box hat Sektionen. Wähle eine Sektion oben, um deren Mineralien zu sehen.
-                Unten werden nur Mineralien angezeigt, die keiner Sektion zugeordnet sind.
-              </div>
-            )}
-
-            {/* ── Minerals grid ── */}
-            {loading && minerals.length === 0 ? (
-              <div className="loading">Lade Mineralien...</div>
-            ) : minerals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
-                {currentView.type === 'section'
-                  ? 'Diese Sektion ist noch leer'
-                  : hasSections
-                    ? 'Keine Mineralien direkt in der Box (alle in Sektionen)'
-                    : 'Diese Box ist noch leer'}
-              </div>
-            ) : (
+            {/* ── Minerals area: only show if no sections, or if in a section ── */}
+            {(hasSections === false || currentView.type === 'section') && (
               <>
-                <div className="mineralien-simple-grid">
-                  {minerals.map(mineral => (
-                    <div
-                      key={mineral.id}
-                      className={`mineral-card-simple ${removeMode ? 'remove-mode' : ''} ${removingId === mineral.id ? 'removing' : ''}`}
-                      onClick={() => !removeMode && onOpenMineralDetails(mineral.id)}
+                <div className="section-divider" />
+
+                {/* ── Minerals header ── */}
+                <div className="detail-label-minimal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>
+                    Mineralien
+                    {currentView.type === 'section' && ` – ${currentView.section.name}`}
+                    {totalMinerals > 0 && ` (${totalMinerals}${hasMore ? '+' : ''})`}
+                  </span>
+                  {isAuthenticated && totalMinerals > 0 && (
+                    <button
+                      className={`remove-mode-toggle ${removeMode ? 'active' : ''}`}
+                      onClick={() => setRemoveMode(m => !m)}
+                      type="button"
                     >
-                      {removeMode && (
-                        <button
-                          className="mineral-remove-btn"
-                          onClick={e => { e.stopPropagation(); handleRemoveMineral(mineral); }}
-                          disabled={removingId !== null}
-                          type="button"
-                          title="Aus Sektion/Box entfernen"
-                        >
-                          {removingId === mineral.id ? '⟳' : '×'}
-                        </button>
-                      )}
-                      <div className="mineral-image-simple">
-                        {mineral.image_path
-                          ? <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} loading="lazy" />
-                          : <div style={{ width: '100%', height: '100%', background: 'var(--gray-300)' }} />}
-                      </div>
-                      <div className="mineral-info-simple">
-                        <div className="mineral-name-simple">{mineral.name}</div>
-                        <div className="mineral-number-simple">Nr. {mineral.number}</div>
-                        {mineral.color && <div className="mineral-number-simple">{mineral.color}</div>}
-                      </div>
-                    </div>
-                  ))}
+                      {removeMode ? '✓ Fertig' : '− Entfernen'}
+                    </button>
+                  )}
                 </div>
 
-                {hasMore && (
-                  <div ref={observerTarget} style={{ height: 20, margin: 'var(--space-4) 0' }}>
-                    {isLoadingMore && (
-                      <div style={{ textAlign: 'center', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
-                        Lade weitere Mineralien...
+                {/* ── Minerals grid ── */}
+                {loading && minerals.length === 0 ? (
+                  <div className="loading">Lade Mineralien...</div>
+                ) : minerals.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
+                    {currentView.type === 'section' ? 'Diese Sektion ist noch leer' : 'Diese Box ist noch leer'}
+                  </div>
+                ) : (
+                  <>
+                    <div className="mineralien-simple-grid">
+                      {minerals.map(mineral => (
+                        <div
+                          key={mineral.id}
+                          className={`mineral-card-simple ${removeMode ? 'remove-mode' : ''} ${removingId === mineral.id ? 'removing' : ''}`}
+                          onClick={() => !removeMode && onOpenMineralDetails(mineral.id)}
+                        >
+                          {removeMode && (
+                            <button
+                              className="mineral-remove-btn"
+                              onClick={e => { e.stopPropagation(); handleRemoveMineral(mineral); }}
+                              disabled={removingId !== null}
+                              type="button"
+                              title="Entfernen"
+                            >
+                              {removingId === mineral.id ? '⟳' : '×'}
+                            </button>
+                          )}
+                          <div className="mineral-image-simple">
+                            {mineral.image_path
+                              ? <img src={`/uploads/${mineral.image_path}`} alt={mineral.name} loading="lazy" />
+                              : <div style={{ width: '100%', height: '100%', background: 'var(--gray-300)' }} />}
+                          </div>
+                          <div className="mineral-info-simple">
+                            <div className="mineral-name-simple">{mineral.name}</div>
+                            <div className="mineral-number-simple">Nr. {mineral.number}</div>
+                            {mineral.color && <div className="mineral-number-simple">{mineral.color}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {hasMore && (
+                      <div ref={observerTarget} style={{ height: 20, margin: 'var(--space-4) 0' }}>
+                        {isLoadingMore && (
+                          <div style={{ textAlign: 'center', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
+                            Lade weitere Mineralien...
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
-
-                {!hasMore && minerals.length > 0 && (
-                  <div style={{ textAlign: 'center', padding: 'var(--space-3)', color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
-                    Alle Mineralien geladen
-                  </div>
+                  </>
                 )}
               </>
             )}
@@ -377,16 +382,20 @@ export default function BoxModal({
                   + Mineralien hinzufügen
                 </button>
               )}
-              {hasSections && currentView.type === 'box' && (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)', padding: 'var(--space-2) 0', flex: 1, textAlign: 'center' }}>
-                  Sektion wählen, um Mineralien hinzuzufügen
-                </div>
-              )}
               <button className="btn-minimal primary" onClick={() => setShowQRGenerator(v => !v)}>
                 {showQRGenerator ? 'QR ausblenden' : 'QR-Code'}
               </button>
-              <button className="btn-minimal" onClick={() => onEdit(shelf)}>Bearbeiten</button>
-              <button className="btn-minimal danger" onClick={() => onDelete('shelf', shelf.id)}>Löschen</button>
+              {currentView.type === 'section' ? (
+                <>
+                  <button className="btn-minimal" onClick={() => setSectionToEdit(currentView.section)}>Sektion bearbeiten</button>
+                  <button className="btn-minimal danger" onClick={() => handleSectionDeleteFromButton(currentView.section)}>Sektion löschen</button>
+                </>
+              ) : (
+                <>
+                  <button className="btn-minimal" onClick={() => onEdit(shelf)}>Bearbeiten</button>
+                  <button className="btn-minimal danger" onClick={() => onDelete('shelf', shelf.id)}>Löschen</button>
+                </>
+              )}
             </div>
           )}
         </div>
