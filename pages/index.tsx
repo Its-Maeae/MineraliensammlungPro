@@ -77,6 +77,7 @@ export default function Home() {
       shelfCache.current.clear();
     } else if (type === 'shelf') {
       shelfCache.current.delete(id);
+      showcaseCache.current.clear(); // shelf edit affects parent showcase
     } else if (type === 'mineral') {
       mineralCache.current.delete(id);
     }

@@ -311,27 +311,36 @@ export default function VitrinesPage({
   }, [setShowShelfMineralsModal, setSelectedShelf, setShelfMinerals]);
 
   // Wenn selectedShelf von außen aktualisiert wird (z.B. nach einem Edit im EditModal),
-  // die entsprechende Box im showcases-Array synchron halten.
+  // die entsprechende Box im showcases-Array und im offenen Showcase-Modal synchron halten.
   useEffect(() => {
     if (!selectedShelf) return;
-    setShowcases(prev =>
-      prev.map(sc => {
-        if (!sc.shelves) return sc;
-        const idx = sc.shelves.findIndex(s => s.id === selectedShelf.id);
-        if (idx === -1) return sc;
-        const updatedShelves = [...sc.shelves];
-        updatedShelves[idx] = {
-          ...updatedShelves[idx],
-          name: selectedShelf.name || selectedShelf.shelf_name,
-          code: selectedShelf.code,
-          description: selectedShelf.description,
-          position_order: selectedShelf.position_order,
-          image_path: selectedShelf.image_path,
-        };
-        return { ...sc, shelves: updatedShelves };
-      })
-    );
-  }, [selectedShelf, setShowcases]);
+
+    const applyShelfUpdate = (sc: Showcase): Showcase => {
+      if (!sc.shelves) return sc;
+      const idx = sc.shelves.findIndex((s: any) => s.id === selectedShelf.id);
+      if (idx === -1) return sc;
+      const updatedShelves = [...sc.shelves];
+      updatedShelves[idx] = {
+        ...updatedShelves[idx],
+        name: selectedShelf.name || selectedShelf.shelf_name,
+        code: selectedShelf.code,
+        description: selectedShelf.description,
+        position_order: selectedShelf.position_order,
+        image_path: selectedShelf.image_path,
+      };
+      const updated = { ...sc, shelves: updatedShelves };
+      // Cache-Eintrag aktualisieren, damit openShowcaseDetails nicht die veraltete Version zurückgibt
+      showcaseCache.current.set(sc.id, updated);
+      return updated;
+    };
+
+    setShowcases(prev => prev.map(applyShelfUpdate));
+
+    // Auch das gerade geöffnete Showcase-Modal aktualisieren
+    if (selectedShowcase) {
+      setSelectedShowcase(applyShelfUpdate(selectedShowcase));
+    }
+  }, [selectedShelf, setShowcases, selectedShowcase, setSelectedShowcase]);
 
   const openMineralDetails = useCallback(async (id: number) => {
     if (mineralCache.current.has(id)) {
