@@ -17,86 +17,81 @@
 .sections-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
-
-/* Rotating color palette for tiles */
-.section-tile:nth-child(6n+1) { --tile-color: #6366f1; --tile-color-dark: #4f46e5; }
-.section-tile:nth-child(6n+2) { --tile-color: #0ea5e9; --tile-color-dark: #0284c7; }
-.section-tile:nth-child(6n+3) { --tile-color: #10b981; --tile-color-dark: #059669; }
-.section-tile:nth-child(6n+4) { --tile-color: #f59e0b; --tile-color-dark: #d97706; }
-.section-tile:nth-child(6n+5) { --tile-color: #ec4899; --tile-color-dark: #db2777; }
-.section-tile:nth-child(6n+6) { --tile-color: #8b5cf6; --tile-color-dark: #7c3aed; }
 
 .section-tile {
   position: relative;
-  background: linear-gradient(135deg, var(--tile-color), var(--tile-color-dark));
-  border: none;
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-  padding: var(--space-6) var(--space-4);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-3);
   overflow: hidden;
 }
 
-.section-tile::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0);
-  transition: background 0.2s ease;
-}
-
 .section-tile:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.22);
-}
-
-.section-tile:hover::before {
-  background: rgba(255,255,255,0.12);
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .section-tile-name {
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  color: var(--white);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--gray-800);
   text-align: center;
-  line-height: 1.2;
+  transition: color var(--transition-fast);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  line-height: 1.2;
+}
+
+.section-tile:hover .section-tile-name {
+  color: var(--white);
 }
 
 .section-tile-code {
   font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: rgba(255,255,255,0.75);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gray-400);
+  letter-spacing: 0.5px;
+  transition: color var(--transition-fast);
   line-height: 1;
+}
+
+.section-tile:hover .section-tile-code {
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .section-tile-count {
   font-size: var(--font-size-xs);
   font-weight: 500;
-  color: rgba(255,255,255,0.65);
+  color: var(--gray-400);
+  transition: color var(--transition-fast);
   line-height: 1;
   margin-top: 2px;
 }
 
-/* ── Reorder buttons ── */
+.section-tile:hover .section-tile-count {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Reorder buttons (appear on hover) ── */
 .section-tile-actions {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -109,10 +104,10 @@
 }
 
 .section-order-btn {
-  width: 22px;
-  height: 22px;
-  border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(255,255,255,0.2);
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.25);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 11px;
@@ -127,11 +122,11 @@
 }
 
 .section-order-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .section-order-btn:disabled {
-  opacity: 0.2;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
@@ -215,7 +210,7 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .sections-tiles {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
 
   .section-tile-actions {
