@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Mineral, ShelfSection } from '../types';
 import QRCodeGenerator from './QRCodeGenerator';
 import AddMineralsToBoxModal from './AddMineralsToBoxModal';
-import BoxSectionManager from './BoxSectionManager';
+import BoxSectionManager, { SectionFormModal, SectionFormData } from './BoxSectionManager';
 
 interface BoxModalProps {
   shelf: any;
@@ -38,8 +38,13 @@ export default function BoxModal({
   const [showAddMinerals, setShowAddMinerals] = useState(false);
   const [removeMode, setRemoveMode] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
-  const [sectionToEdit, setSectionToEdit] = useState<ShelfSection | null>(null);
-  const [sectionToDelete, setSectionToDelete] = useState<ShelfSection | null>(null);
+
+  // Inline section edit (shown from section view via admin buttons)
+  const [showSectionEdit, setShowSectionEdit] = useState(false);
+  const [sectionEditData, setSectionEditData] = useState<SectionFormData>({ name: '', code: '', description: '', position_order: 0 });
+  const [sectionEditSaving, setSectionEditSaving] = useState(false);
+  const [sectionEditError, setSectionEditError] = useState<string | null>(null);
+
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
   // Sections state
@@ -194,8 +199,38 @@ export default function BoxModal({
     onMineralCountChanged?.(shelf.id, 0);
   }, [shelf.id, onMineralCountChanged]);
 
-  const handleSectionDeleteFromButton = useCallback(async (section: ShelfSection) => {
-    setSectionToDelete(null);
+  const openSectionEdit = useCallback((section: ShelfSection) => {
+    setSectionEditData({ name: section.name, code: section.code, description: section.description || '', position_order: section.position_order });
+    setSectionEditError(null);
+    setShowSectionEdit(true);
+  }, []);
+
+  const handleSectionEditSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (currentView.type !== 'section') return;
+    setSectionEditSaving(true);
+    setSectionEditError(null);
+    try {
+      const fd = new FormData();
+      fd.append('name', sectionEditData.name);
+      fd.append('code', sectionEditData.code);
+      fd.append('description', sectionEditData.description);
+      fd.append('position_order', sectionEditData.position_order.toString());
+      const res = await fetch(`/api/sections/${currentView.section.id}`, { method: 'PUT', body: fd });
+      const data = await res.json();
+      if (!res.ok) { setSectionEditError(data.error || 'Fehler beim Speichern'); return; }
+      setShowSectionEdit(false);
+      // Update the current view section name so breadcrumb reflects the change
+      setCurrentView({ type: 'section', section: { ...currentView.section, ...sectionEditData } });
+      setSectionsRefreshKey(k => k + 1);
+      onMineralCountChanged?.(shelf.id, 0);
+    } catch { setSectionEditError('Verbindungsfehler'); }
+    finally { setSectionEditSaving(false); }
+  }, [currentView, sectionEditData, shelf.id, onMineralCountChanged]);
+
+  const handleSectionDeleteFromButton = useCallback(async () => {
+    if (currentView.type !== 'section') return;
+    const section = currentView.section;
     if (!confirm(`Sektion "${section.name}" (${section.full_code}) wirklich löschen?`)) return;
     try {
       const res = await fetch(`/api/sections/${section.id}`, { method: 'DELETE' });
@@ -205,7 +240,7 @@ export default function BoxModal({
         onMineralCountChanged?.(shelf.id, 0);
       }
     } catch {}
-  }, [shelf.id, onMineralCountChanged, switchView]);
+  }, [currentView, shelf.id, onMineralCountChanged, switchView]);
 
   const totalMinerals = minerals.length;
 
@@ -289,8 +324,6 @@ export default function BoxModal({
                   isAuthenticated={isAuthenticated}
                   onSectionsChanged={onSectionsChanged}
                   onSectionClick={section => switchView({ type: 'section', section })}
-                  externalEditSection={sectionToEdit}
-                  onExternalEditDone={() => setSectionToEdit(null)}
                 />
               </>
             )}
@@ -387,8 +420,8 @@ export default function BoxModal({
               </button>
               {currentView.type === 'section' ? (
                 <>
-                  <button className="btn-minimal" onClick={() => setSectionToEdit(currentView.section)}>Sektion bearbeiten</button>
-                  <button className="btn-minimal danger" onClick={() => handleSectionDeleteFromButton(currentView.section)}>Sektion löschen</button>
+                  <button className="btn-minimal" onClick={() => openSectionEdit(currentView.section)}>Sektion bearbeiten</button>
+                  <button className="btn-minimal danger" onClick={handleSectionDeleteFromButton}>Sektion löschen</button>
                 </>
               ) : (
                 <>
@@ -406,6 +439,19 @@ export default function BoxModal({
           shelf={addMineralsTarget}
           onClose={() => setShowAddMinerals(false)}
           onMineralsAdded={handleMineralsAdded}
+        />
+      )}
+
+      {showSectionEdit && currentView.type === 'section' && (
+        <SectionFormModal
+          editingSection={currentView.section}
+          formData={sectionEditData}
+          setFormData={setSectionEditData}
+          saving={sectionEditSaving}
+          error={sectionEditError}
+          shelf={shelf}
+          onSubmit={handleSectionEditSubmit}
+          onClose={() => setShowSectionEdit(false)}
         />
       )}
     </>

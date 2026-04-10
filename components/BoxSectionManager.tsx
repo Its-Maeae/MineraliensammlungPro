@@ -6,11 +6,9 @@ interface BoxSectionManagerProps {
   isAuthenticated: boolean;
   onSectionsChanged: () => void;
   onSectionClick: (section: ShelfSection) => void;
-  externalEditSection?: ShelfSection | null;
-  onExternalEditDone?: () => void;
 }
 
-interface SectionFormData {
+export interface SectionFormData {
   name: string;
   code: string;
   description: string;
@@ -24,8 +22,6 @@ export default function BoxSectionManager({
   isAuthenticated,
   onSectionsChanged,
   onSectionClick,
-  externalEditSection,
-  onExternalEditDone,
 }: BoxSectionManagerProps) {
   const [sections, setSections] = useState<ShelfSection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,13 +49,6 @@ export default function BoxSectionManager({
   }, [shelf.id]);
 
   useEffect(() => { loadSections(); }, [loadSections]);
-
-  useEffect(() => {
-    if (externalEditSection) {
-      openEdit(externalEditSection);
-      onExternalEditDone?.();
-    }
-  }, [externalEditSection]);
 
   const openAdd = () => {
     setEditingSection(null);
@@ -234,8 +223,8 @@ export default function BoxSectionManager({
   );
 }
 
-// ── Form Modal ────────────────────────────────────────────────────────────────
-interface SectionFormModalProps {
+// ── Form Modal (exported so BoxModal can render it at any time) ───────────────
+export interface SectionFormModalProps {
   editingSection: any;
   formData: SectionFormData;
   setFormData: (d: SectionFormData) => void;
@@ -246,7 +235,7 @@ interface SectionFormModalProps {
   onClose: () => void;
 }
 
-function SectionFormModal({ editingSection, formData, setFormData, saving, error, shelf, onSubmit, onClose }: SectionFormModalProps) {
+export function SectionFormModal({ editingSection, formData, setFormData, saving, error, shelf, onSubmit, onClose }: SectionFormModalProps) {
   return (
     <div className="section-form-overlay" onClick={onClose}>
       <div className="section-form-modal" onClick={e => e.stopPropagation()}>
