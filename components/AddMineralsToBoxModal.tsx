@@ -15,6 +15,8 @@ interface AddMineralsToBoxModalProps {
   shelf: any;
   onClose: () => void;
   onMineralsAdded: () => void;
+  /** Override z-index (default: uses CSS class value ~10000). Use 10002 when stacked above SectionDetailModal. */
+  zIndex?: number;
 }
 
 interface MineralEntry {
@@ -25,7 +27,7 @@ interface MineralEntry {
   errorMessage?: string;
 }
 
-export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded }: AddMineralsToBoxModalProps) {
+export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded, zIndex }: AddMineralsToBoxModalProps) {
   const [entries, setEntries] = useState<MineralEntry[]>([
     { id: genId(), number: '', status: 'idle' },
   ]);
@@ -197,7 +199,7 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded 
   const validCount = entries.filter(e => e.status === 'success').length;
 
   return (
-    <div className="modal-minimal add-minerals-overlay" ref={modalOverlayRef}>
+    <div className="modal-minimal add-minerals-overlay" ref={modalOverlayRef} style={zIndex !== undefined ? { zIndex } : undefined}>
       <div className="modal-content-minimal add-minerals-modal" onClick={e => e.stopPropagation()}>
         <button className="modal-close-minimal" onClick={onClose}>×</button>
 

@@ -340,6 +340,7 @@ export default function BoxModal({
           }}
           onOpenMineralDetails={onOpenMineralDetails}
           onMineralCountChanged={onMineralCountChanged}
+          onSectionsChanged={onSectionsChanged}
         />
       )}
     </>
@@ -353,6 +354,7 @@ interface SectionDetailModalProps {
   onClose: () => void;
   onOpenMineralDetails: (id: number) => void;
   onMineralCountChanged?: (shelfId: number, delta: number) => void;
+  onSectionsChanged?: () => void;
 }
 
 function SectionDetailModal({
@@ -362,6 +364,7 @@ function SectionDetailModal({
   onClose,
   onOpenMineralDetails,
   onMineralCountChanged,
+  onSectionsChanged,
 }: SectionDetailModalProps) {
   const [minerals, setMinerals] = useState<Mineral[]>([]);
   const [loading, setLoading] = useState(true);
@@ -473,18 +476,22 @@ function SectionDetailModal({
       const data = await res.json();
       if (!res.ok) { setSectionEditError(data.error || 'Fehler'); return; }
       setCurrentSection(prev => ({ ...prev, ...sectionEditData }));
+      onSectionsChanged?.();
       setShowSectionEdit(false);
     } catch { setSectionEditError('Verbindungsfehler'); }
     finally { setSectionEditSaving(false); }
-  }, [sectionEditData, currentSection.id]);
+  }, [sectionEditData, currentSection.id, onSectionsChanged]);
 
   const handleSectionDelete = useCallback(async () => {
     if (!confirm(`Sektion "${currentSection.name}" (${currentSection.full_code}) wirklich löschen?`)) return;
     try {
       const res = await fetch(`/api/sections/${currentSection.id}`, { method: 'DELETE' });
-      if (res.ok) onClose();
+      if (res.ok) {
+        onSectionsChanged?.();
+        onClose();
+      }
     } catch {}
-  }, [currentSection, onClose]);
+  }, [currentSection, onClose, onSectionsChanged]);
 
   const addTarget = { ...shelf, _sectionId: currentSection.id, _sectionCode: currentSection.full_code };
 
@@ -602,6 +609,7 @@ function SectionDetailModal({
             loadMinerals(1);
             onMineralCountChanged?.(shelf.id, 0);
           }}
+          zIndex={10002}
         />
       )}
 
