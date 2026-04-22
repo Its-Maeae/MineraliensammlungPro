@@ -1946,6 +1946,8 @@ main {
     color: white;
     transition: all 0.3s ease;
     z-index: 10023;
+    font-weight: 300;
+}
 
 .image-maximized-close:hover {
     background: rgba(255, 255, 255, 0.3);
@@ -1982,6 +1984,10 @@ main {
     left: 50%;
     transform: translateX(-50%);
     z-index: 10022;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     padding: 12px 20px;
     border-radius: 50px;
@@ -2036,6 +2042,11 @@ main {
     left: 50%;
     transform: translateX(-50%);
     z-index: 10021;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
     font-size: 13px;
     font-weight: 500;
     pointer-events: none;
@@ -3124,5 +3135,4 @@ main {
   .hp-strata-labels { height: auto; flex-direction: row; flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem 0 0; }
   .hp-impressum-links { flex-direction: column; align-items: center; }
   .hp-imp-link { width: 100%; max-width: 280px; text-align: center; }
-}
 }
