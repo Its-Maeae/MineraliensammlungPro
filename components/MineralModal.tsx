@@ -7,11 +7,9 @@ interface MineralModalProps {
   onClose: () => void;
   onEdit: (mineral: Mineral) => void;
   onDelete: (type: 'mineral', id: number) => void;
-  /** Override z-index. Defaults to 10003 so it always sits above section/box modals. */
-  zIndex?: number;
 }
 
-export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit, onDelete, zIndex = 10003 }: MineralModalProps) {
+export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit, onDelete }: MineralModalProps) {
   const [isImageMaximized, setIsImageMaximized] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -146,7 +144,7 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
 
   return (
     <>
-      <div ref={modalOverlayRef} className="modal" style={{ display: 'flex', zIndex }}>
+      <div ref={modalOverlayRef} className="modal" style={{ display: 'flex' }}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <span className="close-button" onClick={onClose}>&times;</span>
 

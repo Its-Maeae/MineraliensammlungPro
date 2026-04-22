@@ -1230,7 +1230,7 @@ main {
     inset: 0;
     background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(4px);
-    z-index: 9999;
+    z-index: 10010;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1893,7 +1893,7 @@ main {
     inset: 0;
     background: rgba(0, 0, 0, 0.95);
     backdrop-filter: blur(8px);
-    z-index: 10000;
+    z-index: 10020;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1945,9 +1945,7 @@ main {
     font-size: 24px;
     color: white;
     transition: all 0.3s ease;
-    z-index: 10003;
-    font-weight: 300;
-}
+    z-index: 10023;
 
 .image-maximized-close:hover {
     background: rgba(255, 255, 255, 0.3);
@@ -1983,11 +1981,7 @@ main {
     bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 10002;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.8);
+    z-index: 10022;
     backdrop-filter: blur(10px);
     padding: 12px 20px;
     border-radius: 50px;
@@ -2041,12 +2035,7 @@ main {
     top: 80px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 10001;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
+    z-index: 10021;
     font-size: 13px;
     font-weight: 500;
     pointer-events: none;
@@ -3135,4 +3124,5 @@ main {
   .hp-strata-labels { height: auto; flex-direction: row; flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem 0 0; }
   .hp-impressum-links { flex-direction: column; align-items: center; }
   .hp-imp-link { width: 100%; max-width: 280px; text-align: center; }
+}
 }
