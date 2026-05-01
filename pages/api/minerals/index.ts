@@ -146,7 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             purchase_location, rock_type, shelf_id, image_path, latitude, longitude, is_undetermined, suspected_name
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            undetermined ? 'Unbestimmtes Mineral' : name,
+            undetermined ? 'Unbestimmtes Mineral/Gestein' : name,
             number,
             color || null,
             undetermined ? null : (description || null),

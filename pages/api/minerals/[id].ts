@@ -144,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : null;
 
         // Felder für unbestimmte Mineralien
-        const finalName = undetermined ? 'Unbestimmtes Mineral' : name;
+        const finalName = undetermined ? 'Unbestimmtes Mineral/Gestein' : name;
         const finalColor = color || null;
         const finalDescription = undetermined ? null : (description || null);
         const finalLocation = undetermined ? null : (location || null);

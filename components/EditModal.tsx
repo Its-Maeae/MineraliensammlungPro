@@ -82,7 +82,7 @@ export default function EditModal({
       setFormData({
         ...formData,
         is_undetermined: true,
-        name: 'Unbestimmtes Mineral',
+        name: 'Unbestimmtes Mineral/Gestein',
         description: '',
         location: '',
         purchase_location: '',

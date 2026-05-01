@@ -261,7 +261,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
     if (checked) {
       setFormData(prev => ({
         ...prev,
-        name: 'Unbestimmtes Mineral',
+        name: 'Unbestimmtes Mineral/Gestein',
         description: '', location: '',
         purchase_location: '', rock_type: '',
         is_undetermined: true
@@ -346,7 +346,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         clearFormData();
         // Schalter-Zustand wiederherstellen
         if (wasUndetermined) {
-          setFormData(prev => ({ ...prev, is_undetermined: true, name: 'Unbestimmtes Mineral' }));
+          setFormData(prev => ({ ...prev, is_undetermined: true, name: 'Unbestimmtes Mineral/Gestein' }));
         }
         onSuccess();
         alert('Mineral erfolgreich hinzugefügt!');
@@ -615,7 +615,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
           />
           <span className="toggle-slider" />
         </label>
-        <span className="undetermined-toggle-row-label">Unbestimmtes Mineral</span>
+        <span className="undetermined-toggle-row-label">Unbestimmtes Mineral/Gestein</span>
       </div>
 
     </form>

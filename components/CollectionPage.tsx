@@ -258,7 +258,7 @@ export default function CollectionPage({
           <div className="page-header">
             <div className="page-header-content">
               <div>
-                <h1 className="page-title">Mineraliensammlung</h1>
+                <h1 className="page-title">Mineralien-/ Gesteinsammlung</h1>
                 <p className="page-description">Durchsuchen und filtern Sie die komplette Sammlung</p>
               </div>
               {showPage ? (
@@ -374,9 +374,9 @@ export default function CollectionPage({
 
           <div className="minerals-grid">
             {loading && minerals.length === 0 ? (
-              <div className="loading">Lade Mineralien...</div>
+              <div className="loading">Lade Mineralien/Gesteine...</div>
             ) : minerals.length === 0 ? (
-              <div className="loading">Keine Mineralien gefunden</div>
+              <div className="loading">Keine Mineralien/Gesteine gefunden</div>
             ) : (
               <>
                 {minerals.map(mineral => {
@@ -422,7 +422,7 @@ export default function CollectionPage({
             <div ref={observerTarget} style={{ height: '20px', margin: '20px 0' }}>
               {isLoadingMore && (
                 <div className="loading" style={{ gridColumn: '1 / -1' }}>
-                  Lade weitere Mineralien...
+                  Lade weitere Mineralien/Gesteine ...
                 </div>
               )}
             </div>
@@ -435,7 +435,7 @@ export default function CollectionPage({
               color: 'var(--gray-500)',
               fontSize: 'var(--font-size-sm)',
             }}>
-              Alle Mineralien geladen ({minerals.length} gesamt)
+              Alle Mineralien/Gesteine geladen ({minerals.length} gesamt)
             </div>
           )}
         </div>
