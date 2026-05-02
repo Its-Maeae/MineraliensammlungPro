@@ -231,7 +231,7 @@ export default function VitrinesPage({
         const data = await response.json();
 
         const showcasesWithBoxes = await Promise.all(
-          data.slice(0, 5).map(async (showcase: Showcase) => {
+          data.map(async (showcase: Showcase) => {
             try {
               const detailResponse = await fetch(`/api/showcases/${showcase.id}`);
               if (detailResponse.ok) {
@@ -246,12 +246,7 @@ export default function VitrinesPage({
           })
         );
 
-        const allShowcases = [
-          ...showcasesWithBoxes,
-          ...data.slice(5)
-        ];
-
-        setShowcases(allShowcases);
+        setShowcases(showcasesWithBoxes);
       }
     } catch (error) {
       console.error('Fehler beim Laden der Regale:', error);

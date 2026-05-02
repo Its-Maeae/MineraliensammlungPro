@@ -48,16 +48,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'GET') {
     try {
-      const showcase = await database.get(
-        'SELECT * FROM showcases WHERE id = ?',
-        [id]
-      );
+      // FIX: Aggregate shelf_count and mineral_count directly in the query
+      // so the detail endpoint returns the same stats as the list endpoint.
+      const showcase = await database.get(`
+        SELECT sc.*,
+               COUNT(DISTINCT s.id) as shelf_count,
+               COUNT(DISTINCT m.id) as mineral_count
+        FROM showcases sc
+        LEFT JOIN shelves s ON sc.id = s.showcase_id
+        LEFT JOIN minerals m ON s.id = m.shelf_id
+        WHERE sc.id = ?
+        GROUP BY sc.id
+      `, [id]);
 
       if (!showcase) {
         return res.status(404).json({ error: 'Vitrine nicht gefunden' });
       }
 
-      // Regale dieser Vitrine laden – inkl. section_count pro Box
+      // Regale dieser Vitrine laden – inkl. mineral_count und section_count pro Box
       const shelves = await database.query(`
         SELECT s.*,
                sc.code as showcase_code,
