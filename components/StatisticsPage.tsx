@@ -87,7 +87,7 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
           <div className="page-header-content">
             <div>
               <h1 className="page-title">Sammlungsstatistik</h1>
-              {lastUpdate && (
+              {lastUpdate && isAuthenticated && (
                 <p style={{ fontSize: '0.85em', color: '#666', marginTop: '5px' }}>
                   Letzte Aktualisierung: {lastUpdate.toLocaleTimeString('de-DE')}
                 </p>

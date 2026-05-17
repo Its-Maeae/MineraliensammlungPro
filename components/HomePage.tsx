@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Stats } from '../types';
+import Image from 'next/image'; 
+import ShelfImage from './shelf_main.jpg';
+import First from './first.jpg';
+import Second from './second.jpg';
+import Third from './third.jpg';
+import Fourth from './fourth.jpg';
+import Fifth from './fifth.jpg';
 
 interface HomePageProps {
   showPage: (page: string) => void;
@@ -194,7 +201,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
         <div className="container hp-geo-inner">
 
           
-          <div className="hp-strata-wrap" aria-hidden>
+          {/* <div className="hp-strata-wrap" aria-hidden>
             <svg viewBox="0 0 340 380" className="hp-strata-svg" xmlns="http://www.w3.org/2000/svg">
               {[
                 { y:28,  h:40, ca:'203,213,225', op:0.55 },
@@ -231,11 +238,16 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 <span key={l} className="hp-strata-label">{l}</span>
               ))}
             </div>
+          </div> */}
+
+          <div className='hp-strata-wrap'>
+            <Image src={ShelfImage} alt="Shelf Image" width={300} height={520}/>
           </div>
 
           <div className="hp-geo-text">
             <div className="hp-section-tag">Hintergrund</div>
             <h2 className="hp-section-title">Über dieses Projekt</h2>
+            <br></br>
             <p className="hp-about-body">
               Die Mineraliensammlung ist Eigentum des{' '}
               <strong>Samuel von Pufendorf Gymnasiums Flöha</strong>.
@@ -247,8 +259,72 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               diese Sammlung vollständig zu digitalisieren, zu katalogisieren und für Schüler
               und Interessierte zugänglich zu machen.
             </p>
+            <p className="hp-about-body">
+              Zu dem Zeitpunkt der Sortierung und Digitalisierung befanden sich <em>ca. 600 Gesteine und Mineralien</em> in der Sammlung.
+              Von jedem einzelnem Stück wurden in dem Zeitraum von 6 Monaten Fotos angefertigt und Informationen gesammelt, sowie anschließend digitalisiert.
+            </p>
+             <p className="hp-about-body">
+              Außerdem wurden neue Verbindungen zu Unternehmen und Vereinen hergestellt, um die Sammlung fachgerecht lagern und sortieren zu können. 
+              Dabei spendete die Firma Lagertechnik.de ein Schwergewichtregal und durch die finanzielle Unterstützung des Födervereins für Nachwuchssport e.V. konnten neue Lagerboxen gekauft werden.              
+            </p>
           </div>
         </div>
+        
+
+        <div className='wrapper-timeline'>
+          <div className='hp-timeline-heading'>Zeitstrahl - Ablauf</div>
+          <div className='hp-timeline'>
+            <div className='hp-timeline-item'>
+              <div className='hp-timeline-date'>August 2025</div>
+              <div className='hp-timeline-content'>
+                <h3>Ausgangssituation</h3>
+                <p>Keine Nummerierungen und wenig Ordnung.</p>
+                <Image src={First} alt="Timeline 2025" width={0} height={300} />
+              </div>
+            </div>
+            <div className='hp-timeline-item'>
+              <div className='hp-timeline-date'>November 2025</div>
+              <div className='hp-timeline-content'>
+                <h3>Zwischenstand</h3>
+                <p>Vollständige Nummerierung und erste Ordnung.</p>
+                <Image src={Second} alt="Timeline 2025" width={0} height={300} />
+              </div>
+            </div>
+            <div className='hp-timeline-item'>
+              <div className='hp-timeline-date'>Januar 2026</div>
+              <div className='hp-timeline-content'>
+                <h3>Erste Boxen</h3>
+                <p>Erstmalige Einordnung in Boxen.</p>
+                <Image src={Third} alt="Timeline 2025" width={0} height={300} />
+              </div>
+            </div>
+            <div className='hp-timeline-item'>
+              <div className='hp-timeline-date'>März 2026</div>
+              <div className='hp-timeline-content'>
+                <h3>Aufbau des neuen Regals</h3>
+                <p>Austauschen des alten Regals mit dem neuen.</p>
+                <Image src={Fourth} alt="Timeline 2025" width={0} height={300} />
+              </div>
+            </div>
+            <div className='hp-timeline-item'>
+              <div className='hp-timeline-date'>April 2026</div>
+              <div className='hp-timeline-content'>
+                <h3>Einordnung der Boxen</h3>
+                <p>Einräumen der Boxen in das Regal.</p>
+                <Image src={Fifth} alt="Timeline 2025" width={0} height={300} />
+              </div>
+            </div>
+            <div className='hp-timeline-item'>
+              <div className='hp-timeline-date'>April 2026</div>
+              <div className='hp-timeline-content'>
+                <h3>Nummerierung der Boxen</h3>
+                <p>Vergeben der Nummern für die Boxen.</p>
+                <Image src={ShelfImage} alt="Timeline 2025" width={0} height={300} />
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       
