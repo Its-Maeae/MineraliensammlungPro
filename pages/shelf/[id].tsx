@@ -1,0 +1,1 @@
+export { ShelfRedirectPage as default } from '../../components/QRCodeGenerator';

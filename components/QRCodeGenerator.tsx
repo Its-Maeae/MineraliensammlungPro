@@ -1,5 +1,72 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
+import { useRouter } from 'next/router';
+import { useApp } from '../context/AppContext';
+
+// ─── QR-Code Landing Page (/shelf/[id]) ────────────────────────────────────
+// Diese Komponente wird als pages/shelf/[id].tsx exportiert.
+// Sie lädt das Regal per API und leitet dann zu /vitrines weiter,
+// wo das Regal-Modal automatisch geöffnet ist.
+export function ShelfRedirectPage() {
+  const router = useRouter();
+  const { id } = router.query;
+  const [error, setError] = useState(false);
+  const { loadShowcases, setSelectedShelf, setShelfMinerals, setShowShelfMineralsModal, setLoading } = useApp();
+
+  useEffect(() => {
+    if (!router.isReady || !id) return;
+
+    const openShelf = async () => {
+      setLoading(true);
+      try {
+        const [response] = await Promise.all([
+          fetch(`/api/shelves/${id}/minerals`),
+          loadShowcases(),
+        ]);
+        const data = await response.json();
+        if (response.ok) {
+          setSelectedShelf(data.shelfInfo);
+          setShelfMinerals(data.minerals);
+          setShowShelfMineralsModal(true);
+          router.replace('/vitrines');
+        } else {
+          setError(true);
+        }
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    openShelf();
+  }, [router.isReady, id]);
+
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', minHeight: '60vh', gap: '16px',
+      fontFamily: 'sans-serif', color: '#555',
+    }}>
+      {error ? (
+        <>
+          <span style={{ fontSize: '2rem' }}>⚠️</span>
+          <p>Regal nicht gefunden.</p>
+          <button onClick={() => router.push('/vitrines')} style={{ padding: '8px 16px', cursor: 'pointer' }}>
+            Zur Vitrinen-Übersicht
+          </button>
+        </>
+      ) : (
+        <>
+          <span style={{ fontSize: '2rem' }}>🔍</span>
+          <p>Regal wird geladen…</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── QR-Code Generator Component ───────────────────────────────────────────
 
 interface QRCodeGeneratorProps {
   shelfId: number;
@@ -22,8 +89,8 @@ export default function QRCodeGenerator({
     if (!canvasRef.current) return;
     setIsGenerating(true);
     try {
-      // URL zeigt jetzt auf /map?shelf=... statt /?shelf=...
-      const qrUrl = `${baseUrl}/map?shelf=${shelfId}`;
+      // Direkte Regal-URL: /shelf/42 → öffnet Regal sofort
+      const qrUrl = `${baseUrl}/shelf/${shelfId}`;
 
       await QRCode.toCanvas(canvasRef.current, qrUrl, {
         width: 200,
