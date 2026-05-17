@@ -3132,6 +3132,12 @@ main {
   background: rgba(30,64,175,0.05);
 }
 
+.legal-btn-wrapper{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
 /* ── KEYFRAMES ── */
 @keyframes hp-fadeUp {
   from { opacity: 0; transform: translateY(20px); }

@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 interface LegalPagesProps {
   currentPage: string;
@@ -11,7 +12,11 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
         <div className="container">
           <div className="page-header">
             <h1 className="page-title">Impressum</h1>
-            <p className="page-description">Rechtliche Informationen und Angaben zur Verantwortlichkeit</p>
+          </div>
+          <div className="legal-btn-wrapper">
+            <Link href="/" className='btn btn-primary'>
+                Zurück zur Startseite 
+            </Link>
           </div>
           
           <div className="legal-content">
@@ -57,7 +62,12 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
         <div className="container">
           <div className="page-header">
             <h1 className="page-title">Quellen & Literatur</h1>
-            <p className="page-description">Wissenschaftliche Grundlagen und Referenzen</p>
+          </div>
+
+          <div className="legal-btn-wrapper">
+            <Link href="/" className='btn btn-primary'>
+                Zurück zur Startseite 
+            </Link>
           </div>
           
           <div className="sources-content">
@@ -111,7 +121,12 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
         <div className="container">
           <div className="page-header">
             <h1 className="page-title">Kontakt & Support</h1>
-            <p className="page-description">Haben Sie Fragen zur Sammlung oder benötigen Sie Unterstützung?</p>
+          </div>
+
+          <div className="legal-btn-wrapper">
+            <Link href="/" className='btn btn-primary'>
+                Zurück zur Startseite 
+            </Link>
           </div>
           
           <div className="contact-content">
