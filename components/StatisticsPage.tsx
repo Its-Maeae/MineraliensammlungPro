@@ -87,7 +87,6 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
           <div className="page-header-content">
             <div>
               <h1 className="page-title">Sammlungsstatistik</h1>
-              <p className="page-description">Visualisierung Ihrer Mineraliensammlung</p>
               {lastUpdate && (
                 <p style={{ fontSize: '0.85em', color: '#666', marginTop: '5px' }}>
                   Letzte Aktualisierung: {lastUpdate.toLocaleTimeString('de-DE')}

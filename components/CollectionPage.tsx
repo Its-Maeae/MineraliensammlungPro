@@ -259,7 +259,6 @@ export default function CollectionPage({
             <div className="page-header-content">
               <div>
                 <h1 className="page-title">Mineralien-/ Gesteinsammlung</h1>
-                <p className="page-description">Durchsuchen und filtern Sie die komplette Sammlung</p>
               </div>
               {showPage ? (
                 <button

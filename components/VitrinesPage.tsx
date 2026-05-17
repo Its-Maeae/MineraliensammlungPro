@@ -40,7 +40,6 @@ interface VitrinesPageProps {
   loadStats: () => void;
 }
 
-// ── BoxSquare – zeigt section_count-Badge wenn Sektionen vorhanden ────────────
 const BoxSquare = React.memo(({
   box,
   onBoxClick
@@ -74,7 +73,6 @@ const BoxSquare = React.memo(({
     prevProps.box.section_count === nextProps.box.section_count;
 });
 
-// ── RegalCard ─────────────────────────────────────────────────────────────────
 const RegalCard = React.memo(({
   showcase,
   onClick,
@@ -155,7 +153,6 @@ const RegalCard = React.memo(({
   if (prevProps.showcase.image_path !== nextProps.showcase.image_path) return false;
   if (prevProps.showcase.name !== nextProps.showcase.name) return false;
   if (prevProps.showcase.code !== nextProps.showcase.code) return false;
-  // Vergleich der Boxen-Array-Referenz und -Inhalte
   const prevShelves = prevProps.showcase.shelves ?? [];
   const nextShelves = nextProps.showcase.shelves ?? [];
   if (prevShelves.length !== nextShelves.length) return false;
@@ -169,7 +166,6 @@ const RegalCard = React.memo(({
   return true;
 });
 
-// ── VitrinesPage ──────────────────────────────────────────────────────────────
 export default function VitrinesPage({
   showcases,
   setShowcases,
@@ -305,8 +301,6 @@ export default function VitrinesPage({
     setShelfMinerals([]);
   }, [setShowShelfMineralsModal, setSelectedShelf, setShelfMinerals]);
 
-  // Wenn selectedShelf von außen aktualisiert wird (z.B. nach einem Edit im EditModal),
-  // die entsprechende Box im showcases-Array und im offenen Showcase-Modal synchron halten.
   useEffect(() => {
     if (!selectedShelf) return;
 
@@ -324,14 +318,12 @@ export default function VitrinesPage({
         image_path: selectedShelf.image_path,
       };
       const updated = { ...sc, shelves: updatedShelves };
-      // Cache-Eintrag aktualisieren, damit openShowcaseDetails nicht die veraltete Version zurückgibt
       showcaseCache.current.set(sc.id, updated);
       return updated;
     };
 
     setShowcases(prev => prev.map(applyShelfUpdate));
 
-    // Auch das gerade geöffnete Showcase-Modal aktualisieren
     if (selectedShowcase) {
       setSelectedShowcase(applyShelfUpdate(selectedShowcase));
     }
@@ -393,7 +385,7 @@ export default function VitrinesPage({
       purchase_location: mineral.purchase_location || '',
       rock_type: mineral.rock_type || '',
       shelf_id: mineral.shelf_id || '',
-      section_id: (mineral as any).section_id || '',   // ← NEU
+      section_id: (mineral as any).section_id || '', 
     });
     setEditMode('mineral');
     setEditImage(null);
@@ -572,7 +564,6 @@ export default function VitrinesPage({
             <div className="page-header-content">
               <div>
                 <h1 className="page-title">Regale</h1>
-                <p className="page-description">Organisieren Sie Ihre Sammlung in Regalen und Boxen</p>
               </div>
               {isAuthenticated && (
                 <button

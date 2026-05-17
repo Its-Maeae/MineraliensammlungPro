@@ -8,7 +8,6 @@ interface HomePageProps {
   setLastUpdated: (date: string) => void;
 }
 
-/* ── Animated counter hook ── */
 function useCounter(target: number, duration = 1600) {
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -26,7 +25,6 @@ function useCounter(target: number, duration = 1600) {
   return val;
 }
 
-/* ── Geological canvas: strata + drifting crystal polygons ── */
 function GeoCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -99,31 +97,29 @@ function GeoCanvas() {
   return <canvas ref={ref} className="hp-geo-canvas" />;
 }
 
-/* ── Mountain SVG ── */
 function MountainSVG() {
   return (
     <svg className="hp-mountain-svg" viewBox="0 0 900 300" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-      {/* Back range */}
+      
       <polygon points="0,240 90,110 175,180 260,80 360,155 455,60 550,145 640,95 725,160 810,85 900,130 900,300 0,300" fill="rgba(148,163,184,0.22)" />
-      {/* Mid range */}
+      
       <polygon points="0,290 55,200 120,245 195,155 270,220 355,135 435,205 510,130 595,195 670,148 750,205 825,162 900,188 900,300 0,300" fill="rgba(100,116,139,0.28)" />
-      {/* Front range — sharpest */}
+      
       <polygon points="0,300 0,275 65,210 120,258 185,175 245,238 320,152 390,222 455,168 520,238 590,162 655,228 720,178 790,250 865,192 900,215 900,300" fill="rgba(51,65,85,0.32)" />
-      {/* Crystal peak accents */}
+     
       <polyline points="320,152 342,120 364,152" stroke="rgba(30,64,175,0.45)" strokeWidth="1.5" fill="none" />
       <polyline points="185,175 203,148 221,175" stroke="rgba(14,165,233,0.35)" strokeWidth="1.2" fill="none" />
       <polyline points="455,60 475,32 495,60" stroke="rgba(30,64,175,0.3)" strokeWidth="1" fill="none" />
-      {/* Tectonic fault lines */}
-      <line x1="455" y1="300" x2="440" y2="60" stroke="rgba(30,64,175,0.18)" strokeWidth="1.2" strokeDasharray="5 8" />
+    
       <line x1="260" y1="300" x2="250" y2="80" stroke="rgba(14,165,233,0.13)" strokeWidth="1" strokeDasharray="4 7" />
-      {/* Strata hints */}
+      
       <line x1="0" y1="268" x2="900" y2="262" stroke="rgba(30,64,175,0.08)" strokeWidth="1.5" />
       <line x1="0" y1="282" x2="900" y2="278" stroke="rgba(30,64,175,0.06)" strokeWidth="1" />
     </svg>
   );
 }
 
-/* ── Main component ── */
+
 export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated }: HomePageProps) {
   const [visible, setVisible] = useState(false);
 
@@ -146,7 +142,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
   return (
     <section className={`page active hp-root ${visible ? 'hp-visible' : ''}`}>
 
-      {/* ══ HERO ══ */}
       <div className="hp-hero">
         <GeoCanvas />
         <div className="hp-hero-diagonal" />
@@ -156,12 +151,10 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
             <h1 className="hp-title">
               <span className="hp-title-main">Mineralien</span>
               <span className="hp-title-main hp-title-main--indent">&amp; Gesteine</span>
-              <span className="hp-title-sub">Digitale Sammlung</span>
+              <span className="hp-title-sub">Digitales Archiv</span>
             </h1>
             <p className="hp-lead">
-              Eine vollständig digitalisierte Schulsammlung —
-              systematisch erfasst, interaktiv erkundbar
-              und wissenschaftlich dokumentiert.
+              Entdecke die Sammlungsstücke des Samuel von Pufendorf Gymnasiums Flöha.
             </p>
             <div className="hp-cta-row">
               <button className="hp-btn hp-btn--primary" onClick={() => showPage('collection')}>
@@ -172,38 +165,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               </button>
             </div>
           </div>
-
-          {/* Pure SVG crystal composition — no emojis */}
-          <div className="hp-hero-visual" aria-hidden>
-            <svg className="hp-crystal-svg" viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg">
-              {/* Outer hexagon — rotates in CSS */}
-              <polygon className="hp-svg-spin-slow" points="160,18 272,82 272,210 160,274 48,210 48,82"
-                stroke="rgba(30,64,175,0.3)" strokeWidth="1.5" fill="rgba(30,64,175,0.04)" />
-              {/* Mid hexagon — counter-rotates */}
-              <polygon className="hp-svg-spin-rev" points="160,52 247,101 247,199 160,248 73,199 73,101"
-                stroke="rgba(14,165,233,0.22)" strokeWidth="1" fill="rgba(14,165,233,0.03)" />
-              {/* Central diamond */}
-              <polygon points="160,88 215,160 160,232 105,160"
-                stroke="rgba(30,64,175,0.65)" strokeWidth="2" fill="rgba(30,64,175,0.09)" />
-              {/* Facet lines */}
-              <line x1="160" y1="88" x2="160" y2="232" stroke="rgba(30,64,175,0.22)" strokeWidth="1"/>
-              <line x1="105" y1="160" x2="215" y2="160" stroke="rgba(30,64,175,0.22)" strokeWidth="1"/>
-              <line x1="105" y1="160" x2="160" y2="88" stroke="rgba(14,165,233,0.18)" strokeWidth="0.8"/>
-              <line x1="215" y1="160" x2="160" y2="88" stroke="rgba(14,165,233,0.18)" strokeWidth="0.8"/>
-              <line x1="105" y1="160" x2="160" y2="232" stroke="rgba(14,165,233,0.14)" strokeWidth="0.8"/>
-              <line x1="215" y1="160" x2="160" y2="232" stroke="rgba(14,165,233,0.14)" strokeWidth="0.8"/>
-              {/* Floating corner accents */}
-              <polygon points="160,282 188,314 132,314"
-                stroke="rgba(30,64,175,0.28)" strokeWidth="1.2" fill="rgba(30,64,175,0.06)" />
-              <polygon points="44,48 68,22 92,48 68,74"
-                stroke="rgba(14,165,233,0.22)" strokeWidth="1" fill="rgba(14,165,233,0.04)" />
-              <polygon points="252,24 274,50 252,76 230,50"
-                stroke="rgba(30,64,175,0.18)" strokeWidth="1" fill="rgba(30,64,175,0.03)" />
-              {/* Background strata */}
-              <line x1="28" y1="138" x2="292" y2="150" stroke="rgba(100,116,139,0.14)" strokeWidth="1" strokeDasharray="6 9"/>
-              <line x1="28" y1="168" x2="292" y2="176" stroke="rgba(100,116,139,0.11)" strokeWidth="1" strokeDasharray="6 9"/>
-            </svg>
-          </div>
         </div>
 
         <div className="hp-mountain-wrapper">
@@ -211,7 +172,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
         </div>
       </div>
 
-      {/* ══ STATS ══ */}
+      
       <div className="hp-stats">
         <div className="container hp-stats-grid">
           {[
@@ -229,11 +190,10 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
         </div>
       </div>
 
-      {/* ══ GEOLOGY SECTION ══ */}
       <div className="hp-geo-section">
         <div className="container hp-geo-inner">
 
-          {/* Strata cross-section diagram */}
+          
           <div className="hp-strata-wrap" aria-hidden>
             <svg viewBox="0 0 340 380" className="hp-strata-svg" xmlns="http://www.w3.org/2000/svg">
               {[
@@ -255,13 +215,13 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                   />
                 </g>
               ))}
-              {/* Fault */}
+             
               <line x1="172" y1="0" x2="158" y2="370" stroke="rgba(30,64,175,0.28)" strokeWidth="1.5" strokeDasharray="5 7"/>
-              {/* Intrusion */}
+              
               <polygon points="145,192 170,150 195,192 182,242 158,242"
                 stroke="rgba(30,64,175,0.5)" strokeWidth="1.5" fill="rgba(30,64,175,0.13)" />
               <line x1="160" y1="150" x2="160" y2="242" stroke="rgba(14,165,233,0.3)" strokeWidth="0.9"/>
-              {/* Labels dashes */}
+              
               {[48,94,143,199,260,329].map(y => (
                 <line key={y} x1="340" y1={y} x2="360" y2={y} stroke="rgba(100,116,139,0.35)" strokeWidth="1"/>
               ))}
@@ -291,7 +251,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
         </div>
       </div>
 
-      {/* ══ IMPRESSUM ══ */}
+      
       <div className="hp-impressum">
         <div className="container">
           <div className="hp-section-header">

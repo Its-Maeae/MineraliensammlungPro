@@ -58,7 +58,6 @@ export default function MapPage({
 
   const isMapVisible = currentPage === 'map';
 
-  /* ── Load minerals ── */
   const loadAllMinerals = useCallback(async () => {
     try {
       setLoading(true);
@@ -97,7 +96,6 @@ export default function MapPage({
     };
   }, []);
 
-  /* ── Leaflet bootstrap ── */
   const ensureLeafletLoaded = (): Promise<void> =>
     new Promise((resolve, reject) => {
       if (window.L) { resolve(); return; }
@@ -144,7 +142,6 @@ export default function MapPage({
     try {
       cleanupMap();
       const container = mapRef.current;
-      // Leaflet needs a non-zero height at init time
       if (!container.clientHeight) {
         container.style.height = `${window.innerHeight - 80 - 56}px`;
       }
@@ -165,7 +162,6 @@ export default function MapPage({
     }
   }, [cleanupMap]);
 
-  /* ── Markers ── */
   const colorMap: Record<string, string> = {
     rot:'#ef4444', blau:'#3b82f6', grün:'#22c55e', gelb:'#eab308',
     schwarz:'#374151', weiß:'#f1f5f9', braun:'#92400e',
@@ -233,7 +229,6 @@ export default function MapPage({
     };
   }, [mapMinerals, setSelectedMineral, setShowMineralModal]);
 
-  /* ── Edit / Delete ── */
   const handleEditMineral = (mineral: Mineral) => {
     setEditFormData({
       id: mineral.id, name: mineral.name, number: mineral.number,
@@ -260,7 +255,6 @@ export default function MapPage({
     } catch { alert('Fehler beim Löschen.'); }
   };
 
-  /* ── States ── */
   if (loading) return (
     <section className="page active mp-root mp-visible">
       <div className="mp-state-screen">
@@ -281,21 +275,10 @@ export default function MapPage({
     </section>
   );
 
-  /* ── Main ── */
   return (
     <>
       <section className={`page active mp-root ${visible ? 'mp-visible' : ''}`}>
-
-        {/* ── Thin top bar ── */}
         <div className="mp-topbar">
-          {/* Geo-deco: subtle SVG lines left side */}
-          <svg className="mp-topbar-deco" viewBox="0 0 120 48" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <polygon points="8,40 28,8 48,40"    stroke="rgba(30,64,175,0.22)" strokeWidth="1" fill="rgba(30,64,175,0.05)" />
-            <polygon points="52,36 66,14 80,36"  stroke="rgba(14,165,233,0.18)" strokeWidth="0.8" fill="none" />
-            <polygon points="84,42 96,22 108,42" stroke="rgba(30,64,175,0.14)" strokeWidth="0.7" fill="none" />
-            <line x1="0" y1="44" x2="120" y2="44" stroke="rgba(30,64,175,0.08)" strokeWidth="0.8" />
-          </svg>
-
           <div className="mp-topbar-center">
             <h1 className="mp-topbar-title">Fundortkarte</h1>
             <div className="mp-topbar-stats">
@@ -309,17 +292,8 @@ export default function MapPage({
               </span>
             </div>
           </div>
-
-          {/* Geo-deco right side (mirrored) */}
-          <svg className="mp-topbar-deco mp-topbar-deco--right" viewBox="0 0 120 48" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <polygon points="112,40 92,8 72,40"  stroke="rgba(30,64,175,0.22)" strokeWidth="1" fill="rgba(30,64,175,0.05)" />
-            <polygon points="68,36 54,14 40,36"  stroke="rgba(14,165,233,0.18)" strokeWidth="0.8" fill="none" />
-            <polygon points="36,42 24,22 12,42"  stroke="rgba(30,64,175,0.14)" strokeWidth="0.7" fill="none" />
-            <line x1="0" y1="44" x2="120" y2="44" stroke="rgba(30,64,175,0.08)" strokeWidth="0.8" />
-          </svg>
         </div>
 
-        {/* ── Map ── */}
         <div className="mp-map-area">
           {!mapInitialized && (
             <div className="mp-map-init">
@@ -330,7 +304,6 @@ export default function MapPage({
           <div ref={mapRef} className="mp-map-canvas" style={{ height: '100%', minHeight: 400 }} />
         </div>
 
-        {/* ── Attribution strip ── */}
         <div className="mp-attribution">
           © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
           &nbsp;·&nbsp;Einige Fundorte können ungenau sein

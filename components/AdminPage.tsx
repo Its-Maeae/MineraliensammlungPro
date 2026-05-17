@@ -75,7 +75,6 @@ export default function AdminPage({ isAuthenticated, onSuccess, showPage }: Admi
         <div className="admin-page-header">
           <div>
             <h1 className="page-title">Verwaltung</h1>
-            <p className="page-description">Neue Mineralien zur Sammlung hinzufügen</p>
           </div>
           <button onClick={handleLogout} disabled={loggingOut} className="btn btn-secondary">
             {loggingOut ? 'Wird abgemeldet...' : 'Abmelden'}
@@ -89,8 +88,6 @@ export default function AdminPage({ isAuthenticated, onSuccess, showPage }: Admi
     </section>
   );
 }
-
-// ─── Autocomplete für einfache Textfelder ───────────────────────────────────
 
 function SimpleAutocomplete({
   value, onChange, existingValues, id, placeholder, disabled
@@ -133,7 +130,6 @@ function SimpleAutocomplete({
   );
 }
 
-// ─── Autocomplete für Gesteinsarten ─────────────────────────────────────────
 
 function RockTypeAutocomplete({
   value, onChange, existingRockTypes, disabled
@@ -189,7 +185,6 @@ function RockTypeAutocomplete({
   );
 }
 
-// ─── Hauptformular ───────────────────────────────────────────────────────────
 
 function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?: (page: string) => void }) {
   const getInitialFormData = (): MineralFormData => {
@@ -265,7 +260,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         description: '', location: '',
         purchase_location: '', rock_type: '',
         is_undetermined: true
-        // color und suspected_name werden bewusst beibehalten
       }));
     } else {
       setFormData(prev => ({ ...prev, name: '', is_undetermined: false, suspected_name: '' }));
@@ -344,7 +338,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
       if (res.ok) {
         const wasUndetermined = formData.is_undetermined;
         clearFormData();
-        // Schalter-Zustand wiederherstellen
         if (wasUndetermined) {
           setFormData(prev => ({ ...prev, is_undetermined: true, name: 'Unbestimmtes Mineral/Gestein' }));
         }
@@ -377,7 +370,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* ── Name (versteckt wenn unbestimmt) ── */}
       {!isUndetermined && (
         <div className="form-group">
           <label htmlFor="name">Name des Minerals</label>
@@ -391,7 +383,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       )}
 
-      {/* ── Steinnummer ── */}
       <div className="form-group">
         <label htmlFor="number">Steinnummer</label>
         <div className="number-input-container">
@@ -417,7 +408,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       </div>
 
-      {/* ── Farbe (immer sichtbar, auch bei unbestimmten Mineralien) ── */}
       <div className="form-group">
         <label htmlFor="color">Farbe</label>
         <SimpleAutocomplete
@@ -429,7 +419,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         />
       </div>
 
-      {/* ── Beschreibung (versteckt wenn unbestimmt) ── */}
       {!isUndetermined && (
         <div className="form-group">
           <label htmlFor="description">Beschreibung</label>
@@ -466,7 +455,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       )}
 
-      {/* ── Fundort (versteckt wenn unbestimmt) ── */}
       {!isUndetermined && (
         <div className="form-group">
           <label htmlFor="location">Fundort</label>
@@ -480,7 +468,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       )}
 
-      {/* ── Kaufort (versteckt wenn unbestimmt) ── */}
       {!isUndetermined && (
         <div className="form-group">
           <label htmlFor="purchase_location">Kaufort</label>
@@ -495,7 +482,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       )}
 
-      {/* ── Gesteinsart (versteckt wenn unbestimmt) ── */}
       {!isUndetermined && (
         <div className="form-group">
           <label htmlFor="rock_type">Gesteinsart</label>
@@ -507,7 +493,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       )}
 
-      {/* ── Regal ── */}
       <div className="form-group">
         <label htmlFor="shelf_id">Regal</label>
         <ShelfSelector
@@ -522,7 +507,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         />
       </div>
 
-      {/* ── Vermutung (nur wenn Unbestimmt aktiv) ── */}
       {isUndetermined && (
         <div className="form-group suspected-name-group">
           <label htmlFor="suspected_name">Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
@@ -537,7 +521,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         </div>
       )}
 
-      {/* ── Fundort auf Karte ── */}
       <div className="form-group">
         <label>Fundort auf Karte (optional)</label>
         <MapSelector
@@ -552,7 +535,6 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
         )}
       </div>
 
-      {/* ── Bild ── */}
       <div className="form-group">
         <label htmlFor="image">Bild hochladen</label>
         <div
