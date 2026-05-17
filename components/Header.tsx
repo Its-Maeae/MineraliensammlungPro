@@ -1,18 +1,16 @@
 import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 interface HeaderProps {
-  currentPage: string;
-  showPage: (page: string) => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
 }
 
-export default function Header({ 
-  currentPage, 
-  showPage, 
-  mobileMenuOpen, 
-  setMobileMenuOpen 
-}: HeaderProps) {
+export default function Header({ mobileMenuOpen, setMobileMenuOpen }: HeaderProps) {
+  const router = useRouter();
+  const currentPage = router.pathname === '/' ? 'home' : router.pathname.replace('/', '');
+
   return (
     <header className="header">
       <div className="container">
@@ -24,41 +22,26 @@ export default function Header({
               <span className="logo-subtitle">Samuel von Pufendorf Gymnasium Flöha</span>
             </div>
           </div>
-          
+
           <nav className="nav">
-            <a 
-              className={`nav-link ${currentPage === 'home' ? 'active' : ''}`}
-              onClick={() => showPage('home')}
-            >
+            <Link href="/" className={`nav-link ${currentPage === 'home' ? 'active' : ''}`}>
               Startseite
-            </a>
-            <a 
-              className={`nav-link ${currentPage === 'vitrines' ? 'active' : ''}`}
-              onClick={() => showPage('vitrines')}
-            >
+            </Link>
+            <Link href="/vitrines" className={`nav-link ${currentPage === 'vitrines' ? 'active' : ''}`}>
               Regale
-            </a>
-            <a 
-              className={`nav-link ${currentPage === 'collection' ? 'active' : ''}`}
-              onClick={() => showPage('collection')}
-            >
+            </Link>
+            <Link href="/collection" className={`nav-link ${currentPage === 'collection' ? 'active' : ''}`}>
               Sammlung
-            </a>
-            <a 
-              className={`nav-link ${currentPage === 'map' ? 'active' : ''}`}
-              onClick={() => showPage('map')}
-            >
+            </Link>
+            <Link href="/map" className={`nav-link ${currentPage === 'map' ? 'active' : ''}`}>
               Karte
-            </a>
-            <a 
-              className={`nav-link ${currentPage === 'admin' ? 'active' : ''}`}
-              onClick={() => showPage('admin')}
-            >
+            </Link>
+            <Link href="/admin" className={`nav-link ${currentPage === 'admin' ? 'active' : ''}`}>
               Verwaltung
-            </a>
+            </Link>
           </nav>
-          
-          <div 
+
+          <div
             className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >

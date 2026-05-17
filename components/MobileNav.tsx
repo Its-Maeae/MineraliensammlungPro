@@ -1,18 +1,19 @@
 import React from 'react';
+import Link from 'next/link';
 
 interface MobileNavProps {
   mobileMenuOpen: boolean;
-  showPage: (page: string) => void;
+  onClose: () => void;
 }
 
-export default function MobileNav({ mobileMenuOpen, showPage }: MobileNavProps) {
+export default function MobileNav({ mobileMenuOpen, onClose }: MobileNavProps) {
   return (
     <div className={`mobile-nav ${mobileMenuOpen ? 'active' : ''}`}>
-      <a className="mobile-nav-link" onClick={() => showPage('home')}>Startseite</a>
-      <a className="mobile-nav-link" onClick={() => showPage('vitrines')}>Regale</a>
-      <a className="mobile-nav-link" onClick={() => showPage('collection')}>Sammlung</a>
-      <a className="mobile-nav-link" onClick={() => showPage('map')}>Karte</a>
-      <a className="mobile-nav-link" onClick={() => showPage('admin')}>Verwaltung</a>
+      <Link className="mobile-nav-link" href="/" onClick={onClose}>Startseite</Link>
+      <Link className="mobile-nav-link" href="/vitrines" onClick={onClose}>Regale</Link>
+      <Link className="mobile-nav-link" href="/collection" onClick={onClose}>Sammlung</Link>
+      <Link className="mobile-nav-link" href="/map" onClick={onClose}>Karte</Link>
+      <Link className="mobile-nav-link" href="/admin" onClick={onClose}>Verwaltung</Link>
     </div>
   );
 }

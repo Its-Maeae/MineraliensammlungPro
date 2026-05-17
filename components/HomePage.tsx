@@ -351,7 +351,16 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
               </div>
             ))}
 
-            <div className="hp-imp-card hp-imp-card--wide">
+            <div className="hp-imp-card hp-imp-card--contrib">
+              <p className="hp-imp-contrib-label">Mitwirkende</p>
+              <div className="hp-imp-contrib-list">
+                {['Marius Schmieder','Charlie Espig','Manuela Barthel','Matthias Albrecht','Lagertechnik.de'].map(n => (
+                  <span key={n} className="hp-imp-contrib-name">{n}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="hp-imp-card hp-imp-card">
               <div className="hp-imp-avatar hp-imp-avatar--school">SvP</div>
               <div>
                 <p className="hp-imp-name">Samuel von Pufendorf Gymnasium Flöha</p>
@@ -359,15 +368,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
                 <a className="hp-imp-mail" href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
                   gymnasium-floeha.de
                 </a>
-              </div>
-            </div>
-
-            <div className="hp-imp-card hp-imp-card--contrib">
-              <p className="hp-imp-contrib-label">Mitwirkende</p>
-              <div className="hp-imp-contrib-list">
-                {['Marius Schmieder','Charlie Espig','Manuela Barthel','Matthias Albrecht','Lagertechnik.de'].map(n => (
-                  <span key={n} className="hp-imp-contrib-name">{n}</span>
-                ))}
               </div>
             </div>
 
