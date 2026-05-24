@@ -161,8 +161,6 @@ export default function LegalPages({ currentPage }: LegalPagesProps) {
                   <a href="https://gymnasium-floeha.de" target="_blank" rel="noopener noreferrer">
                     gymnasium-floeha.de
                   </a></p>
-                <p><strong>Sammlung:</strong><br/>
-                  Diese Webanwendung</p>
               </div>
             </div>
             

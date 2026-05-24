@@ -1,11 +1,3 @@
-/* ================================================
-   MAP PAGE  –  slim topbar + full-height map
-   ================================================ */
-
-/* ── Root ──
-   .page.active forces display:block – override back to flex.
-   height (not min-height) is required so children can use height:100%.
-── */
 .mp-root {
   opacity: 0;
   transform: translateY(8px);
@@ -23,24 +15,27 @@
   transform: translateY(0);
 }
 
-/* ── Top bar ── */
 .mp-topbar {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 450;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 56px;
-  flex-shrink: 0;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: 6px 50px 8px;
   background: var(--white);
-  border-bottom: 1px solid var(--gray-200);
-  overflow: hidden;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--gray-200);
+  border-top: none;
+  white-space: nowrap;
 }
 
 .mp-topbar-deco {
-  width: 120px;
-  height: 48px;
-  flex-shrink: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .mp-topbar-center {
@@ -48,8 +43,6 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  flex: 1;
-  min-width: 0;
 }
 
 .mp-topbar-title {
@@ -90,12 +83,10 @@
   background: var(--gray-300);
 }
 
-/* ── Map area ── */
 .mp-map-area {
   position: relative;
   flex: 1;
-  /* explicit height so Leaflet never sees 0 */
-  height: calc(100vh - var(--header-height) - 56px);
+  height: calc(100vh - var(--header-height));
   min-height: 400px;
   overflow: hidden;
 }
@@ -106,7 +97,6 @@
   min-height: 400px;
 }
 
-/* ── Map init overlay ── */
 .mp-map-init {
   position: absolute;
   inset: 0;
@@ -123,7 +113,6 @@
   font-weight: 500;
 }
 
-/* ── Loading / error states ── */
 .mp-state-screen {
   display: flex;
   flex-direction: column;
@@ -142,7 +131,6 @@
   font-weight: 600;
 }
 
-/* ── Spinner ── */
 .mp-spinner {
   width: 36px;
   height: 36px;
@@ -156,7 +144,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Attribution ── */
 .mp-attribution {
   position: absolute;
   bottom: 6px;
@@ -181,7 +168,6 @@
 
 .mp-attribution a:hover { text-decoration: underline; }
 
-/* ── Leaflet overrides ── */
 .leaflet-container {
   font-family: var(--font-family) !important;
 }
@@ -201,14 +187,14 @@
   margin-top: -1px;
 }
 
-/* ── Responsive ── */
+.leaflet-popup-content p {
+  margin: 3px !important;
+}
+
 @media (max-width: 600px) {
   .mp-topbar {
-    height: 48px;
-  }
-
-  .mp-topbar-deco {
-    width: 80px;
+    padding: 5px 14px 7px;
+    border-radius: 0 0 16px 16px;
   }
 
   .mp-topbar-title {

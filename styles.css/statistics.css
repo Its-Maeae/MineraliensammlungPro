@@ -1,4 +1,77 @@
-/* Statistics Page Styles */
+.stats-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+    margin-top: 30px;
+}
+
+.stats-overview-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-6) var(--space-4);
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    animation: hp-fadeUp 0.5s ease both;
+    animation-delay: var(--delay, 0s);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.stats-overview-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.stats-overview-value {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.stats-overview-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-500);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+@keyframes hp-fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .stats-overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+    }
+
+    .stats-overview-value {
+        font-size: var(--font-size-2xl);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-overview-card {
+        padding: var(--space-4) var(--space-3);
+    }
+
+    .stats-overview-value {
+        font-size: var(--font-size-xl);
+    }
+
+    .stats-overview-label {
+        font-size: 11px;
+    }
+}
 
 .chart-container {
     background: var(--white);
@@ -228,6 +301,7 @@
     font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--gray-700);
+    margin-top: -20px;
 }
 
 .chart-summary {
@@ -300,7 +374,6 @@
     color: var(--gray-500);
 }
 
-/* Tablet Anpassungen */
 @media (max-width: 1024px) {
     .chart-header h2 {
         font-size: var(--font-size-xl);
@@ -321,7 +394,6 @@
     }
 }
 
-/* Mobile Anpassungen */
 @media (max-width: 768px) {
     .chart-container {
         padding: var(--space-6);
@@ -336,7 +408,6 @@
         font-size: var(--font-size-lg);
     }
 
-    /* Slider für Mobile optimiert */
     .chart-type-buttons {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -354,7 +425,6 @@
         width: 100%;
     }
 
-    /* Animierter Hintergrund für Grid-Layout */
     .chart-type-buttons::before {
         width: calc((100% - 12px) / 2);
         height: calc((100% - 18px) / 2);
@@ -471,7 +541,6 @@
     }
 }
 
-/* Kleine Mobile-Geräte */
 @media (max-width: 480px) {
     .chart-container {
         padding: var(--space-4);
@@ -485,7 +554,6 @@
         font-size: var(--font-size-base);
     }
 
-    /* Slider noch kompakter */
     .chart-type-buttons {
         max-width: 280px;
         padding: 5px;
@@ -635,7 +703,6 @@
     }
 }
 
-/* Sehr kleine Displays */
 @media (max-width: 360px) {
     .chart-type-buttons {
         max-width: 260px;

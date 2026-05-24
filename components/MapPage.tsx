@@ -143,7 +143,7 @@ export default function MapPage({
       cleanupMap();
       const container = mapRef.current;
       if (!container.clientHeight) {
-        container.style.height = `${window.innerHeight - 80 - 56}px`;
+        container.style.height = `${window.innerHeight - 80}px`;
       }
       const map = window.L.map(container, {
         center: [51.1657, 10.4515], zoom: 6,
@@ -193,14 +193,14 @@ export default function MapPage({
 
         const colorHtml = mineral.color
           ? `<div class="mp-popup-row">
-               <span class="mp-popup-swatch" style="background:${col}"></span>
+               <span>Farbe</span>
                <span class="mp-popup-row-text">${mineral.color}</span>
              </div>`
           : '';
 
         const locationHtml = mineral.location
           ? `<div class="mp-popup-row">
-               <span class="mp-popup-icon">📍</span>
+               <span>Fundort</span>
                <span class="mp-popup-row-text">${mineral.location}</span>
              </div>`
           : '';
@@ -283,12 +283,7 @@ export default function MapPage({
             <h1 className="mp-topbar-title">Fundortkarte</h1>
             <div className="mp-topbar-stats">
               <span className="mp-stat-chip">
-                <span className="mp-stat-dot" style={{ background: 'var(--primary-light)' }} />
                 {mapMinerals.length} Fundorte
-              </span>
-              <span className="mp-stat-divider" />
-              <span className="mp-stat-chip">
-                {new Set(mapMinerals.map(m => m.name)).size} Mineralarten
               </span>
             </div>
           </div>
@@ -325,9 +320,8 @@ export default function MapPage({
         .mp-dot {
           width: 14px; height: 14px;
           background: var(--c, #1e40af);
-          border: 2px solid rgba(255,255,255,0.9);
+          border: 2px solid rgba(232, 221, 221, 0.9);
           border-radius: 50%;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.28);
           transition: transform 0.12s ease;
         }
         .mp-dot:hover { transform: scale(1.4); }
@@ -410,7 +404,7 @@ export default function MapPage({
         .mp-popup-btn {
           margin-top: 8px; width: 100%;
           padding: 7px 0;
-          background: linear-gradient(135deg, #1e40af, #3b82f6);
+          background: var(--primary-color);
           color: #fff; border: none;
           border-radius: 6px; cursor: pointer;
           font-size: 12px; font-weight: 600;

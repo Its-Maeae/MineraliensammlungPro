@@ -113,13 +113,7 @@ function MountainSVG() {
       <polygon points="0,290 55,200 120,245 195,155 270,220 355,135 435,205 510,130 595,195 670,148 750,205 825,162 900,188 900,300 0,300" fill="rgba(100,116,139,0.28)" />
       
       <polygon points="0,300 0,275 65,210 120,258 185,175 245,238 320,152 390,222 455,168 520,238 590,162 655,228 720,178 790,250 865,192 900,215 900,300" fill="rgba(51,65,85,0.32)" />
-     
-      <polyline points="320,152 342,120 364,152" stroke="rgba(30,64,175,0.45)" strokeWidth="1.5" fill="none" />
-      <polyline points="185,175 203,148 221,175" stroke="rgba(14,165,233,0.35)" strokeWidth="1.2" fill="none" />
-      <polyline points="455,60 475,32 495,60" stroke="rgba(30,64,175,0.3)" strokeWidth="1" fill="none" />
     
-      <line x1="260" y1="300" x2="250" y2="80" stroke="rgba(14,165,233,0.13)" strokeWidth="1" strokeDasharray="4 7" />
-      
       <line x1="0" y1="268" x2="900" y2="262" stroke="rgba(30,64,175,0.08)" strokeWidth="1.5" />
       <line x1="0" y1="282" x2="900" y2="278" stroke="rgba(30,64,175,0.06)" strokeWidth="1" />
     </svg>
@@ -180,22 +174,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
       </div>
 
       
-      <div className="hp-stats">
-        <div className="container hp-stats-grid">
-          {[
-            { value: cMin, label: 'Mineralien', shape: 'hex' },
-            { value: cLoc, label: 'Fundorte',   shape: 'dia' },
-            { value: cCol, label: 'Farben',     shape: 'tri' },
-            { value: cShl, label: 'Regale',     shape: 'sqr' },
-          ].map((s, i) => (
-            <div className="hp-stat" key={i} style={{ '--delay': `${i * 0.1}s` } as React.CSSProperties}>
-              <div className={`hp-stat-shape hp-stat-shape--${s.shape}`} />
-              <span className="hp-stat-value">{s.value}</span>
-              <span className="hp-stat-label">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       <div className="hp-geo-section">
         <div className="container hp-geo-inner">
@@ -324,9 +303,7 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
             </div>
           </div>
         </div>
-
       </div>
-
       
       <div className="hp-impressum">
         <div className="container">
@@ -337,12 +314,11 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
 
           <div className="hp-impressum-grid">
             {[
-              { init:'MS', name:'Marius Schmieder', role:'Schüler der 10c', mail:'marius-schmieder@gymnasium-floeha.lernsax.de' },
-              { init:'CE', name:'Charlie Espig',    role:'Schüler der 10c', mail:'charlie-espig@gymnasium-floeha.lernsax.de' },
-              { init:'MB', name:'Manuela Barthel',  role:'Lehrerin — Geografie', mail:'manuela-barthel@gymnasium-floeha.lernsax.de' },
+              {  name:'Marius Schmieder', role:'Schüler der 10c', mail:'marius-schmieder@gymnasium-floeha.lernsax.de' },
+              {  name:'Charlie Espig',    role:'Schüler der 10c', mail:'charlie-espig@gymnasium-floeha.lernsax.de' },
+              {  name:'Manuela Barthel',  role:'Lehrerin — Geografie', mail:'manuela-barthel@gymnasium-floeha.lernsax.de' },
             ].map(p => (
-              <div key={p.init} className="hp-imp-card">
-                <div className="hp-imp-avatar">{p.init}</div>
+              <div className="hp-imp-card">
                 <div>
                   <p className="hp-imp-name">{p.name}</p>
                   <p className="hp-imp-role">{p.role}</p>
@@ -361,7 +337,6 @@ export default function HomePage({ showPage, stats, lastUpdated, setLastUpdated 
             </div>
 
             <div className="hp-imp-card hp-imp-card">
-              <div className="hp-imp-avatar hp-imp-avatar--school">SvP</div>
               <div>
                 <p className="hp-imp-name">Samuel von Pufendorf Gymnasium Flöha</p>
                 <p className="hp-imp-role">Turnerstraße 16 · 09557 Flöha, Deutschland</p>

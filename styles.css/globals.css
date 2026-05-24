@@ -795,12 +795,6 @@ main {
     transition: all var(--transition-normal);
 }
 
-.contact-card:hover {
-    background: var(--white);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
 .contact-card h3 {
     font-size: var(--font-size-lg);
     font-weight: 600;
@@ -865,7 +859,6 @@ main {
     background: var(--gray-50);
     padding: var(--space-5);
     border-radius: var(--radius-lg);
-    border-left: 4px solid var(--primary-color);
 }
 
 .info-item h4 {
@@ -2749,7 +2742,7 @@ main {
   background: #ffffff;
   border-top: 1px solid rgba(30,64,175,0.1);
   border-bottom: 1px solid rgba(30,64,175,0.08);
-  padding: 3.5rem 0;
+  padding: 2.5rem 0;
   position: relative;
   z-index: 2;
 }

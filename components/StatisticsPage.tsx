@@ -5,10 +5,35 @@ interface ChartDataItem {
   count: number;
 }
 
+interface CollectionStats {
+  total_minerals: number;
+  total_locations: number;
+  total_colors: number;
+  total_shelves: number;
+}
+
 interface StatisticsPageProps {
   currentPage: string;
   showPage?: (page: string) => void;
   isAuthenticated?: boolean;
+  stats?: CollectionStats;
+}
+
+function useCounter(target: number, duration = 1600) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!target) return;
+    let frame = 0;
+    const steps = 60;
+    const id = setInterval(() => {
+      frame++;
+      const ease = 1 - Math.pow(1 - frame / steps, 3);
+      setVal(Math.floor(ease * target));
+      if (frame >= steps) clearInterval(id);
+    }, duration / steps);
+    return () => clearInterval(id);
+  }, [target, duration]);
+  return val;
 }
 
 const chartTypes = [
@@ -18,16 +43,28 @@ const chartTypes = [
   { value: 'location', label: 'Fundort' },
 ];
 
-export default function StatisticsPage({ currentPage, showPage, isAuthenticated }: StatisticsPageProps) {
+export default function StatisticsPage({ currentPage, showPage, isAuthenticated, stats }: StatisticsPageProps) {
   const [chartType, setChartType] = useState<string>('name');
   const [chartData, setChartData] = useState<ChartDataItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [localStats, setLocalStats] = useState<CollectionStats | null>(stats ?? null);
+
+  const cMin = useCounter(localStats?.total_minerals ?? 0);
+  const cLoc = useCounter(localStats?.total_locations ?? 0);
+  const cCol = useCounter(localStats?.total_colors ?? 0);
+  const cShl = useCounter(localStats?.total_shelves ?? 0);
 
   useEffect(() => {
     if (currentPage === 'statistics') {
       loadChartData();
+      if (!stats) {
+        fetch('/api/stats')
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (d) setLocalStats(d); })
+          .catch(() => {});
+      }
     }
   }, [chartType, currentPage]);
 
@@ -55,7 +92,6 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
         throw new Error('Ungültiges Datenformat');
       }
       
-      // Nur die Top 7 Einträge anzeigen
       setChartData(data.slice(0, 7));
       setLastUpdate(new Date());
     } catch (error) {
@@ -87,7 +123,8 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
           <div className="page-header-content">
             <div>
               <h1 className="page-title">Sammlungsstatistik</h1>
-              {lastUpdate && isAuthenticated && (
+              <p className="page-description">Visualisierung Ihrer Mineraliensammlung</p>
+              {lastUpdate && (
                 <p style={{ fontSize: '0.85em', color: '#666', marginTop: '5px' }}>
                   Letzte Aktualisierung: {lastUpdate.toLocaleTimeString('de-DE')}
                 </p>
@@ -222,6 +259,20 @@ export default function StatisticsPage({ currentPage, showPage, isAuthenticated 
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="stats-overview-grid">
+              {[
+                { value: cMin, label: 'Mineralien',},
+                { value: cLoc, label: 'Fundorte',  },
+                { value: cCol, label: 'Farben',   },
+                { value: cShl, label: 'Regale',   },
+              ].map((s, i) => (
+                <div className="stats-overview-card" key={i} style={{ '--delay': `${i * 0.08}s` } as React.CSSProperties}>
+                  <span className="stats-overview-value">{s.value}</span>
+                  <span className="stats-overview-label">{s.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
