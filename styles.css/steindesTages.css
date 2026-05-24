@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════
+   Stein des Tages
+   ═══════════════════════════════════════════════════════ */
+
+.sdtag-wrapper {
+  margin-bottom: 2rem;
+}
+
+.sdtag-loading {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--gray-500, #6b7280);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+/* --- Kopfzeile --- */
+.sdtag-header {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.sdtag-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--primary, #7c5cbf);
+  background: color-mix(in srgb, var(--primary, #7c5cbf) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary, #7c5cbf) 25%, transparent);
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+}
+
+.sdtag-gem {
+  font-size: 0.6rem;
+  opacity: 0.6;
+}
+
+.sdtag-date {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--gray-500, #6b7280);
+}
+
+/* --- Karte --- */
+.sdtag-card {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  background: var(--card-bg, var(--white, #fff));
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sdtag-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary, #7c5cbf) 6%, transparent) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.sdtag-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--primary, #7c5cbf) 15%, transparent);
+  border-color: color-mix(in srgb, var(--primary, #7c5cbf) 40%, transparent);
+}
+
+.sdtag-card:focus-visible {
+  outline: 2px solid var(--primary, #7c5cbf);
+  outline-offset: 2px;
+}
+
+/* --- Bild --- */
+.sdtag-image-wrap {
+  flex-shrink: 0;
+  width: 130px;
+  height: 130px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+  background: var(--gray-100, #f3f4f6);
+}
+
+.sdtag-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sdtag-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+/* Schimmer-Overlay beim Hover */
+.sdtag-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.sdtag-card:hover .sdtag-shimmer {
+  opacity: 1;
+  animation: sdtag-shine 0.7s ease forwards;
+}
+
+@keyframes sdtag-shine {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* --- Textbereich --- */
+.sdtag-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sdtag-name {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--gray-900, #111827);
+  word-break: break-word;
+}
+
+.sdtag-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sdtag-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary, #7c5cbf) 12%, transparent);
+  color: var(--primary, #7c5cbf);
+  border: 1px solid color-mix(in srgb, var(--primary, #7c5cbf) 22%, transparent);
+}
+
+.sdtag-location {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--gray-600, #4b5563);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sdtag-icon {
+  font-size: 0.9rem;
+}
+
+.sdtag-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--gray-600, #4b5563);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sdtag-cta {
+  margin-top: auto;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary, #7c5cbf);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.sdtag-card:hover .sdtag-cta {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* --- Responsive --- */
+@media (max-width: 540px) {
+  .sdtag-card {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sdtag-image-wrap {
+    width: 100%;
+    height: 180px;
+  }
+}

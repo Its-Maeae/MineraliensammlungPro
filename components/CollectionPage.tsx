@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { Mineral } from '../types';
 import MineralModal from './MineralModal';
 import EditModal from './EditModal';
+import SteinDesTages from './SteinDesTages';
 
 interface FilterOptions {
   colors: string[];
@@ -279,6 +280,8 @@ export default function CollectionPage({
               )}
             </div>
           </div>
+
+          {/* <SteinDesTages onOpenMineral={openMineralDetails} /> */}
 
           <div className="search-filter-container">
             <div className="search-section">
