@@ -110,7 +110,6 @@ export default function ShowcaseModal({
           </div>
         )}
 
-        {/* Regale der Vitrine anzeigen */}
         {showcase.shelves && showcase.shelves.length > 0 && (
           <div style={{ marginTop: '30px' }}>
             <h3>Regale in dieser Vitrine</h3>

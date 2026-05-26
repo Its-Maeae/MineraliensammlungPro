@@ -15,12 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Token erforderlich' });
       }
 
-      // Verhindere, dass der Admin seine eigene Session beendet
       if (token === req.sessionToken) {
         return res.status(400).json({ error: 'Sie können Ihre eigene Session nicht beenden' });
       }
 
-      // Session löschen
       const result = await database.run(
         'DELETE FROM admin_sessions WHERE token = ?',
         [token]

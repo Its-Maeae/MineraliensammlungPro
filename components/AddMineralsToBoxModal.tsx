@@ -7,15 +7,9 @@ const genId = (): string =>
     : Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 interface AddMineralsToBoxModalProps {
-  /**
-   * shelf object. When a section is targeted, it carries extra fields:
-   *   _sectionId: number
-   *   _sectionCode: string  (full code like "V01-01-A")
-   */
   shelf: any;
   onClose: () => void;
   onMineralsAdded: () => void;
-  /** Override z-index (default: uses CSS class value ~10000). Use 10002 when stacked above SectionDetailModal. */
   zIndex?: number;
 }
 
@@ -36,7 +30,6 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded,
   const modalOverlayRef = useRef<HTMLDivElement>(null);
   const lastInputRef = useRef<HTMLInputElement>(null);
 
-  // Are we targeting a section or the box directly?
   const targetSectionId: number | undefined = shelf._sectionId;
   const targetCode: string = shelf._sectionCode ?? shelf.full_code;
 
@@ -74,7 +67,6 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded,
       return;
     }
 
-    // Check if already in target section
     if (targetSectionId && mineral!.section_id === targetSectionId) {
       setEntries(prev => prev.map(e => e.id === id ? {
         ...e, status: 'error', mineral, errorMessage: 'Bereits in dieser Sektion'
@@ -82,7 +74,6 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded,
       return;
     }
 
-    // Check if in box (no section target) and already there
     if (!targetSectionId && mineral!.shelf_id === shelf.id && !mineral!.section_id) {
       setEntries(prev => prev.map(e => e.id === id ? {
         ...e, status: 'error', mineral, errorMessage: 'Bereits direkt in dieser Box'
@@ -90,7 +81,6 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded,
       return;
     }
 
-    // Warn if already assigned elsewhere
     const assignedElsewhere =
       targetSectionId
         ? (mineral!.section_id && mineral!.section_id !== targetSectionId)
@@ -161,9 +151,7 @@ export default function AddMineralsToBoxModal({ shelf, onClose, onMineralsAdded,
         formData.append('location', entry.mineral!.location || '');
         formData.append('purchase_location', entry.mineral!.purchase_location || '');
         formData.append('rock_type', entry.mineral!.rock_type || '');
-        // Always set shelf_id
         formData.append('shelf_id', shelf.id.toString());
-        // Set section_id if targeting a section, else clear it
         if (targetSectionId) {
           formData.append('section_id', targetSectionId.toString());
         } else {

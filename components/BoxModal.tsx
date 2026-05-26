@@ -17,7 +17,6 @@ interface BoxModalProps {
   onMineralCountChanged?: (shelfId: number, delta: number) => void;
 }
 
-/** Section modal state */
 type SectionModal =
   | null
   | { section: ShelfSection };
@@ -41,14 +40,14 @@ export default function BoxModal({
 
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
-  // Sections state
-  const [hasSections, setHasSections] = useState<boolean | null>(null); // null = unknown
+
+  const [hasSections, setHasSections] = useState<boolean | null>(null);
   const [sectionsRefreshKey, setSectionsRefreshKey] = useState(0);
 
-  // Sections state
+
   const [openSectionModal, setOpenSectionModal] = useState<SectionModal>(null);
 
-  // Mineral lazy loading
+
   const [minerals, setMinerals] = useState<Mineral[]>(initialMinerals);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -57,7 +56,6 @@ export default function BoxModal({
   const observerTarget = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
 
-  // ── Mineral loading ────────────────────────────────────────────────────────
   const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
     if (append) setIsLoadingMore(true);
     else setLoading(true);
@@ -82,7 +80,6 @@ export default function BoxModal({
     }
   }, [shelf.id]);
 
-  // ── Check whether the shelf has sections on mount ─────────────────────────
   useEffect(() => {
     fetch(`/api/sections?shelf_id=${shelf.id}`)
       .then(r => r.ok ? r.json() : [])
@@ -90,7 +87,6 @@ export default function BoxModal({
       .catch(() => setHasSections(false));
   }, [shelf.id, sectionsRefreshKey]);
 
-  // ── Infinite scroll ───────────────────────────────────────────────────────
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -107,7 +103,6 @@ export default function BoxModal({
     return () => { if (t) observer.unobserve(t); };
   }, [hasMore, isLoadingMore, loading, page, loadMinerals]);
 
-  // Initial load
   useEffect(() => {
     if (initialMinerals.length === 0) {
       loadMinerals(1, false);
@@ -160,7 +155,6 @@ export default function BoxModal({
     onMineralCountChanged?.(shelf.id, 0);
   }, [shelf.id, onMineralCountChanged]);
 
-  // ── Close on backdrop click ───────────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -181,7 +175,6 @@ export default function BoxModal({
         <div className="modal-content-minimal" onClick={e => e.stopPropagation()}>
           <button className="modal-close-minimal" onClick={onClose}>×</button>
 
-          {/* Header */}
           <div className="modal-header-minimal">
             <h2 className="modal-title-minimal">
               {shelf.shelf_name || shelf.name}
@@ -214,7 +207,6 @@ export default function BoxModal({
               </>
             )}
 
-            {/* ── Section Manager ── */}
             <>
               <div className="section-divider" />
               <BoxSectionManager
@@ -226,7 +218,6 @@ export default function BoxModal({
               />
             </>
 
-            {/* ── Minerals area: only show if no sections ── */}
             {hasSections === false && (
               <>
                 <div className="section-divider" />
@@ -302,7 +293,6 @@ export default function BoxModal({
             )}
           </div>
 
-          {/* ── Admin buttons ── */}
           {isAuthenticated && (
             <div className="admin-buttons-minimal">
               {canAddDirectly && (
@@ -328,7 +318,6 @@ export default function BoxModal({
         />
       )}
 
-      {/* ── Section Modal (separate overlay) ── */}
       {openSectionModal && (
         <SectionDetailModal
           section={openSectionModal.section}
@@ -347,7 +336,6 @@ export default function BoxModal({
     </>
   );
 }
-// ── SectionDetailModal ─────────────────────────────────────────────────────
 interface SectionDetailModalProps {
   section: ShelfSection;
   shelf: any;
@@ -427,7 +415,6 @@ function SectionDetailModal({
     return () => { if (t) observer.unobserve(t); };
   }, [hasMore, isLoadingMore, loading, page, loadMinerals]);
 
-  // Close on backdrop click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (overlayRef.current && e.target === overlayRef.current) onClose();

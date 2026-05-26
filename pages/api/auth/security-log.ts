@@ -9,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
     try {
-      // Erstelle blocked_ips Tabelle falls nicht vorhanden
       try {
         await database.run(`
           CREATE TABLE IF NOT EXISTS blocked_ips (
@@ -23,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Hinweis: blocked_ips Tabelle bereits vorhanden oder Fehler beim Erstellen');
       }
 
-      // Fehlgeschlagene Login-Versuche der letzten 7 Tage
       const failedLogins = await database.query(`
         SELECT ip_address, 
                COUNT(*) as attempts,
@@ -36,10 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         LIMIT 50
       `, [Date.now() - (7 * 24 * 60 * 60 * 1000)]);
 
-      // Aktive Sessions - Prüfe erst welche Spalten existieren
       let activeSessions = [];
       try {
-        // Versuche mit allen Spalten
         activeSessions = await database.query(`
           SELECT token, user_id, ip_address, 
                  expires_at, last_activity, created_at
@@ -48,7 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ORDER BY last_activity DESC
         `, [Date.now()]);
       } catch (err) {
-        // Fallback ohne created_at
         console.log('Verwende Fallback für Sessions ohne created_at Spalte');
         activeSessions = await database.query(`
           SELECT token, user_id, ip_address, 
@@ -60,7 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `, [Date.now()]);
       }
 
-      // Blockierte IP-Adressen
       let blockedIPs = [];
       try {
         blockedIPs = await database.query(`
@@ -74,7 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         blockedIPs = [];
       }
 
-      // Statistiken
       const stats = {
         total_failed_24h: await database.get(`
           SELECT COUNT(*) as count 

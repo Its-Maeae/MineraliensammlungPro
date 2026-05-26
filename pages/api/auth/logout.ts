@@ -8,7 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const cookies = parse(req.headers.cookie || '');
       const sessionToken = cookies.admin_session;
 
-      // Session aus Datenbank löschen
       if (sessionToken) {
         await database.run(
           'DELETE FROM admin_sessions WHERE token = ?',
@@ -16,7 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
       }
 
-      // Cookie löschen
       const cookie = serialize('admin_session', '', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

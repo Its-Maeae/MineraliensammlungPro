@@ -25,7 +25,6 @@ interface CollectionPageProps {
   setRockTypeFilter: (type: string) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
-  // ── Von index.tsx nach unten gereicht ──
   showUndetermined: 'all' | 'only' | 'hide';
   setShowUndetermined: (val: 'all' | 'only' | 'hide') => void;
   filterOptions: FilterOptions;
@@ -95,14 +94,8 @@ export default function CollectionPage({
   const observerTarget = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
 
-  // Ref damit append-Aufrufe immer den aktuellen minerals-Array sehen
   const mineralsRef = useRef<Mineral[]>(minerals);
   useEffect(() => { mineralsRef.current = minerals; }, [minerals]);
-
-  // loadMinerals baut seinen fetch aus den Props auf.
-  // Da showUndetermined jetzt ein Prop ist, wird loadMinerals bei jeder
-  // Änderung eines Filters (inkl. showUndetermined) neu erstellt,
-  // und der useEffect darunter feuert dann den neuen Fetch.
   const loadMinerals = useCallback(async (pageNum: number, append: boolean = false) => {
     if (append) setIsLoadingMore(true);
     else setLoading(true);
@@ -132,8 +125,6 @@ export default function CollectionPage({
       if (append) setIsLoadingMore(false);
       else setLoading(false);
     }
-  // setLoading / setMinerals sind stabile Props-Referenzen aus useState
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, colorFilter, locationFilter, rockTypeFilter, sortBy, showUndetermined]);
 
   const loadFilterOptions = async () => {
@@ -215,7 +206,6 @@ export default function CollectionPage({
     }
   };
 
-  // Infinite Scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -233,15 +223,12 @@ export default function CollectionPage({
 
   useEffect(() => { loadFilterOptions(); }, []);
 
-  // Dieser Effect feuert bei JEDER Filteränderung – inkl. showUndetermined,
-  // weil loadMinerals als useCallback von allen Filterwerten abhängt.
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     loadMinerals(1, false);
   }, [loadMinerals]);
 
-  // Nach externem Reload (z.B. nach Bearbeiten eines Minerals)
   useEffect(() => {
     if (reloadTrigger !== undefined && reloadTrigger > 0) {
       setMinerals([]);
@@ -249,7 +236,6 @@ export default function CollectionPage({
       setHasMore(true);
       loadMinerals(1, false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reloadTrigger]);
 
   return (
@@ -281,7 +267,6 @@ export default function CollectionPage({
             </div>
           </div>
 
-          {/* <SteinDesTages onOpenMineral={openMineralDetails} /> */}
 
           <div className="search-filter-container">
             <div className="search-section">
@@ -342,7 +327,6 @@ export default function CollectionPage({
             </div>
           </div>
 
-          {/* Aktive-Filter-Leiste – hasActiveFilters ist true wenn showUndetermined !== 'all' */}
           {hasActiveFilters && (
             <div className="filter-info show">
               <strong>Aktive Filter:</strong>
@@ -358,7 +342,6 @@ export default function CollectionPage({
                   <span className="filter-tag filter-tag-undetermined">Unbestimmte ausgeblendet</span>
                 )}
               </div>
-              {/* clearFilters() setzt in index.tsx auch showUndetermined auf 'all' zurück */}
               <button className="clear-filters" onClick={clearFilters}>
                 Filter zurücksetzen
               </button>

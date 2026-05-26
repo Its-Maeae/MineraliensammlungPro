@@ -172,7 +172,6 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
           <p className="page-description">Überwachung und Verwaltung der Systemsicherheit</p>
         </div>
         
-        {/* Statistiken Grid */}
         <div className="stats-grid">
           <div className="stat-card-sec variant-danger">
             <span className="stat-number">{securityLog.stats.failed_logins_24h}</span>
@@ -194,8 +193,6 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
             <span className="stat-label">Blockierte IP-Adressen</span>
           </div>
         </div>
-
-        {/* Blockierte IP-Adressen */}
         {securityLog.blockedIPs && securityLog.blockedIPs.length > 0 && (
           <div className="security-section">
             <h2 className="security-section-title">
@@ -241,8 +238,6 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
             </div>
           </div>
         )}
-
-        {/* Aktive Sessions */}
         <div className="security-section">
           <h2 className="security-section-title">
             Aktive Sessions
@@ -323,8 +318,6 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
             </div>
           )}
         </div>
-
-        {/* Fehlgeschlagene Login-Versuche */}
         <div className="security-section">
           <h2 className="security-section-title">
             Fehlgeschlagene Login-Versuche (7 Tage)
@@ -386,7 +379,6 @@ export default function SecurityDashboard({ showPage }: SecurityDashboardProps) 
           )}
         </div>
 
-        {/* Zurück und Aktualisieren Buttons */}
         <div className="security-actions">
           <button 
             onClick={() => showPage && showPage('admin')}

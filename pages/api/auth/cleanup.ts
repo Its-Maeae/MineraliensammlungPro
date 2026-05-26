@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import database from '../../../lib/database';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Nur von localhost oder mit einem geheimen Token erlauben
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.authorization;
 
@@ -16,19 +15,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const now = Date.now();
 
-      // Abgelaufene Sessions löschen
       const sessionsResult = await database.run(
         'DELETE FROM admin_sessions WHERE expires_at < ?',
         [now]
       );
 
-      // Alte Login-Versuche löschen (älter als 24 Stunden)
       const attemptsResult = await database.run(
         'DELETE FROM login_attempts WHERE attempted_at < ?',
         [now - (24 * 60 * 60 * 1000)]
       );
 
-      // Inaktive Sessions löschen (älter als 30 Tage)
       const inactiveResult = await database.run(
         'DELETE FROM admin_sessions WHERE last_activity < ?',
         [now - (30 * 24 * 60 * 60 * 1000)]

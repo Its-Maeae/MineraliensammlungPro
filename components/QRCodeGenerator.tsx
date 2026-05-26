@@ -3,10 +3,6 @@ import QRCode from 'qrcode';
 import { useRouter } from 'next/router';
 import { useApp } from '../context/AppContext';
 
-// ─── QR-Code Landing Page (/shelf/[id]) ────────────────────────────────────
-// Diese Komponente wird als pages/shelf/[id].tsx exportiert.
-// Sie lädt das Regal per API und leitet dann zu /vitrines weiter,
-// wo das Regal-Modal automatisch geöffnet ist.
 export function ShelfRedirectPage() {
   const router = useRouter();
   const { id } = router.query;
@@ -66,7 +62,6 @@ export function ShelfRedirectPage() {
   );
 }
 
-// ─── QR-Code Generator Component ───────────────────────────────────────────
 
 interface QRCodeGeneratorProps {
   shelfId: number;
@@ -89,7 +84,6 @@ export default function QRCodeGenerator({
     if (!canvasRef.current) return;
     setIsGenerating(true);
     try {
-      // Direkte Regal-URL: /shelf/42 → öffnet Regal sofort
       const qrUrl = `${baseUrl}/shelf/${shelfId}`;
 
       await QRCode.toCanvas(canvasRef.current, qrUrl, {

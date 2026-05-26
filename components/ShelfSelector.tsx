@@ -84,7 +84,6 @@ export default function ShelfSelector({
     return sections?.find(s => s.id.toString() === selectedSectionId.toString()) ?? null;
   }, [sectionsMap, selectedShelfId, selectedSectionId]);
 
-  // Load sections for a shelf
   const loadSections = useCallback(async (shelfId: number) => {
     if (sectionsMap[shelfId] !== undefined) return; // already loaded
     setLoadingShelfId(shelfId);
@@ -103,7 +102,6 @@ export default function ShelfSelector({
     }
   }, [sectionsMap]);
 
-  // When a shelf is selected or the dropdown opens, pre-load sections for the selected shelf
   useEffect(() => {
     if (selectedShelfId) {
       loadSections(Number(selectedShelfId));
@@ -126,7 +124,6 @@ export default function ShelfSelector({
     }
   }, [isOpen]);
 
-  // Expand the currently selected shelf when opening
   useEffect(() => {
     if (isOpen && selectedShelfId) {
       setExpandedShelfId(Number(selectedShelfId));
@@ -138,20 +135,17 @@ export default function ShelfSelector({
     const shelfId = shelf.id;
     const sections = sectionsMap[shelfId];
 
-    // Load sections if not yet loaded
     if (sections === undefined) {
       loadSections(shelfId);
       setExpandedShelfId(shelfId);
       return;
     }
 
-    // If shelf has sections, toggle expand instead of selecting directly
     if (sections.length > 0) {
       setExpandedShelfId(expandedShelfId === shelfId ? null : shelfId);
       return;
     }
 
-    // No sections → select the shelf directly
     onChange({ shelf_id: shelfId.toString(), section_id: '' });
     setIsOpen(false);
     setSearchTerm('');
@@ -256,7 +250,6 @@ export default function ShelfSelector({
 
                       return (
                         <div key={shelf.id}>
-                          {/* ── Shelf row ── */}
                           <div
                             className={`shelf-selector-option ${isShelfSelected && !selectedSectionId ? 'selected' : ''} ${hasSections ? 'has-sections' : ''}`}
                             onClick={() => handleShelfClick(shelf)}
@@ -290,7 +283,6 @@ export default function ShelfSelector({
                             </div>
                           </div>
 
-                          {/* ── Section rows ── */}
                           {isExpanded && hasSections && (
                             <div className="shelf-selector-sections">
                               {sections.map(section => {

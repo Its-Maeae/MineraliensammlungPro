@@ -26,7 +26,6 @@ const VirtualizedMineralGrid = React.memo(({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Cleanup old observer
     if (observerRef.current) {
       observerRef.current.disconnect();
     }

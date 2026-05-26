@@ -4,10 +4,9 @@ import { serialize } from 'cookie';
 import crypto from 'crypto';
 import database from '../../../lib/database';
 
-// Rate-Limiting in Memory
 const loginAttempts = new Map<string, { count: number; resetTime: number }>();
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 Minuten
+const LOCKOUT_DURATION = 15 * 60 * 1000; 
 
 function getClientIP(req: NextApiRequest): string {
   const forwarded = req.headers['x-forwarded-for'];
@@ -52,7 +51,6 @@ async function logLoginAttempt(ip: string, success: boolean) {
 
 async function isIPBlocked(ip: string): Promise<boolean> {
   try {
-    // Erstelle Tabelle falls nicht vorhanden
     await database.run(`
       CREATE TABLE IF NOT EXISTS blocked_ips (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,7 +83,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Passwort erforderlich' });
       }
 
-      // Prüfe ob IP blockiert ist
       const blocked = await isIPBlocked(clientIP);
       if (blocked) {
         console.log('🚫 Blockierte IP versucht Login:', clientIP);
@@ -96,7 +93,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Rate-Limiting prüfen
       const rateLimitCheck = checkRateLimit(clientIP);
       if (!rateLimitCheck.allowed) {
         await logLoginAttempt(clientIP, false);
@@ -106,7 +102,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Admin-Benutzer aus der Datenbank laden
       const adminUser = await database.get('SELECT * FROM admin_users WHERE id = 1');
 
       if (!adminUser) {
@@ -114,7 +109,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: 'Admin-Benutzer nicht gefunden' });
       }
 
-      // Passwort überprüfen
       const isValid = await bcrypt.compare(password, adminUser.password_hash);
 
       if (!isValid) {
@@ -126,22 +120,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Bei erfolgreichem Login: Rate-Limit zurücksetzen
       loginAttempts.delete(clientIP);
       await logLoginAttempt(clientIP, true);
 
-      // Sicheren Session-Token generieren
       const sessionToken = generateSecureToken();
-      const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 Stunden
+      const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
 
       console.log('✅ Login erfolgreich, erstelle Session...');
       console.log('🔑 Token (erste 10 Zeichen):', sessionToken.substring(0, 10) + '...');
       console.log('⏰ Läuft ab:', new Date(expiresAt).toISOString());
 
-      // Alte Sessions des Users löschen (optional: nur wenn man nur eine Session pro User will)
-      // await database.run('DELETE FROM admin_sessions WHERE user_id = ?', [adminUser.id]);
-
-      // Session in Datenbank speichern
       const insertResult = await database.run(
         'INSERT INTO admin_sessions (token, user_id, expires_at, ip_address, last_activity, created_at) VALUES (?, ?, ?, ?, ?, ?)',
         [sessionToken, adminUser.id, expiresAt, clientIP, Date.now(), Date.now()]
@@ -149,13 +137,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('💾 Session in DB gespeichert, ID:', insertResult.id);
 
-      // Cookie mit korrekten Einstellungen setzen
       const isProduction = process.env.NODE_ENV === 'production';
       const cookie = serialize('admin_session', sessionToken, {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? 'strict' : 'lax',
-        maxAge: 24 * 60 * 60, // 24 Stunden
+        maxAge: 24 * 60 * 60,
         path: '/'
       });
 

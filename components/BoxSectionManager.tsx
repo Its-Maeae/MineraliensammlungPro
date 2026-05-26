@@ -6,7 +6,6 @@ interface BoxSectionManagerProps {
   isAuthenticated: boolean;
   onSectionsChanged: () => void;
   onSectionClick: (section: ShelfSection) => void;
-  /** Increment this value from the parent to trigger a reload of sections. */
   refreshKey?: number;
 }
 
@@ -130,10 +129,9 @@ export default function BoxSectionManager({
   const moveUp = (idx: number) => { if (idx > 0) handleSwap(sections[idx], sections[idx - 1]); };
   const moveDown = (idx: number) => { if (idx < sections.length - 1) handleSwap(sections[idx], sections[idx + 1]); };
 
-  // Don't render while loading
+
   if (loading) return null;
 
-  // No sections: only admins see the "+ Sektion" button, no empty state message
   if (sections.length === 0) {
     if (!isAuthenticated) return null;
     return (
@@ -226,7 +224,6 @@ export default function BoxSectionManager({
   );
 }
 
-// ── Form Modal (exported so BoxModal can render it at any time) ───────────────
 export interface SectionFormModalProps {
   editingSection: any;
   formData: SectionFormData;

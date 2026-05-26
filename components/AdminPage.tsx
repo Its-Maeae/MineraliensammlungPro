@@ -586,8 +586,7 @@ function MineralForm({ onSuccess, showPage }: { onSuccess: () => void; showPage?
           Security-Logs
         </button>
       </div>
-
-      {/* ── Unbestimmt-Schalter – klein, oben, klar ── */}
+      
       <div className="undetermined-toggle-row">
         <label className="toggle-switch">
           <input

@@ -21,10 +21,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
 
   const isUndetermined = !!(mineral as any).is_undetermined;
 
-  // ── Standort-Code berechnen ───────────────────────────────────────────────
-  // V01-01-A  wenn Sektion vorhanden
-  // V01-01    wenn nur Box
-  // Nicht zugeordnet
   const locationCode = (() => {
     if (!mineral.shelf_code) return 'Nicht zugeordnet';
     const base = `${mineral.showcase_code}-${mineral.shelf_code}`;
@@ -197,7 +193,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               </>
             )}
 
-            {/* Farbe auch bei unbestimmten Mineralien anzeigen */}
             {isUndetermined && mineral.color && (
               <div className="detail-item">
                 <span className="detail-label">Farbe:</span>
@@ -205,7 +200,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
               </div>
             )}
 
-            {/* ── Standort: V01-01 oder V01-01-A ── */}
             <div className="detail-item">
               <span className="detail-label">Standort:</span>
               <span className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -262,7 +256,6 @@ export default function MineralModal({ mineral, isAuthenticated, onClose, onEdit
         </div>
       </div>
 
-      {/* Maximiertes Bild mit Zoom */}
       {isImageMaximized && mineral.image_path && (
         <div
           ref={containerRef}

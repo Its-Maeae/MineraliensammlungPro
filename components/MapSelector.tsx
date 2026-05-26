@@ -136,7 +136,6 @@ export default function MapSelector({ latitude, longitude, onLocationSelect }: M
 
   const clearLocation = () => {
     clearMarker();
-    // Signal that coordinates should be cleared (using 0 as the clear signal)
     onLocationSelect(0, 0);
   };
 

@@ -3,7 +3,6 @@ import { Showcase } from '../types';
 import MapSelector from './MapSelector';
 import ShelfSelector from './ShelfSelector';
 
-// ── EditModal ─────────────────────────────────────────────────────────────────
 
 interface EditModalProps {
   editMode: 'mineral' | 'showcase' | 'shelf';
@@ -72,7 +71,6 @@ export default function EditModal({
     };
   }, [onClose]);
 
-  // ── Wenn Box/Sektion wechselt ──────────────────────────────────────────────
   const handleShelfChange = useCallback(({ shelf_id, section_id }: { shelf_id: string; section_id: string }) => {
     setFormData({ ...formData, shelf_id, section_id });
   }, [formData, setFormData]);
@@ -115,7 +113,6 @@ export default function EditModal({
         }
       });
 
-      // section_id explizit senden, auch wenn leer (damit es gecleart werden kann)
       if (editMode === 'mineral') {
         formDataToSend.set('section_id', formData.section_id?.toString() || '');
         formDataToSend.set('shelf_id', formData.shelf_id?.toString() || '');
@@ -183,7 +180,6 @@ export default function EditModal({
               if (r.ok) {
                 const updatedShowcase = await r.json();
                 setSelectedShowcase(updatedShowcase);
-                // Showcase im Array aktualisieren damit Boxen sofort sichtbar sind
                 setShowcases(prev => prev.map(sc =>
                   sc.id === updatedShowcase.id ? updatedShowcase : sc
                 ));
@@ -220,7 +216,6 @@ export default function EditModal({
         <form onSubmit={handleUpdateSubmit}>
           {editMode === 'mineral' && (
             <>
-              {/* ── Unbestimmt-Schalter ── */}
               <div className="undetermined-toggle-card" style={{ marginBottom: '16px' }}>
                 <div className="undetermined-toggle-content">
                   <div className="undetermined-toggle-text">
@@ -242,7 +237,6 @@ export default function EditModal({
                 </label>
               </div>
 
-              {/* ── Vermuteter Name (nur wenn unbestimmt) ── */}
               {isUndetermined && (
                 <div className="form-group suspected-name-group">
                   <label>Vermuteter Mineralname <span className="label-optional">(optional)</span></label>
@@ -256,7 +250,6 @@ export default function EditModal({
                 </div>
               )}
 
-              {/* ── Name ── */}
               {!isUndetermined && (
                 <div className="form-group">
                   <label>Name des Minerals</label>
@@ -278,8 +271,6 @@ export default function EditModal({
                   required
                 />
               </div>
-
-              {/* ── Farbe (immer sichtbar) ── */}
               <div className="form-group">
                 <label>Farbe</label>
                 <input
@@ -347,7 +338,6 @@ export default function EditModal({
                 </>
               )}
 
-              {/* ── Box / Sektions-Zuordnung ── */}
               <div className="form-group">
                 <label>Box / Sektion</label>
                 <ShelfSelector

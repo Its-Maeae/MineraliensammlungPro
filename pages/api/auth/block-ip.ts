@@ -18,7 +18,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return requireAuth(req, res, async (req: AuthenticatedRequest, res) => {
     try {
-      // Erstelle Tabelle falls nicht vorhanden
       await database.run(`
         CREATE TABLE IF NOT EXISTS blocked_ips (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,13 +33,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'IP-Adresse erforderlich' });
       }
 
-      // Verhindere, dass der Admin seine eigene IP blockiert
       const currentIP = getClientIP(req);
       if (ip === currentIP) {
         return res.status(400).json({ error: 'Sie können Ihre eigene IP-Adresse nicht blockieren' });
       }
 
-      // Prüfe ob IP bereits blockiert ist
       const existing = await database.get(
         'SELECT * FROM blocked_ips WHERE ip_address = ?',
         [ip]
@@ -50,13 +47,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'IP-Adresse ist bereits blockiert' });
       }
 
-      // IP-Adresse blockieren
       await database.run(
         'INSERT INTO blocked_ips (ip_address, blocked_at, reason) VALUES (?, ?, ?)',
         [ip, Date.now(), reason || 'Manuell blockiert']
       );
 
-      // Alle Sessions dieser IP beenden
       await database.run(
         'DELETE FROM admin_sessions WHERE ip_address = ?',
         [ip]

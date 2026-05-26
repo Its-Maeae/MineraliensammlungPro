@@ -20,7 +20,6 @@ export default function PasswordModal({
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
   
-  // Move useEffect to top level of component
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -59,7 +58,6 @@ export default function PasswordModal({
         setPassword('');
         setRemainingAttempts(null);
       } else if (response.status === 429) {
-        // Rate-Limiting
         setErrorMessage(data.error || 'Zu viele Anmeldeversuche');
         setRemainingAttempts(null);
       } else if (response.status === 401) {

@@ -261,7 +261,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Redirect nach erfolgreichem Login
   useEffect(() => {
     if (isAuthenticated) {
       const pendingPage = sessionStorage.getItem('pendingPage');
@@ -278,7 +277,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     checkAuthentication();
   }, []);
 
-  // Navigation – ersetzt das alte showPage()
   const showPage = (page: string) => {
     if (page === 'admin' || page === 'security') {
       if (!isAuthenticated) {

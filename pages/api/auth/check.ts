@@ -31,14 +31,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('🔑 Session Token gefunden (erste 10 Zeichen):', sessionToken.substring(0, 10) + '...');
 
-      // Alle Sessions zur Diagnose auflisten
       const allSessions = await database.query('SELECT token, user_id, expires_at, ip_address FROM admin_sessions');
       console.log('📊 Alle Sessions in DB:', allSessions.length);
       allSessions.forEach((s, i) => {
         console.log(`  Session ${i + 1}: Token=${s.token.substring(0, 10)}..., User=${s.user_id}, Expires=${new Date(s.expires_at).toISOString()}`);
       });
 
-      // Session aus Datenbank laden
       const session = await database.get(
         'SELECT * FROM admin_sessions WHERE token = ?',
         [sessionToken]
@@ -62,7 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ipAddress: session.ip_address
       });
 
-      // Ablaufzeit prüfen
       const now = Date.now();
       console.log('⏰ Jetzt:', new Date(now).toISOString());
       console.log('⏰ Läuft ab:', new Date(session.expires_at).toISOString());
@@ -82,8 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         });
       }
-
-      // Session-Aktivität aktualisieren
+      
       await database.run(
         'UPDATE admin_sessions SET last_activity = ? WHERE token = ?',
         [now, sessionToken]

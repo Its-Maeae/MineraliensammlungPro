@@ -15,7 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'IP-Adresse erforderlich' });
       }
 
-      // Blockierung aufheben
       const result = await database.run(
         'DELETE FROM blocked_ips WHERE ip_address = ?',
         [ip]
